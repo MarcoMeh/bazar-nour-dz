@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 export const Footer = () => {
   return (
     <footer className="bg-primary text-primary-foreground mt-auto">
@@ -29,6 +31,9 @@ export const Footer = () => {
         
         <div className="border-t border-primary-foreground/20 mt-8 pt-6 text-center text-sm opacity-90">
           <p>© 2025 بازارنا. جميع الحقوق محفوظة.</p>
+          <Link to="/admin/login" className="inline-block mt-3 text-xs opacity-40 hover:opacity-100 transition-opacity">
+            إدارة
+          </Link>
         </div>
       </div>
     </footer>
