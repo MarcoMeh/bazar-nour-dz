@@ -11,7 +11,7 @@ import logo from '@/assets/bazzarna-logo.jpeg';
 const AdminLogin = () => {
   const navigate = useNavigate();
   const { login, isAdmin } = useAdmin();
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -25,6 +25,7 @@ const AdminLogin = () => {
     e.preventDefault();
     setLoading(true);
 
+    const email = `${username}@bazzarna.com`;
     const { error } = await login(email, password);
 
     if (error) {
@@ -48,15 +49,15 @@ const AdminLogin = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="email">البريد الإلكتروني</Label>
+            <Label htmlFor="username">اسم المستخدم</Label>
             <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@gmail.com"
+              id="username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="admin1730"
               required
-              autoComplete="email"
+              autoComplete="username"
             />
           </div>
 
