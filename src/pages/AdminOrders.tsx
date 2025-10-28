@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Trash2 } from 'lucide-react';
 import logo from '@/assets/bazzarna-logo.jpeg';
 
 const AdminOrders = () => {
@@ -48,6 +48,26 @@ const AdminOrders = () => {
     }
 
     toast.success('تم تحديث حالة الطلب');
+    fetchOrders();
+  };
+
+  const handleDelete = async (orderId: string) => {
+    if (!confirm('هل أنت متأكد من حذف هذا الطلب؟')) return;
+    
+    setLoading(true);
+    const { error } = await supabase
+      .from('orders')
+      .delete()
+      .eq('id', orderId);
+    
+    setLoading(false);
+
+    if (error) {
+      toast.error('حدث خطأ في حذف الطلب');
+      return;
+    }
+
+    toast.success('تم حذف الطلب');
     fetchOrders();
   };
 
@@ -108,22 +128,32 @@ const AdminOrders = () => {
                   <TableCell>{getStatusBadge(order.status)}</TableCell>
                   <TableCell>{new Date(order.created_at).toLocaleDateString('ar-DZ')}</TableCell>
                   <TableCell>
-                    <Select
-                      value={order.status}
-                      onValueChange={(value) => handleStatusChange(order.id, value)}
-                      disabled={loading}
-                    >
-                      <SelectTrigger className="w-[140px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pending">قيد الانتظار</SelectItem>
-                        <SelectItem value="processing">قيد المعالجة</SelectItem>
-                        <SelectItem value="shipped">تم الشحن</SelectItem>
-                        <SelectItem value="delivered">تم التوصيل</SelectItem>
-                        <SelectItem value="cancelled">ملغي</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="flex gap-2">
+                      <Select
+                        value={order.status}
+                        onValueChange={(value) => handleStatusChange(order.id, value)}
+                        disabled={loading}
+                      >
+                        <SelectTrigger className="w-[140px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">قيد الانتظار</SelectItem>
+                          <SelectItem value="processing">قيد المعالجة</SelectItem>
+                          <SelectItem value="shipped">تم الشحن</SelectItem>
+                          <SelectItem value="delivered">تم التوصيل</SelectItem>
+                          <SelectItem value="cancelled">ملغي</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        onClick={() => handleDelete(order.id)}
+                        disabled={loading}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

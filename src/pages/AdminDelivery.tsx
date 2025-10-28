@@ -18,6 +18,9 @@ const AdminDelivery = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editPrice, setEditPrice] = useState('');
   const [loading, setLoading] = useState(false);
+  const [deliveryTypes, setDeliveryTypes] = useState({ home: 0, desk: 0 });
+  const [editingType, setEditingType] = useState<'home' | 'desk' | null>(null);
+  const [typePrice, setTypePrice] = useState('');
 
   useEffect(() => {
     if (!isAdmin) {
@@ -25,6 +28,7 @@ const AdminDelivery = () => {
       return;
     }
     fetchWilayas();
+    fetchDeliveryTypes();
   }, [isAdmin, navigate]);
 
   const fetchWilayas = async () => {
@@ -33,6 +37,21 @@ const AdminDelivery = () => {
       .select('*')
       .order('code', { ascending: true });
     setWilayas(data || []);
+  };
+
+  const fetchDeliveryTypes = async () => {
+    const { data } = await supabase
+      .from('delivery_types')
+      .select('*');
+    
+    if (data) {
+      const homeDelivery = data.find(d => d.type === 'home');
+      const deskDelivery = data.find(d => d.type === 'desk');
+      setDeliveryTypes({
+        home: homeDelivery?.price || 0,
+        desk: deskDelivery?.price || 0
+      });
+    }
   };
 
   const handleEdit = (wilaya: any) => {
@@ -64,6 +83,40 @@ const AdminDelivery = () => {
     setEditPrice('');
   };
 
+  const handleTypeEdit = (type: 'home' | 'desk') => {
+    setEditingType(type);
+    setTypePrice(deliveryTypes[type].toString());
+  };
+
+  const handleTypeSave = async () => {
+    if (!editingType) return;
+    
+    setLoading(true);
+    const { error } = await supabase
+      .from('delivery_types')
+      .upsert({ 
+        type: editingType, 
+        price: parseFloat(typePrice),
+        name_ar: editingType === 'home' ? 'التوصيل للمنزل' : 'التوصيل للمكتب'
+      }, { onConflict: 'type' });
+    
+    setLoading(false);
+
+    if (error) {
+      toast.error('حدث خطأ في التحديث');
+      return;
+    }
+
+    toast.success('تم تحديث رسوم التوصيل');
+    setEditingType(null);
+    fetchDeliveryTypes();
+  };
+
+  const handleTypeCancel = () => {
+    setEditingType(null);
+    setTypePrice('');
+  };
+
   if (!isAdmin) return null;
 
   return (
@@ -81,9 +134,75 @@ const AdminDelivery = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">رسوم التوصيل حسب الولاية</h1>
+        <h1 className="text-3xl font-bold mb-8">رسوم التوصيل</h1>
+
+        <Card className="p-6 mb-6">
+          <h2 className="text-xl font-bold mb-4">رسوم التوصيل حسب النوع</h2>
+          <div className="grid md:grid-cols-2 gap-4">
+            <Card className="p-4">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="font-bold">التوصيل للمنزل</h3>
+                {editingType !== 'home' && (
+                  <Button size="sm" variant="outline" onClick={() => handleTypeEdit('home')}>
+                    تعديل
+                  </Button>
+                )}
+              </div>
+              {editingType === 'home' ? (
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={typePrice}
+                    onChange={(e) => setTypePrice(e.target.value)}
+                    className="w-32"
+                  />
+                  <Button size="sm" onClick={handleTypeSave} disabled={loading}>
+                    حفظ
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={handleTypeCancel} disabled={loading}>
+                    إلغاء
+                  </Button>
+                </div>
+              ) : (
+                <p className="text-2xl font-bold">{deliveryTypes.home} دج</p>
+              )}
+            </Card>
+            
+            <Card className="p-4">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="font-bold">التوصيل للمكتب</h3>
+                {editingType !== 'desk' && (
+                  <Button size="sm" variant="outline" onClick={() => handleTypeEdit('desk')}>
+                    تعديل
+                  </Button>
+                )}
+              </div>
+              {editingType === 'desk' ? (
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={typePrice}
+                    onChange={(e) => setTypePrice(e.target.value)}
+                    className="w-32"
+                  />
+                  <Button size="sm" onClick={handleTypeSave} disabled={loading}>
+                    حفظ
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={handleTypeCancel} disabled={loading}>
+                    إلغاء
+                  </Button>
+                </div>
+              ) : (
+                <p className="text-2xl font-bold">{deliveryTypes.desk} دج</p>
+              )}
+            </Card>
+          </div>
+        </Card>
 
         <Card className="p-6">
+          <h2 className="text-xl font-bold mb-4">رسوم التوصيل حسب الولاية</h2>
           <Table>
             <TableHeader>
               <TableRow>

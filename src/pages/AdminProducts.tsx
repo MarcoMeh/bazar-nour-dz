@@ -30,6 +30,7 @@ const AdminProducts = () => {
     category_id: '',
     image_url: ''
   });
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (!isAdmin) {
