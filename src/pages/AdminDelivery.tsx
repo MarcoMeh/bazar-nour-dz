@@ -28,7 +28,6 @@ const AdminDelivery = () => {
       return;
     }
     fetchWilayas();
-    fetchDeliveryTypes();
   }, [isAdmin, navigate]);
 
   const fetchWilayas = async () => {
