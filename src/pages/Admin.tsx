@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAdmin } from '@/contexts/AdminContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Package, ShoppingCart, MapPin, LogOut } from 'lucide-react';
+import { Package, ShoppingCart, MapPin, LogOut, FolderTree } from 'lucide-react';
 import logo from '@/assets/bazzarna-logo.jpeg';
 
 const Admin = () => {
@@ -44,6 +44,14 @@ const Admin = () => {
               <Package className="h-12 w-12 text-primary mb-4" />
               <h2 className="text-xl font-bold mb-2">إدارة المنتجات</h2>
               <p className="text-muted-foreground">إضافة وتعديل وحذف المنتجات</p>
+            </Card>
+          </Link>
+
+          <Link to="/admin/categories">
+            <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
+              <FolderTree className="h-12 w-12 text-primary mb-4" />
+              <h2 className="text-xl font-bold mb-2">إدارة التصنيفات</h2>
+              <p className="text-muted-foreground">إدارة التصنيفات الرئيسية والفرعية</p>
             </Card>
           </Link>
 

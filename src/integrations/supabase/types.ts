@@ -20,6 +20,7 @@ export type Database = {
           id: string
           name: string
           name_ar: string
+          parent_id: string | null
           slug: string
         }
         Insert: {
@@ -27,6 +28,7 @@ export type Database = {
           id?: string
           name: string
           name_ar: string
+          parent_id?: string | null
           slug: string
         }
         Update: {
@@ -34,9 +36,18 @@ export type Database = {
           id?: string
           name?: string
           name_ar?: string
+          parent_id?: string | null
           slug?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       orders: {
         Row: {
@@ -132,6 +143,10 @@ export type Database = {
           code: string
           created_at: string | null
           delivery_price: number
+          desk_delivery_available: boolean | null
+          desk_delivery_price: number | null
+          home_delivery_available: boolean | null
+          home_delivery_price: number | null
           id: string
           name_ar: string
         }
@@ -139,6 +154,10 @@ export type Database = {
           code: string
           created_at?: string | null
           delivery_price?: number
+          desk_delivery_available?: boolean | null
+          desk_delivery_price?: number | null
+          home_delivery_available?: boolean | null
+          home_delivery_price?: number | null
           id?: string
           name_ar: string
         }
@@ -146,6 +165,10 @@ export type Database = {
           code?: string
           created_at?: string | null
           delivery_price?: number
+          desk_delivery_available?: boolean | null
+          desk_delivery_price?: number | null
+          home_delivery_available?: boolean | null
+          home_delivery_price?: number | null
           id?: string
           name_ar?: string
         }
