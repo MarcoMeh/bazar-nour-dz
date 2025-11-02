@@ -48,7 +48,7 @@ const AdminCategories = () => {
       name: formData.name,
       name_ar: formData.name_ar,
       slug: formData.slug,
-      parent_id: formData.parent_id || null
+      parent_id: formData.parent_id === 'none' ? null : formData.parent_id || null
     };
 
     if (editingCategory) {
@@ -85,7 +85,7 @@ const AdminCategories = () => {
       name: category.name,
       name_ar: category.name_ar,
       slug: category.slug,
-      parent_id: category.parent_id || ''
+      parent_id: category.parent_id || 'none'
     });
     setIsDialogOpen(true);
   };
@@ -112,7 +112,7 @@ const AdminCategories = () => {
       name: '',
       name_ar: '',
       slug: '',
-      parent_id: ''
+      parent_id: 'none'
     });
     setEditingCategory(null);
   };
@@ -192,7 +192,7 @@ const AdminCategories = () => {
                       <SelectValue placeholder="اختر التصنيف الرئيسي" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">بدون تصنيف رئيسي</SelectItem>
+                      <SelectItem value="none">بدون تصنيف رئيسي</SelectItem>
                       {getMainCategories().map((cat) => (
                         <SelectItem key={cat.id} value={cat.id}>
                           {cat.name_ar}
