@@ -104,11 +104,11 @@ const Products = () => {
               {getMainCategories().map((cat) => (
                 <Card
                   key={cat.id}
-                  className="cursor-pointer hover:shadow-lg transition-shadow overflow-hidden"
+                  className="cursor-pointer hover:shadow-lg transition-shadow overflow-hidden flex flex-col"
                   onClick={() => handleMainCategoryClick(cat.id)}
                 >
                   {cat.image_url && (
-                    <div className="h-32 overflow-hidden">
+                    <div className="h-32 w-full overflow-hidden shrink-0">
                       <img 
                         src={cat.image_url} 
                         alt={cat.name_ar}
@@ -116,7 +116,7 @@ const Products = () => {
                       />
                     </div>
                   )}
-                  <div className={`p-4 ${!cat.image_url ? 'h-24' : ''} flex items-center justify-center`}>
+                  <div className={`p-4 ${!cat.image_url ? 'h-24' : 'min-h-[4rem]'} flex items-center justify-center`}>
                     <h3 className="font-semibold text-lg text-center">{cat.name_ar}</h3>
                   </div>
                 </Card>
@@ -136,11 +136,11 @@ const Products = () => {
               {getSubCategories(selectedMainCategory).map((cat) => (
                 <Card
                   key={cat.id}
-                  className="cursor-pointer hover:shadow-lg transition-shadow overflow-hidden"
+                  className="cursor-pointer hover:shadow-lg transition-shadow overflow-hidden flex flex-col"
                   onClick={() => setSelectedSubCategory(cat.id)}
                 >
                   {cat.image_url && (
-                    <div className="h-24 overflow-hidden">
+                    <div className="h-24 w-full overflow-hidden shrink-0">
                       <img 
                         src={cat.image_url} 
                         alt={cat.name_ar}
@@ -148,7 +148,7 @@ const Products = () => {
                       />
                     </div>
                   )}
-                  <div className={`p-4 ${!cat.image_url ? 'h-20' : ''} flex items-center justify-center`}>
+                  <div className={`p-4 ${!cat.image_url ? 'h-20' : 'min-h-[3rem]'} flex items-center justify-center`}>
                     <h3 className="font-semibold text-center">{cat.name_ar}</h3>
                   </div>
                 </Card>
