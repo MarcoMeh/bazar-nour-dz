@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { ArrowRight, Plus, Trash2, Edit } from 'lucide-react';
+import { ArrowRight, Plus, Trash2, Edit, Upload } from 'lucide-react';
 import logo from '@/assets/bazzarna-logo.jpeg';
 
 const AdminCategories = () => {
@@ -18,11 +18,13 @@ const AdminCategories = () => {
   const [categories, setCategories] = useState<any[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<any>(null);
+  const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     name_ar: '',
     slug: '',
-    parent_id: ''
+    parent_id: 'none',
+    image_url: ''
   });
 
   useEffect(() => {
@@ -41,6 +43,33 @@ const AdminCategories = () => {
     setCategories(data || []);
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('product-images')
+      .upload(fileName, file);
+
+    if (uploadError) {
+      toast.error('فشل رفع الصورة');
+      setUploading(false);
+      return;
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('product-images')
+      .getPublicUrl(fileName);
+
+    setFormData({ ...formData, image_url: publicUrl });
+    toast.success('تم رفع الصورة');
+    setUploading(false);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -48,7 +77,8 @@ const AdminCategories = () => {
       name: formData.name,
       name_ar: formData.name_ar,
       slug: formData.slug,
-      parent_id: formData.parent_id === 'none' ? null : formData.parent_id || null
+      parent_id: formData.parent_id === 'none' ? null : formData.parent_id || null,
+      image_url: formData.image_url || null
     };
 
     if (editingCategory) {
@@ -85,7 +115,8 @@ const AdminCategories = () => {
       name: category.name,
       name_ar: category.name_ar,
       slug: category.slug,
-      parent_id: category.parent_id || 'none'
+      parent_id: category.parent_id || 'none',
+      image_url: category.image_url || ''
     });
     setIsDialogOpen(true);
   };
@@ -112,7 +143,8 @@ const AdminCategories = () => {
       name: '',
       name_ar: '',
       slug: '',
-      parent_id: 'none'
+      parent_id: 'none',
+      image_url: ''
     });
     setEditingCategory(null);
   };
@@ -200,6 +232,52 @@ const AdminCategories = () => {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+                <div>
+                  <Label>صورة التصنيف</Label>
+                  <div className="space-y-4">
+                    <div className="flex gap-2">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        disabled={uploading}
+                        className="hidden"
+                        id="category-image-upload"
+                      />
+                      <Label htmlFor="category-image-upload" className="cursor-pointer">
+                        <Button type="button" variant="outline" disabled={uploading} asChild>
+                          <span>
+                            <Upload className="ml-2 h-4 w-4" />
+                            {uploading ? 'جاري الرفع...' : 'رفع صورة'}
+                          </span>
+                        </Button>
+                      </Label>
+                      <span className="text-sm text-muted-foreground self-center">أو</span>
+                    </div>
+                    <div>
+                      <Label htmlFor="image_url">رابط الصورة</Label>
+                      <Input
+                        id="image_url"
+                        type="url"
+                        value={formData.image_url}
+                        onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                        placeholder="https://example.com/image.jpg"
+                      />
+                    </div>
+                    {formData.image_url && (
+                      <div className="mt-2">
+                        <img 
+                          src={formData.image_url} 
+                          alt="معاينة" 
+                          className="h-32 w-32 object-cover rounded"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="flex justify-end gap-2">
                   <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>

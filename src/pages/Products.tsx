@@ -3,6 +3,7 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { ProductCard } from '@/components/ProductCard';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -11,6 +12,7 @@ interface Category {
   name_ar: string;
   slug: string;
   parent_id?: string | null;
+  image_url?: string | null;
 }
 
 interface Product {
@@ -100,14 +102,24 @@ const Products = () => {
             <h2 className="text-xl font-semibold mb-4">اختر التصنيف</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {getMainCategories().map((cat) => (
-                <Button
+                <Card
                   key={cat.id}
-                  variant="outline"
-                  className="h-24 text-lg"
+                  className="cursor-pointer hover:shadow-lg transition-shadow overflow-hidden"
                   onClick={() => handleMainCategoryClick(cat.id)}
                 >
-                  {cat.name_ar}
-                </Button>
+                  {cat.image_url && (
+                    <div className="h-32 overflow-hidden">
+                      <img 
+                        src={cat.image_url} 
+                        alt={cat.name_ar}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <div className={`p-4 ${!cat.image_url ? 'h-24' : ''} flex items-center justify-center`}>
+                    <h3 className="font-semibold text-lg text-center">{cat.name_ar}</h3>
+                  </div>
+                </Card>
               ))}
             </div>
           </div>
@@ -122,14 +134,24 @@ const Products = () => {
             <h2 className="text-xl font-semibold mb-4">اختر التصنيف الفرعي</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {getSubCategories(selectedMainCategory).map((cat) => (
-                <Button
+                <Card
                   key={cat.id}
-                  variant="outline"
-                  className="h-20"
+                  className="cursor-pointer hover:shadow-lg transition-shadow overflow-hidden"
                   onClick={() => setSelectedSubCategory(cat.id)}
                 >
-                  {cat.name_ar}
-                </Button>
+                  {cat.image_url && (
+                    <div className="h-24 overflow-hidden">
+                      <img 
+                        src={cat.image_url} 
+                        alt={cat.name_ar}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <div className={`p-4 ${!cat.image_url ? 'h-20' : ''} flex items-center justify-center`}>
+                    <h3 className="font-semibold text-center">{cat.name_ar}</h3>
+                  </div>
+                </Card>
               ))}
             </div>
           </div>
