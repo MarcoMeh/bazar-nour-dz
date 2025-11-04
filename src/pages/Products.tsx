@@ -10,6 +10,7 @@ interface Category {
   id: string;
   name_ar: string;
   slug: string;
+  parent_id?: string | null;
 }
 
 interface Product {
@@ -24,7 +25,8 @@ interface Product {
 const Products = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedMainCategory, setSelectedMainCategory] = useState<string | null>(null);
+  const [selectedSubCategory, setSelectedSubCategory] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -50,8 +52,8 @@ const Products = () => {
     setLoading(true);
     let query = supabase.from('products').select('*');
 
-    if (selectedCategory) {
-      query = query.eq('category_id', selectedCategory);
+    if (selectedSubCategory) {
+      query = query.eq('category_id', selectedSubCategory);
     }
 
     const { data, error } = await query.order('created_at', { ascending: false });
@@ -68,7 +70,22 @@ const Products = () => {
 
   useEffect(() => {
     fetchProducts();
-  }, [selectedCategory]);
+  }, [selectedSubCategory]);
+
+  const getMainCategories = () => categories.filter(cat => !cat.parent_id);
+  const getSubCategories = (parentId: string) => categories.filter(cat => cat.parent_id === parentId);
+
+  const handleMainCategoryClick = (categoryId: string) => {
+    setSelectedMainCategory(categoryId);
+    setSelectedSubCategory(null);
+    setProducts([]);
+  };
+
+  const handleBackToMain = () => {
+    setSelectedMainCategory(null);
+    setSelectedSubCategory(null);
+    setProducts([]);
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -77,45 +94,78 @@ const Products = () => {
       <main className="flex-1 container mx-auto px-4 py-8">
         <h1 className="text-3xl md:text-4xl font-bold mb-8">منتجاتنا</h1>
 
-        {/* Category Filter */}
-        <div className="mb-8 flex flex-wrap gap-2">
-          <Button
-            variant={selectedCategory === null ? 'default' : 'outline'}
-            onClick={() => setSelectedCategory(null)}
-          >
-            الكل
-          </Button>
-          {categories.map((cat) => (
-            <Button
-              key={cat.id}
-              variant={selectedCategory === cat.id ? 'default' : 'outline'}
-              onClick={() => setSelectedCategory(cat.id)}
-            >
-              {cat.name_ar}
+        {/* Main Categories */}
+        {!selectedMainCategory && (
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold mb-4">اختر التصنيف</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {getMainCategories().map((cat) => (
+                <Button
+                  key={cat.id}
+                  variant="outline"
+                  className="h-24 text-lg"
+                  onClick={() => handleMainCategoryClick(cat.id)}
+                >
+                  {cat.name_ar}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Subcategories */}
+        {selectedMainCategory && !selectedSubCategory && (
+          <div className="mb-8">
+            <Button variant="ghost" onClick={handleBackToMain} className="mb-4">
+              ← العودة للتصنيفات الرئيسية
             </Button>
-          ))}
-        </div>
+            <h2 className="text-xl font-semibold mb-4">اختر التصنيف الفرعي</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {getSubCategories(selectedMainCategory).map((cat) => (
+                <Button
+                  key={cat.id}
+                  variant="outline"
+                  className="h-20"
+                  onClick={() => setSelectedSubCategory(cat.id)}
+                >
+                  {cat.name_ar}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Products Grid */}
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {[...Array(8)].map((_, i) => (
-              <div
-                key={i}
-                className="h-96 rounded-lg bg-muted animate-pulse"
-              />
-            ))}
-          </div>
-        ) : products.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="text-xl text-muted-foreground">لا توجد منتجات حالياً</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {products.map((product) => (
-              <ProductCard key={product.id} {...product} />
-            ))}
-          </div>
+        {selectedSubCategory && (
+          <>
+            <Button 
+              variant="ghost" 
+              onClick={() => setSelectedSubCategory(null)} 
+              className="mb-4"
+            >
+              ← العودة للتصنيفات الفرعية
+            </Button>
+            {loading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {[...Array(8)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-96 rounded-lg bg-muted animate-pulse"
+                  />
+                ))}
+              </div>
+            ) : products.length === 0 ? (
+              <div className="text-center py-16">
+                <p className="text-xl text-muted-foreground">لا توجد منتجات في هذا التصنيف</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {products.map((product) => (
+                  <ProductCard key={product.id} {...product} />
+                ))}
+              </div>
+            )}
+          </>
         )}
       </main>
 

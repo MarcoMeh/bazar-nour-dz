@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { ArrowRight, Plus, Trash2, Edit } from 'lucide-react';
+import { ArrowRight, Plus, Trash2, Edit, Upload } from 'lucide-react';
 import logo from '@/assets/bazzarna-logo.jpeg';
 
 const AdminProducts = () => {
@@ -94,6 +94,33 @@ const AdminProducts = () => {
     setIsDialogOpen(false);
     resetForm();
     fetchProducts();
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+
+    const { error: uploadError, data } = await supabase.storage
+      .from('product-images')
+      .upload(fileName, file);
+
+    if (uploadError) {
+      toast.error('فشل رفع الصورة');
+      setUploading(false);
+      return;
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('product-images')
+      .getPublicUrl(fileName);
+
+    setFormData({ ...formData, image_url: publicUrl });
+    toast.success('تم رفع الصورة');
+    setUploading(false);
   };
 
   const resetForm = () => {
@@ -224,13 +251,50 @@ const AdminProducts = () => {
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="image_url">رابط الصورة</Label>
-                  <Input
-                    id="image_url"
-                    type="url"
-                    value={formData.image_url}
-                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                  />
+                  <Label>صورة المنتج</Label>
+                  <div className="space-y-4">
+                    <div className="flex gap-2">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        disabled={uploading}
+                        className="hidden"
+                        id="image-upload"
+                      />
+                      <Label htmlFor="image-upload" className="cursor-pointer">
+                        <Button type="button" variant="outline" disabled={uploading} asChild>
+                          <span>
+                            <Upload className="ml-2 h-4 w-4" />
+                            {uploading ? 'جاري الرفع...' : 'رفع صورة'}
+                          </span>
+                        </Button>
+                      </Label>
+                      <span className="text-sm text-muted-foreground self-center">أو</span>
+                    </div>
+                    <div>
+                      <Label htmlFor="image_url">رابط الصورة</Label>
+                      <Input
+                        id="image_url"
+                        type="url"
+                        value={formData.image_url}
+                        onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                        placeholder="https://example.com/image.jpg"
+                      />
+                    </div>
+                    {formData.image_url && (
+                      <div className="mt-2">
+                        <img 
+                          src={formData.image_url} 
+                          alt="معاينة" 
+                          className="h-32 w-32 object-cover rounded"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="flex gap-2 justify-end">
                   <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
