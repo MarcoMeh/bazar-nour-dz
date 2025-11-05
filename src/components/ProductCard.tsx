@@ -25,8 +25,8 @@ export const ProductCard = ({
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow group">
-      <div className="aspect-square overflow-hidden bg-muted">
+    <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group border-muted hover:border-accent/30">
+      <div className="aspect-square overflow-hidden bg-gradient-to-br from-muted to-muted/50">
         {image_url ? (
           <img
             src={image_url}
@@ -55,7 +55,7 @@ export const ProductCard = ({
       <CardFooter className="p-4 pt-0">
         <Button
           onClick={handleAddToCart}
-          className="w-full bg-secondary hover:bg-secondary/90"
+          className="w-full bg-secondary hover:bg-secondary/90 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
         >
           <ShoppingCart className="ml-2 h-4 w-4" />
           إضافة إلى السلة

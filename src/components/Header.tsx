@@ -9,7 +9,7 @@ export const Header = () => {
   const { totalItems } = useCart();
 
   return (
-    <header className="sticky top-0 z-50 bg-card border-b shadow-sm">
+    <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-md border-b shadow-md">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 gap-4">
           <Link to="/cart" className="relative">

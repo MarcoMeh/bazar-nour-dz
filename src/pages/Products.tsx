@@ -104,7 +104,7 @@ const Products = () => {
               {getMainCategories().map((cat) => (
                 <Card
                   key={cat.id}
-                  className="cursor-pointer hover:shadow-lg transition-shadow overflow-hidden flex flex-col"
+                  className="cursor-pointer hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col border-muted hover:border-accent/40 hover:scale-[1.02] group"
                   onClick={() => handleMainCategoryClick(cat.id)}
                 >
                   {cat.image_url && (
@@ -112,7 +112,7 @@ const Products = () => {
                       <img 
                         src={cat.image_url} 
                         alt={cat.name_ar}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       />
                     </div>
                   )}
@@ -136,7 +136,7 @@ const Products = () => {
               {getSubCategories(selectedMainCategory).map((cat) => (
                 <Card
                   key={cat.id}
-                  className="cursor-pointer hover:shadow-lg transition-shadow overflow-hidden flex flex-col"
+                  className="cursor-pointer hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col border-muted hover:border-accent/40 hover:scale-[1.02] group"
                   onClick={() => setSelectedSubCategory(cat.id)}
                 >
                   {cat.image_url && (
@@ -144,7 +144,7 @@ const Products = () => {
                       <img 
                         src={cat.image_url} 
                         alt={cat.name_ar}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       />
                     </div>
                   )}

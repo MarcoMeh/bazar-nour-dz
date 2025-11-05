@@ -27,7 +27,7 @@ const Index = () => {
                 متجرك الإلكتروني الموثوق في الجزائر
               </p>
               <Link to="/products">
-                <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground font-bold text-lg px-8 py-6">
+                <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground font-bold text-lg px-8 py-6 hover:shadow-2xl hover:scale-105 transition-all duration-300">
                   تسوق الآن
                   <ArrowLeft className="mr-2 h-5 w-5" />
                 </Button>
@@ -47,8 +47,8 @@ const Index = () => {
         <section className="py-16 bg-background">
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="text-center p-6 rounded-lg bg-card border hover:shadow-lg transition-shadow">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/10 mb-4">
+              <div className="text-center p-6 rounded-lg bg-card border hover:shadow-xl hover:scale-105 transition-all duration-300 group">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/10 mb-4 group-hover:bg-accent/20 transition-colors">
                   <ShoppingBag className="h-8 w-8 text-accent" />
                 </div>
                 <h3 className="font-bold text-xl mb-2">منتجات متنوعة</h3>
@@ -57,8 +57,8 @@ const Index = () => {
                 </p>
               </div>
               
-              <div className="text-center p-6 rounded-lg bg-card border hover:shadow-lg transition-shadow">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-secondary/10 mb-4">
+              <div className="text-center p-6 rounded-lg bg-card border hover:shadow-xl hover:scale-105 transition-all duration-300 group">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-secondary/10 mb-4 group-hover:bg-secondary/20 transition-colors">
                   <Truck className="h-8 w-8 text-secondary" />
                 </div>
                 <h3 className="font-bold text-xl mb-2">توصيل سريع</h3>
@@ -67,8 +67,8 @@ const Index = () => {
                 </p>
               </div>
               
-              <div className="text-center p-6 rounded-lg bg-card border hover:shadow-lg transition-shadow">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
+              <div className="text-center p-6 rounded-lg bg-card border hover:shadow-xl hover:scale-105 transition-all duration-300 group">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4 group-hover:bg-primary/20 transition-colors">
                   <Shield className="h-8 w-8 text-primary" />
                 </div>
                 <h3 className="font-bold text-xl mb-2">الدفع عند الاستلام</h3>
@@ -91,7 +91,7 @@ const Index = () => {
                 <Link
                   key={category}
                   to="/products"
-                  className="group relative aspect-square rounded-lg overflow-hidden bg-gradient-to-br from-card to-muted hover:shadow-xl transition-all duration-300"
+                  className="group relative aspect-square rounded-lg overflow-hidden bg-gradient-to-br from-card to-muted hover:shadow-2xl hover:scale-105 transition-all duration-300 border border-muted hover:border-accent/40"
                 >
                   <div className="absolute inset-0 flex items-center justify-center">
                     <h3 className="text-xl md:text-2xl font-bold text-foreground group-hover:scale-110 transition-transform">
