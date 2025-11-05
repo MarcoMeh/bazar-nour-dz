@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { ProductCard } from '@/components/ProductCard';
@@ -25,6 +26,7 @@ interface Product {
 }
 
 const Products = () => {
+  const [searchParams] = useSearchParams();
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedMainCategory, setSelectedMainCategory] = useState<string | null>(null);
@@ -33,8 +35,15 @@ const Products = () => {
 
   useEffect(() => {
     fetchCategories();
-    fetchProducts();
-  }, []);
+    
+    // Check if category param exists in URL
+    const categoryParam = searchParams.get('category');
+    if (categoryParam) {
+      setSelectedMainCategory(categoryParam);
+    } else {
+      fetchProducts();
+    }
+  }, [searchParams]);
 
   const fetchCategories = async () => {
     const { data, error } = await supabase

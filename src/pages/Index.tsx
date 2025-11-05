@@ -1,11 +1,39 @@
 import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ShoppingBag, Truck, Shield } from 'lucide-react';
 import logo from '@/assets/bazzarna-logo.jpeg';
+import { supabase } from '@/integrations/supabase/client';
+
+interface Category {
+  id: string;
+  name_ar: string;
+  slug: string;
+  image_url?: string | null;
+}
 
 const Index = () => {
+  const [mainCategories, setMainCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    fetchMainCategories();
+  }, []);
+
+  const fetchMainCategories = async () => {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .is('parent_id', null)
+      .order('name_ar')
+      .limit(4);
+
+    if (!error && data) {
+      setMainCategories(data);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -87,15 +115,22 @@ const Index = () => {
               تصفح حسب الفئة
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {['ملابس', 'إلكترونيات', 'ديكور', 'مواد تجميل'].map((category) => (
+              {mainCategories.map((category) => (
                 <Link
-                  key={category}
-                  to="/products"
+                  key={category.id}
+                  to={`/products?category=${category.id}`}
                   className="group relative aspect-square rounded-lg overflow-hidden bg-gradient-to-br from-card to-muted hover:shadow-2xl hover:scale-105 transition-all duration-300 border border-muted hover:border-accent/40"
                 >
-                  <div className="absolute inset-0 flex items-center justify-center">
+                  {category.image_url && (
+                    <img 
+                      src={category.image_url} 
+                      alt={category.name_ar}
+                      className="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:opacity-60 transition-opacity"
+                    />
+                  )}
+                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-background/80 to-transparent">
                     <h3 className="text-xl md:text-2xl font-bold text-foreground group-hover:scale-110 transition-transform">
-                      {category}
+                      {category.name_ar}
                     </h3>
                   </div>
                 </Link>
