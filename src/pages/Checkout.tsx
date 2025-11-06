@@ -181,24 +181,25 @@ const Checkout = () => {
                   value={formData.deliveryType}
                   onValueChange={(value) => setFormData({ ...formData, deliveryType: value as 'home' | 'office' })}
                 >
-                  <div className="flex items-center space-x-2 space-x-reverse mb-3">
-                    <RadioGroupItem value="home" id="home" />
-                    <Label htmlFor="home" className="cursor-pointer">توصيل إلى المنزل</Label>
+                  <div className="flex items-center justify-between p-4 rounded-lg border border-muted mb-3 hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center space-x-2 space-x-reverse">
+                      <RadioGroupItem value="home" id="home" />
+                      <Label htmlFor="home" className="cursor-pointer">توصيل إلى المنزل</Label>
+                    </div>
+                    {selectedWilaya && (
+                      <span className="font-bold text-primary">{selectedWilaya.home_delivery_price?.toFixed(2)} دج</span>
+                    )}
                   </div>
-                  <div className="flex items-center space-x-2 space-x-reverse">
-                    <RadioGroupItem value="office" id="office" />
-                    <Label htmlFor="office" className="cursor-pointer">توصيل إلى المكتب</Label>
+                  <div className="flex items-center justify-between p-4 rounded-lg border border-muted hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center space-x-2 space-x-reverse">
+                      <RadioGroupItem value="office" id="office" />
+                      <Label htmlFor="office" className="cursor-pointer">توصيل إلى المكتب</Label>
+                    </div>
+                    {selectedWilaya && (
+                      <span className="font-bold text-primary">{selectedWilaya.desk_delivery_price?.toFixed(2)} دج</span>
+                    )}
                   </div>
                 </RadioGroup>
-
-                {selectedWilaya && (
-                  <div className="mt-6 p-4 bg-muted/50 rounded-lg border border-muted">
-                    <div className="flex justify-between items-center">
-                      <span className="font-medium text-muted-foreground">سعر التوصيل:</span>
-                      <span className="text-xl font-bold text-primary">{deliveryPrice.toFixed(2)} دج</span>
-                    </div>
-                  </div>
-                )}
               </Card>
             </div>
 
