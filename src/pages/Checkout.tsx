@@ -157,7 +157,7 @@ const Checkout = () => {
                       <SelectContent>
                         {wilayas.map((wilaya) => (
                           <SelectItem key={wilaya.code} value={wilaya.code}>
-                            {wilaya.name_ar} - {wilaya.delivery_price.toFixed(2)} دج
+                            {wilaya.name_ar}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -182,6 +182,15 @@ const Checkout = () => {
                     <Label htmlFor="office" className="cursor-pointer">توصيل إلى المكتب</Label>
                   </div>
                 </RadioGroup>
+
+                {selectedWilaya && (
+                  <div className="mt-6 p-4 bg-muted/50 rounded-lg border border-muted">
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium text-muted-foreground">سعر التوصيل:</span>
+                      <span className="text-xl font-bold text-primary">{deliveryPrice.toFixed(2)} دج</span>
+                    </div>
+                  </div>
+                )}
               </Card>
             </div>
 

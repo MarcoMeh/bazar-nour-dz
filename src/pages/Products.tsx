@@ -149,7 +149,7 @@ const Products = () => {
                   onClick={() => setSelectedSubCategory(cat.id)}
                 >
                   {cat.image_url && (
-                    <div className="h-24 w-full overflow-hidden shrink-0">
+                    <div className="h-32 w-full overflow-hidden shrink-0">
                       <img 
                         src={cat.image_url} 
                         alt={cat.name_ar}
@@ -157,8 +157,8 @@ const Products = () => {
                       />
                     </div>
                   )}
-                  <div className={`p-4 ${!cat.image_url ? 'h-20' : 'min-h-[3rem]'} flex items-center justify-center`}>
-                    <h3 className="font-semibold text-center">{cat.name_ar}</h3>
+                  <div className={`p-4 ${!cat.image_url ? 'h-24' : 'min-h-[4rem]'} flex items-center justify-center`}>
+                    <h3 className="font-semibold text-lg text-center">{cat.name_ar}</h3>
                   </div>
                 </Card>
               ))}
