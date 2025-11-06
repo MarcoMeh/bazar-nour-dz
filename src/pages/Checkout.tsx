@@ -23,6 +23,10 @@ interface Wilaya {
   code: string;
   name_ar: string;
   delivery_price: number;
+  home_delivery_price: number;
+  desk_delivery_price: number;
+  home_delivery_available?: boolean;
+  desk_delivery_available?: boolean;
 }
 
 const Checkout = () => {
@@ -40,7 +44,11 @@ const Checkout = () => {
   });
 
   const selectedWilaya = wilayas.find((w) => w.code === formData.wilaya);
-  const deliveryPrice = selectedWilaya?.delivery_price || 0;
+  const deliveryPrice = selectedWilaya 
+    ? (formData.deliveryType === 'home' 
+        ? (selectedWilaya.home_delivery_price || 0) 
+        : (selectedWilaya.desk_delivery_price || 0))
+    : 0;
   const finalTotal = totalPrice + deliveryPrice;
 
   useEffect(() => {
