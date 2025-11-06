@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { useCart } from '@/contexts/CartContext';
@@ -26,22 +27,26 @@ export const ProductCard = ({
 
   return (
     <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group border-muted hover:border-accent/30">
-      <div className="aspect-square overflow-hidden bg-gradient-to-br from-muted to-muted/50">
-        {image_url ? (
-          <img
-            src={image_url}
-            alt={name_ar}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-accent/10">
-            <span className="text-6xl opacity-20">📦</span>
-          </div>
-        )}
-      </div>
+      <Link to={`/product/${id}`}>
+        <div className="aspect-square overflow-hidden bg-gradient-to-br from-muted to-muted/50">
+          {image_url ? (
+            <img
+              src={image_url}
+              alt={name_ar}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-accent/10">
+              <span className="text-6xl opacity-20">📦</span>
+            </div>
+          )}
+        </div>
+      </Link>
       
       <CardContent className="p-4">
-        <h3 className="font-bold text-lg mb-1 line-clamp-1">{name_ar}</h3>
+        <Link to={`/product/${id}`}>
+          <h3 className="font-bold text-lg mb-1 line-clamp-1 hover:text-primary transition-colors">{name_ar}</h3>
+        </Link>
         {description_ar && (
           <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
             {description_ar}
