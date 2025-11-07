@@ -35,103 +35,159 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background via-background to-muted/20">
       <Header />
       
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative bg-gradient-to-bl from-primary via-primary/95 to-primary/90 text-primary-foreground py-20 md:py-32">
-          <div className="container mx-auto px-4">
+        <section className="relative overflow-hidden">
+          {/* Animated Background Gradient */}
+          <div className="absolute inset-0 bg-gradient-to-bl from-primary via-primary/95 to-primary/80">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent_50%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(255,255,255,0.08),transparent_50%)]" />
+          </div>
+          
+          <div className="relative container mx-auto px-4 py-20 md:py-32">
             <div className="max-w-4xl mx-auto text-center">
-              <img 
-                src={logo} 
-                alt="Bazzarna" 
-                className="h-32 md:h-40 w-auto mx-auto mb-8 drop-shadow-2xl"
-              />
-              <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
+              {/* Logo with Animation */}
+              <div className="mb-8 animate-in fade-in slide-in-from-top-4 duration-700">
+                <img 
+                  src={logo} 
+                  alt="Bazzarna" 
+                  className="h-32 md:h-40 w-auto mx-auto drop-shadow-2xl hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              
+              {/* Main Heading */}
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight text-primary-foreground animate-in fade-in slide-in-from-top-6 duration-700 delay-150">
                 بازارنا... كل ما تحتاجه في مكان واحد
               </h1>
-              <p className="text-xl md:text-2xl mb-8 opacity-95">
+              
+              {/* Subtitle */}
+              <p className="text-xl md:text-2xl mb-10 text-primary-foreground/95 animate-in fade-in slide-in-from-top-8 duration-700 delay-300">
                 متجرك الإلكتروني الموثوق في الجزائر
               </p>
-              <Link to="/products">
-                <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground font-bold text-lg px-8 py-6 hover:shadow-2xl hover:scale-105 transition-all duration-300">
-                  تسوق الآن
-                  <ArrowLeft className="mr-2 h-5 w-5" />
-                </Button>
-              </Link>
+              
+              {/* CTA Button */}
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-500">
+                <Link to="/products">
+                  <Button 
+                    size="lg" 
+                    className="bg-accent hover:bg-accent/90 text-accent-foreground font-bold text-lg px-10 py-7 rounded-xl shadow-2xl hover:shadow-accent/50 hover:scale-105 transition-all duration-300 group"
+                  >
+                    تسوق الآن
+                    <ArrowLeft className="mr-2 h-6 w-6 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
           
-          {/* Decorative bottom wave */}
-          <div className="absolute bottom-0 left-0 right-0">
-            <svg viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
-              <path d="M0 80L60 70C120 60 240 40 360 33.3C480 26.7 600 33.3 720 40C840 46.7 960 53.3 1080 50C1200 46.7 1320 33.3 1380 26.7L1440 20V80H1380C1320 80 1200 80 1080 80C960 80 840 80 720 80C600 80 480 80 360 80C240 80 120 80 60 80H0Z" fill="hsl(43 47% 97%)" />
+          {/* Modern Wave Divider */}
+          <div className="absolute bottom-0 left-0 right-0 text-background">
+            <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
+              <path d="M0 120L60 105C120 90 240 60 360 48C480 36 600 42 720 54C840 66 960 84 1080 84C1200 84 1320 66 1380 57L1440 48V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" fill="currentColor" />
             </svg>
           </div>
         </section>
 
         {/* Features Section */}
-        <section className="py-16 bg-background">
+        <section className="py-20 relative">
           <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="text-center p-6 rounded-lg bg-card border hover:shadow-xl hover:scale-105 transition-all duration-300 group">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/10 mb-4 group-hover:bg-accent/20 transition-colors">
-                  <ShoppingBag className="h-8 w-8 text-accent" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+              {/* Feature 1 */}
+              <div className="group relative p-8 rounded-2xl bg-gradient-to-br from-card to-card/80 border border-border/50 hover:border-accent/50 shadow-lg hover:shadow-2xl hover:shadow-accent/10 hover:-translate-y-2 transition-all duration-500">
+                <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="relative">
+                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+                    <ShoppingBag className="h-10 w-10 text-accent" />
+                  </div>
+                  <h3 className="font-bold text-2xl mb-3 text-foreground">منتجات متنوعة</h3>
+                  <p className="text-muted-foreground text-lg leading-relaxed">
+                    ملابس، إلكترونيات، ديكور ومواد تجميل
+                  </p>
                 </div>
-                <h3 className="font-bold text-xl mb-2">منتجات متنوعة</h3>
-                <p className="text-muted-foreground">
-                  ملابس، إلكترونيات، ديكور ومواد تجميل
-                </p>
               </div>
               
-              <div className="text-center p-6 rounded-lg bg-card border hover:shadow-xl hover:scale-105 transition-all duration-300 group">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-secondary/10 mb-4 group-hover:bg-secondary/20 transition-colors">
-                  <Truck className="h-8 w-8 text-secondary" />
+              {/* Feature 2 */}
+              <div className="group relative p-8 rounded-2xl bg-gradient-to-br from-card to-card/80 border border-border/50 hover:border-secondary/50 shadow-lg hover:shadow-2xl hover:shadow-secondary/10 hover:-translate-y-2 transition-all duration-500">
+                <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="relative">
+                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-secondary/20 to-secondary/5 mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+                    <Truck className="h-10 w-10 text-secondary" />
+                  </div>
+                  <h3 className="font-bold text-2xl mb-3 text-foreground">توصيل سريع</h3>
+                  <p className="text-muted-foreground text-lg leading-relaxed">
+                    توصيل لجميع ولايات الوطن
+                  </p>
                 </div>
-                <h3 className="font-bold text-xl mb-2">توصيل سريع</h3>
-                <p className="text-muted-foreground">
-                  توصيل لجميع ولايات الوطن
-                </p>
               </div>
               
-              <div className="text-center p-6 rounded-lg bg-card border hover:shadow-xl hover:scale-105 transition-all duration-300 group">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4 group-hover:bg-primary/20 transition-colors">
-                  <Shield className="h-8 w-8 text-primary" />
+              {/* Feature 3 */}
+              <div className="group relative p-8 rounded-2xl bg-gradient-to-br from-card to-card/80 border border-border/50 hover:border-primary/50 shadow-lg hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-2 transition-all duration-500">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="relative">
+                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+                    <Shield className="h-10 w-10 text-primary" />
+                  </div>
+                  <h3 className="font-bold text-2xl mb-3 text-foreground">الدفع عند الاستلام</h3>
+                  <p className="text-muted-foreground text-lg leading-relaxed">
+                    ادفع عند استلام طلبك بكل أمان
+                  </p>
                 </div>
-                <h3 className="font-bold text-xl mb-2">الدفع عند الاستلام</h3>
-                <p className="text-muted-foreground">
-                  ادفع عند استلام طلبك بكل أمان
-                </p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Categories Preview */}
-        <section className="py-16 bg-muted/30">
-          <div className="container mx-auto px-4">
-            <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
-              تصفح حسب الفئة
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {mainCategories.map((category) => (
+        {/* Categories Section */}
+        <section className="py-20 bg-gradient-to-b from-muted/30 to-background relative overflow-hidden">
+          {/* Decorative Background Elements */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(var(--primary),0.03),transparent_40%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_70%,rgba(var(--accent),0.03),transparent_40%)]" />
+          
+          <div className="container mx-auto px-4 relative">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+                تصفح حسب الفئة
+              </h2>
+              <p className="text-muted-foreground text-lg">اختر الفئة التي تناسبك</p>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+              {mainCategories.map((category, index) => (
                 <Link
                   key={category.id}
                   to={`/products?category=${category.id}`}
-                  className="group relative aspect-square rounded-lg overflow-hidden bg-gradient-to-br from-card to-muted hover:shadow-2xl hover:scale-105 transition-all duration-300 border border-muted hover:border-accent/40"
+                  className="group relative aspect-square rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2"
+                  style={{
+                    animationDelay: `${index * 100}ms`
+                  }}
                 >
-                  {category.image_url && (
+                  {/* Image Background */}
+                  {category.image_url ? (
                     <img 
                       src={category.image_url} 
                       alt={category.name_ar}
-                      className="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:opacity-60 transition-opacity"
+                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                     />
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-secondary/20 to-accent/20" />
                   )}
-                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-background/80 to-transparent">
-                    <h3 className="text-xl md:text-2xl font-bold text-foreground group-hover:scale-110 transition-transform">
+                  
+                  {/* Overlay Gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/90 via-foreground/60 to-transparent group-hover:from-primary/95 group-hover:via-primary/70 transition-all duration-500" />
+                  
+                  {/* Category Name */}
+                  <div className="absolute inset-0 flex items-center justify-center p-6">
+                    <h3 className="text-xl md:text-2xl font-bold text-background group-hover:text-primary-foreground text-center group-hover:scale-110 transition-all duration-500 drop-shadow-lg">
                       {category.name_ar}
                     </h3>
+                  </div>
+                  
+                  {/* Shine Effect */}
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                   </div>
                 </Link>
               ))}
