@@ -3,9 +3,17 @@ import { useState, useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ShoppingBag, Truck, Shield } from 'lucide-react';
+import { ArrowLeft, ShoppingBag, Truck, Shield, Tag, Sparkles } from 'lucide-react';
 import logo from '@/assets/bazzarna-logo.jpeg';
 import { supabase } from '@/integrations/supabase/client';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
 
 interface Category {
   id: string;
@@ -88,6 +96,123 @@ const Index = () => {
             <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
               <path d="M0 120L60 105C120 90 240 60 360 48C480 36 600 42 720 54C840 66 960 84 1080 84C1200 84 1320 66 1380 57L1440 48V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" fill="currentColor" />
             </svg>
+          </div>
+        </section>
+
+        {/* Promotional Carousel Section */}
+        <section className="py-16 bg-background">
+          <div className="container mx-auto px-4">
+            <Carousel
+              opts={{
+                align: "start",
+                loop: true,
+              }}
+              plugins={[
+                Autoplay({
+                  delay: 4000,
+                }),
+              ]}
+              className="w-full"
+            >
+              <CarouselContent>
+                {/* Slide 1 - Special Offer */}
+                <CarouselItem>
+                  <div className="relative h-[300px] md:h-[400px] rounded-2xl overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-accent via-accent/90 to-accent/80">
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.15),transparent_60%)]" />
+                    </div>
+                    <div className="relative h-full flex items-center">
+                      <div className="container mx-auto px-8 md:px-16">
+                        <div className="max-w-2xl">
+                          <div className="flex items-center gap-2 mb-4">
+                            <Tag className="h-8 w-8 text-accent-foreground" />
+                            <span className="text-lg font-bold text-accent-foreground/90">عرض خاص</span>
+                          </div>
+                          <h3 className="text-4xl md:text-5xl font-bold text-accent-foreground mb-4 leading-tight">
+                            خصومات تصل إلى 50%
+                          </h3>
+                          <p className="text-xl text-accent-foreground/90 mb-6">
+                            على مختارات من الملابس والإكسسوارات
+                          </p>
+                          <Link to="/products">
+                            <Button size="lg" className="bg-accent-foreground text-accent hover:bg-accent-foreground/90 hover:scale-105 transition-all">
+                              تسوق الآن
+                              <ArrowLeft className="mr-2 h-5 w-5" />
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CarouselItem>
+
+                {/* Slide 2 - New Arrivals */}
+                <CarouselItem>
+                  <div className="relative h-[300px] md:h-[400px] rounded-2xl overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/90 to-primary/80">
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_50%,rgba(255,255,255,0.15),transparent_60%)]" />
+                    </div>
+                    <div className="relative h-full flex items-center">
+                      <div className="container mx-auto px-8 md:px-16">
+                        <div className="max-w-2xl">
+                          <div className="flex items-center gap-2 mb-4">
+                            <Sparkles className="h-8 w-8 text-primary-foreground" />
+                            <span className="text-lg font-bold text-primary-foreground/90">وصل حديثاً</span>
+                          </div>
+                          <h3 className="text-4xl md:text-5xl font-bold text-primary-foreground mb-4 leading-tight">
+                            منتجات جديدة كل أسبوع
+                          </h3>
+                          <p className="text-xl text-primary-foreground/90 mb-6">
+                            اكتشف أحدث صيحات الموضة والإلكترونيات
+                          </p>
+                          <Link to="/products">
+                            <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground hover:scale-105 transition-all">
+                              اكتشف المزيد
+                              <ArrowLeft className="mr-2 h-5 w-5" />
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CarouselItem>
+
+                {/* Slide 3 - Free Delivery */}
+                <CarouselItem>
+                  <div className="relative h-[300px] md:h-[400px] rounded-2xl overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-secondary via-secondary/90 to-secondary/80">
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.15),transparent_60%)]" />
+                    </div>
+                    <div className="relative h-full flex items-center">
+                      <div className="container mx-auto px-8 md:px-16">
+                        <div className="max-w-2xl">
+                          <div className="flex items-center gap-2 mb-4">
+                            <Truck className="h-8 w-8 text-secondary-foreground" />
+                            <span className="text-lg font-bold text-secondary-foreground/90">توصيل مجاني</span>
+                          </div>
+                          <h3 className="text-4xl md:text-5xl font-bold text-secondary-foreground mb-4 leading-tight">
+                            شحن مجاني للطلبات فوق 5000 دج
+                          </h3>
+                          <p className="text-xl text-secondary-foreground/90 mb-6">
+                            لجميع ولايات الوطن - عرض لفترة محدودة
+                          </p>
+                          <Link to="/products">
+                            <Button size="lg" className="bg-secondary-foreground text-secondary hover:bg-secondary-foreground/90 hover:scale-105 transition-all">
+                              ابدأ التسوق
+                              <ArrowLeft className="mr-2 h-5 w-5" />
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CarouselItem>
+              </CarouselContent>
+              <div className="hidden md:block">
+                <CarouselPrevious className="left-4" />
+                <CarouselNext className="right-4" />
+              </div>
+            </Carousel>
           </div>
         </section>
 
