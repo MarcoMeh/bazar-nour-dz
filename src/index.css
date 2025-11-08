@@ -71,3 +71,58 @@ All colors MUST be HSL.
     font-family: 'Cairo', sans-serif;
   }
 }
+
+@layer components {
+  /* 3D Button Effect */
+  .button-3d {
+    transform-style: preserve-3d;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+  }
+  
+  .button-3d::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: inherit;
+    transform: translateZ(-4px);
+    filter: brightness(0.8);
+    transition: transform 0.3s ease;
+  }
+  
+  .button-3d:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.3);
+  }
+  
+  .button-3d:active {
+    transform: translateY(-2px) scale(0.98);
+  }
+
+  /* 3D Card Effect */
+  .card-3d {
+    transform-style: preserve-3d;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    perspective: 1000px;
+  }
+  
+  .card-3d:hover {
+    transform: rotateY(5deg) rotateX(-5deg) translateY(-8px);
+    box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.25);
+  }
+
+  /* Floating Animation */
+  @keyframes float-3d {
+    0%, 100% {
+      transform: translateY(0px) translateZ(0px);
+    }
+    50% {
+      transform: translateY(-10px) translateZ(20px);
+    }
+  }
+  
+  .float-3d {
+    animation: float-3d 3s ease-in-out infinite;
+  }
+}

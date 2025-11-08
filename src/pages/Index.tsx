@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ShoppingBag, Truck, Shield, Tag, Sparkles } from 'lucide-react';
+import { ArrowLeft, ShoppingBag, Truck, Shield, Tag, Sparkles, Smartphone, Palette, Home } from 'lucide-react';
 import logo from '@/assets/bazzarna-logo.jpeg';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -76,12 +76,12 @@ const Index = () => {
                 متجرك الإلكتروني الموثوق في الجزائر
               </p>
               
-              {/* CTA Button */}
+              {/* CTA Button with 3D Effect */}
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-500">
                 <Link to="/products">
                   <Button 
                     size="lg" 
-                    className="bg-accent hover:bg-accent/90 text-accent-foreground font-bold text-lg px-10 py-7 rounded-xl shadow-2xl hover:shadow-accent/50 hover:scale-105 transition-all duration-300 group"
+                    className="button-3d bg-accent hover:bg-accent/90 text-accent-foreground font-bold text-lg px-10 py-7 rounded-xl shadow-2xl hover:shadow-accent/50 transition-all duration-300 group"
                   >
                     تسوق الآن
                     <ArrowLeft className="mr-2 h-6 w-6 group-hover:translate-x-1 transition-transform" />
@@ -135,7 +135,7 @@ const Index = () => {
                             على مختارات من الملابس والإكسسوارات
                           </p>
                           <Link to="/products">
-                            <Button size="lg" className="bg-accent-foreground text-accent hover:bg-accent-foreground/90 hover:scale-105 transition-all">
+                            <Button size="lg" className="button-3d bg-accent-foreground text-accent hover:bg-accent-foreground/90 transition-all">
                               تسوق الآن
                               <ArrowLeft className="mr-2 h-5 w-5" />
                             </Button>
@@ -166,7 +166,7 @@ const Index = () => {
                             اكتشف أحدث صيحات الموضة والإلكترونيات
                           </p>
                           <Link to="/products">
-                            <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground hover:scale-105 transition-all">
+                            <Button size="lg" className="button-3d bg-accent hover:bg-accent/90 text-accent-foreground transition-all">
                               اكتشف المزيد
                               <ArrowLeft className="mr-2 h-5 w-5" />
                             </Button>
@@ -197,8 +197,101 @@ const Index = () => {
                             لجميع ولايات الوطن - عرض لفترة محدودة
                           </p>
                           <Link to="/products">
-                            <Button size="lg" className="bg-secondary-foreground text-secondary hover:bg-secondary-foreground/90 hover:scale-105 transition-all">
+                            <Button size="lg" className="button-3d bg-secondary-foreground text-secondary hover:bg-secondary-foreground/90 transition-all">
                               ابدأ التسوق
+                              <ArrowLeft className="mr-2 h-5 w-5" />
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CarouselItem>
+
+                {/* Slide 4 - Electronics Sale */}
+                <CarouselItem>
+                  <div className="relative h-[300px] md:h-[400px] rounded-2xl overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/95 to-primary/85">
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_40%,rgba(255,255,255,0.2),transparent_60%)]" />
+                    </div>
+                    <div className="relative h-full flex items-center">
+                      <div className="container mx-auto px-8 md:px-16">
+                        <div className="max-w-2xl">
+                          <div className="flex items-center gap-2 mb-4">
+                            <Smartphone className="h-8 w-8 text-primary-foreground" />
+                            <span className="text-lg font-bold text-primary-foreground/90">عرض الإلكترونيات</span>
+                          </div>
+                          <h3 className="text-4xl md:text-5xl font-bold text-primary-foreground mb-4 leading-tight">
+                            خصومات على الهواتف والأجهزة
+                          </h3>
+                          <p className="text-xl text-primary-foreground/90 mb-6">
+                            أحدث الموديلات بأفضل الأسعار
+                          </p>
+                          <Link to="/products">
+                            <Button size="lg" className="button-3d bg-accent hover:bg-accent/90 text-accent-foreground transition-all">
+                              تسوق الإلكترونيات
+                              <ArrowLeft className="mr-2 h-5 w-5" />
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CarouselItem>
+
+                {/* Slide 5 - Beauty Products */}
+                <CarouselItem>
+                  <div className="relative h-[300px] md:h-[400px] rounded-2xl overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-accent/90 via-accent to-accent/90">
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_60%_40%,rgba(255,255,255,0.2),transparent_60%)]" />
+                    </div>
+                    <div className="relative h-full flex items-center">
+                      <div className="container mx-auto px-8 md:px-16">
+                        <div className="max-w-2xl">
+                          <div className="flex items-center gap-2 mb-4">
+                            <Palette className="h-8 w-8 text-accent-foreground" />
+                            <span className="text-lg font-bold text-accent-foreground/90">عرض خاص</span>
+                          </div>
+                          <h3 className="text-4xl md:text-5xl font-bold text-accent-foreground mb-4 leading-tight">
+                            مستحضرات التجميل بأسعار مميزة
+                          </h3>
+                          <p className="text-xl text-accent-foreground/90 mb-6">
+                            منتجات عناية وجمال من أفضل الماركات
+                          </p>
+                          <Link to="/products">
+                            <Button size="lg" className="button-3d bg-accent-foreground text-accent hover:bg-accent-foreground/90 transition-all">
+                              اشتري الآن
+                              <ArrowLeft className="mr-2 h-5 w-5" />
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CarouselItem>
+
+                {/* Slide 6 - Home Decor */}
+                <CarouselItem>
+                  <div className="relative h-[300px] md:h-[400px] rounded-2xl overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-secondary/90 via-secondary to-secondary/85">
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_30%,rgba(255,255,255,0.15),transparent_60%)]" />
+                    </div>
+                    <div className="relative h-full flex items-center">
+                      <div className="container mx-auto px-8 md:px-16">
+                        <div className="max-w-2xl">
+                          <div className="flex items-center gap-2 mb-4">
+                            <Home className="h-8 w-8 text-secondary-foreground" />
+                            <span className="text-lg font-bold text-secondary-foreground/90">ديكور منزلي</span>
+                          </div>
+                          <h3 className="text-4xl md:text-5xl font-bold text-secondary-foreground mb-4 leading-tight">
+                            تخفيضات على الديكور والإكسسوارات
+                          </h3>
+                          <p className="text-xl text-secondary-foreground/90 mb-6">
+                            جمّل منزلك بأحدث التصاميم العصرية
+                          </p>
+                          <Link to="/products">
+                            <Button size="lg" className="button-3d bg-secondary-foreground text-secondary hover:bg-secondary-foreground/90 transition-all">
+                              تصفح المجموعة
                               <ArrowLeft className="mr-2 h-5 w-5" />
                             </Button>
                           </Link>
