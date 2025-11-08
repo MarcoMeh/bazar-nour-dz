@@ -6,9 +6,10 @@ import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { ArrowRight, Trash2 } from 'lucide-react';
+import { ArrowRight, Trash2, Eye } from 'lucide-react';
 import logo from '@/assets/bazzarna-logo.jpeg';
 
 const AdminOrders = () => {
@@ -16,6 +17,8 @@ const AdminOrders = () => {
   const { isAdmin } = useAdmin();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [orderProducts, setOrderProducts] = useState<any[]>([]);
 
   useEffect(() => {
     if (!isAdmin) {
@@ -69,6 +72,28 @@ const AdminOrders = () => {
 
     toast.success('تم حذف الطلب');
     fetchOrders();
+  };
+
+  const handleViewOrder = async (order: any) => {
+    setSelectedOrder(order);
+    
+    // جلب تفاصيل المنتجات من قاعدة البيانات
+    const productIds = order.items.map((item: any) => item.id);
+    const { data: products } = await supabase
+      .from('products')
+      .select('id, name_ar, supplier_name')
+      .in('id', productIds);
+    
+    // دمج بيانات المنتجات مع الطلب
+    const enrichedItems = order.items.map((item: any) => {
+      const product = products?.find(p => p.id === item.id);
+      return {
+        ...item,
+        supplier_name: product?.supplier_name || 'غير محدد'
+      };
+    });
+    
+    setOrderProducts(enrichedItems);
   };
 
   const getStatusBadge = (status: string) => {
@@ -129,6 +154,14 @@ const AdminOrders = () => {
                   <TableCell>{new Date(order.created_at).toLocaleDateString('ar-DZ')}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => handleViewOrder(order)}
+                        title="عرض التفاصيل"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
                       <Select
                         value={order.status}
                         onValueChange={(value) => handleStatusChange(order.id, value)}
@@ -160,6 +193,69 @@ const AdminOrders = () => {
             </TableBody>
           </Table>
         </Card>
+
+        {/* نافذة تفاصيل الطلب */}
+        <Dialog open={!!selectedOrder} onOpenChange={() => setSelectedOrder(null)}>
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>تفاصيل الطلب #{selectedOrder?.id.slice(0, 8)}</DialogTitle>
+            </DialogHeader>
+            
+            {selectedOrder && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="font-semibold mb-2">معلومات العميل</h3>
+                    <div className="space-y-1 text-sm">
+                      <p><strong>الاسم:</strong> {selectedOrder.customer_name}</p>
+                      <p><strong>الهاتف:</strong> {selectedOrder.customer_phone}</p>
+                      <p><strong>العنوان:</strong> {selectedOrder.customer_address}</p>
+                      <p><strong>الولاية:</strong> {selectedOrder.wilaya_code}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-2">معلومات الطلب</h3>
+                    <div className="space-y-1 text-sm">
+                      <p><strong>التاريخ:</strong> {new Date(selectedOrder.created_at).toLocaleString('ar-DZ')}</p>
+                      <p><strong>نوع التوصيل:</strong> {selectedOrder.delivery_type === 'home' ? 'توصيل للمنزل' : 'توصيل لمكتب'}</p>
+                      <p><strong>سعر التوصيل:</strong> {selectedOrder.delivery_price} دج</p>
+                      <p><strong>السعر الكلي:</strong> {selectedOrder.total_price} دج</p>
+                      <p><strong>الحالة:</strong> {getStatusBadge(selectedOrder.status)}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold mb-3">المنتجات</h3>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-right">المنتج</TableHead>
+                        <TableHead className="text-right">الكمية</TableHead>
+                        <TableHead className="text-right">السعر</TableHead>
+                        <TableHead className="text-right">المجموع</TableHead>
+                        <TableHead className="text-right">المورد</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {orderProducts.map((item, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{item.name_ar}</TableCell>
+                          <TableCell>{item.quantity}</TableCell>
+                          <TableCell>{item.price} دج</TableCell>
+                          <TableCell>{(item.quantity * item.price).toFixed(2)} دج</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{item.supplier_name}</Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   );

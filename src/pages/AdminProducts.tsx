@@ -28,7 +28,8 @@ const AdminProducts = () => {
     description_ar: '',
     price: '',
     category_id: '',
-    image_url: ''
+    image_url: '',
+    supplier_name: ''
   });
   const [uploading, setUploading] = useState(false);
 
@@ -73,7 +74,8 @@ const AdminProducts = () => {
       description_ar: formData.description_ar,
       price: parseFloat(formData.price),
       category_id: formData.category_id || null,
-      image_url: formData.image_url || null
+      image_url: formData.image_url || null,
+      supplier_name: formData.supplier_name || null
     };
 
     let error;
@@ -131,7 +133,8 @@ const AdminProducts = () => {
       description_ar: '',
       price: '',
       category_id: '',
-      image_url: ''
+      image_url: '',
+      supplier_name: ''
     });
     setEditingProduct(null);
   };
@@ -145,7 +148,8 @@ const AdminProducts = () => {
       description_ar: product.description_ar || '',
       price: product.price?.toString() || '',
       category_id: product.category_id || '',
-      image_url: product.image_url || ''
+      image_url: product.image_url || '',
+      supplier_name: product.supplier_name || ''
     });
     setIsDialogOpen(true);
   };
@@ -249,6 +253,15 @@ const AdminProducts = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+                <div>
+                  <Label htmlFor="supplier_name">اسم المورد</Label>
+                  <Input
+                    id="supplier_name"
+                    value={formData.supplier_name}
+                    onChange={(e) => setFormData({ ...formData, supplier_name: e.target.value })}
+                    placeholder="اسم المورد (اختياري)"
+                  />
                 </div>
                 <div>
                   <Label>صورة المنتج</Label>
