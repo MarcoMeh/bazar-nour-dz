@@ -5,6 +5,7 @@ import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ShoppingBag, Truck, Shield, Tag, Sparkles, Smartphone, Palette, Home } from 'lucide-react';
 import logo from '@/assets/bazzarna-logo.jpeg';
+import heroBg from '@/assets/hero.jpeg';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Carousel,
@@ -15,6 +16,12 @@ import {
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 
+// Import your local slide images
+import image_slide_1 from '@/assets/images_slide_1.jpeg';
+import image_slide_2 from '@/assets/images_slide_2.jpeg';
+import image_slide_3 from '@/assets/images_slide_3.jpeg';
+
+
 interface Category {
   id: string;
   name_ar: string;
@@ -24,9 +31,13 @@ interface Category {
 
 const Index = () => {
   const [mainCategories, setMainCategories] = useState<Category[]>([]);
+  const [newestProducts, setNewestProducts] = useState<any[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+
 
   useEffect(() => {
     fetchMainCategories();
+    fetchNewestProducts();
   }, []);
 
   const fetchMainCategories = async () => {
@@ -41,6 +52,34 @@ const Index = () => {
       setMainCategories(data);
     }
   };
+  const fetchNewestProducts = async () => {
+    setLoadingProducts(true);
+    const { data, error } = await supabase
+      .from('products')
+      .select(`
+        id,
+        name_ar,
+        price,
+        image_url,
+        categories!inner(
+          name_ar,
+          parent:parent_id(name_ar)
+        )
+      `)
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    if (!error && data) {
+      setNewestProducts(
+        data.map((item) => ({
+          ...item,
+          category_name: item.categories?.name_ar || 'غير مصنف',
+          sub_category_name: item.categories?.parent?.name_ar || null,
+        }))
+      );
+    }
+    setLoadingProducts(false);
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-background via-background to-muted/20">
@@ -48,7 +87,10 @@ const Index = () => {
       
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative overflow-hidden">
+        <section 
+          className="relative overflow-hidden bg-cover bg-center bg-no-repeat" 
+          style={{ backgroundImage: `url(${heroBg})` }}
+        >
           {/* Animated Background Gradient */}
           <div className="absolute inset-0 bg-gradient-to-bl from-primary via-primary/95 to-primary/80">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent_50%)]" />
@@ -98,217 +140,106 @@ const Index = () => {
             </svg>
           </div>
         </section>
-
-        {/* Promotional Carousel Section */}
-        <section className="py-16 bg-background">
+        {/* cursor slider*/}
+       <section className="py-12 bg-background">
           <div className="container mx-auto px-4">
             <Carousel
-              opts={{
-                align: "start",
-                loop: true,
-              }}
-              plugins={[
-                Autoplay({
-                  delay: 4000,
-                }),
-              ]}
-              className="w-full"
-            >
+              opts={{ align: "center", loop: true }}
+              plugins={[Autoplay({ delay: 4500 })]}
+              className="w-full">
               <CarouselContent>
-                {/* Slide 1 - Special Offer */}
+                {/* Slide 1 - Redesigned with local image */}
                 <CarouselItem>
-                  <div className="relative h-[300px] md:h-[400px] rounded-2xl overflow-hidden group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-accent via-accent/90 to-accent/80">
-                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.15),transparent_60%)]" />
-                    </div>
-                    <div className="relative h-full flex items-center">
-                      <div className="container mx-auto px-8 md:px-16">
-                        <div className="max-w-2xl">
-                          <div className="flex items-center gap-2 mb-4">
-                            <Tag className="h-8 w-8 text-accent-foreground" />
-                            <span className="text-lg font-bold text-accent-foreground/90">عرض خاص</span>
-                          </div>
-                          <h3 className="text-4xl md:text-5xl font-bold text-accent-foreground mb-4 leading-tight">
-                            خصومات تصل إلى 50%
-                          </h3>
-                          <p className="text-xl text-accent-foreground/90 mb-6">
-                            على مختارات من الملابس والإكسسوارات
-                          </p>
-                          <Link to="/products">
-                            <Button size="lg" className="button-3d bg-accent-foreground text-accent hover:bg-accent-foreground/90 transition-all">
-                              تسوق الآن
-                              <ArrowLeft className="mr-2 h-5 w-5" />
-                            </Button>
-                          </Link>
-                        </div>
-                      </div>
+                  <div className="relative h-[300px] md:h-[420px] rounded-2xl overflow-hidden shadow-lg group">
+                    <img
+                      src={image_slide_1} // Using local image
+                      alt="Special Offer Sale"
+                      className="absolute inset-0 w-full h-full object-cover brightness-75 group-hover:scale-105 transition-transform duration-700 ease-in-out"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-accent/70 via-accent/60 to-accent/50 group-hover:bg-accent/80 transition-all duration-500" />
+                    <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6">
+                      <span className="text-sm md:text-lg font-semibold text-white/90 mb-2 uppercase tracking-wide group-hover:text-white transition-colors duration-300">
+                        عرض خاص جداً
+                      </span>
+                      <h3 className="text-4xl md:text-6xl font-extrabold text-white mb-4 leading-tight drop-shadow-md group-hover:scale-105 transition-transform duration-300">
+                        وفر حتى 50%
+                      </h3>
+                      <p className="text-base md:text-xl text-white/95 mb-6 max-w-md drop-shadow group-hover:text-white transition-colors duration-300">
+                        اكتشف مجموعتنا المختارة من الملابس والإكسسوارات بأسعار لا تقاوم!
+                      </p>
+                      <Link to="/products">
+                        <Button className="bg-white text-primary text-lg font-bold hover:bg-white/90 px-8 py-3 rounded-full shadow-lg transition-all duration-300 transform group-hover:scale-110">
+                          تسوق الآن
+                          <ArrowLeft className="mr-2 h-5 w-5" />
+                        </Button>
+                      </Link>
                     </div>
                   </div>
                 </CarouselItem>
 
-                {/* Slide 2 - New Arrivals */}
+                {/* Slide 2 - with local image */}
                 <CarouselItem>
-                  <div className="relative h-[300px] md:h-[400px] rounded-2xl overflow-hidden group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/90 to-primary/80">
-                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_50%,rgba(255,255,255,0.15),transparent_60%)]" />
-                    </div>
-                    <div className="relative h-full flex items-center">
-                      <div className="container mx-auto px-8 md:px-16">
-                        <div className="max-w-2xl">
-                          <div className="flex items-center gap-2 mb-4">
-                            <Sparkles className="h-8 w-8 text-primary-foreground" />
-                            <span className="text-lg font-bold text-primary-foreground/90">وصل حديثاً</span>
-                          </div>
-                          <h3 className="text-4xl md:text-5xl font-bold text-primary-foreground mb-4 leading-tight">
-                            منتجات جديدة كل أسبوع
-                          </h3>
-                          <p className="text-xl text-primary-foreground/90 mb-6">
-                            اكتشف أحدث صيحات الموضة والإلكترونيات
-                          </p>
-                          <Link to="/products">
-                            <Button size="lg" className="button-3d bg-accent hover:bg-accent/90 text-accent-foreground transition-all">
-                              اكتشف المزيد
-                              <ArrowLeft className="mr-2 h-5 w-5" />
-                            </Button>
-                          </Link>
-                        </div>
-                      </div>
+                  <div className="relative h-[300px] md:h-[420px] rounded-2xl overflow-hidden shadow-lg group">
+                    <img
+                      src={image_slide_2} // Using local image
+                      alt="New Arrivals"
+                      className="absolute inset-0 w-full h-full object-cover brightness-75 group-hover:scale-105 transition-transform duration-700 ease-in-out"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary/70 via-primary/60 to-primary/50 group-hover:bg-primary/80 transition-all duration-500" />
+                    <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6">
+                      <span className="text-sm md:text-lg font-semibold text-white/90 mb-2 uppercase tracking-wide group-hover:text-white transition-colors duration-300">
+                        وصل حديثاً
+                      </span>
+                      <h3 className="text-4xl md:text-6xl font-extrabold text-white mb-4 leading-tight drop-shadow-md group-hover:scale-105 transition-transform duration-300">
+                        منتجات جديدة كل أسبوع
+                      </h3>
+                      <p className="text-base md:text-xl text-white/95 mb-6 max-w-md drop-shadow group-hover:text-white transition-colors duration-300">
+                        كن أول من يكتشف أحدث صيحات الموضة والإلكترونيات العصرية.
+                      </p>
+                      <Link to="/products">
+                        <Button className="bg-white text-primary text-lg font-bold hover:bg-white/90 px-8 py-3 rounded-full shadow-lg transition-all duration-300 transform group-hover:scale-110">
+                          اكتشف المزيد
+                          <ArrowLeft className="mr-2 h-5 w-5" />
+                        </Button>
+                      </Link>
                     </div>
                   </div>
                 </CarouselItem>
 
-                {/* Slide 3 - Free Delivery */}
+                {/* Slide 3 - with local image */}
                 <CarouselItem>
-                  <div className="relative h-[300px] md:h-[400px] rounded-2xl overflow-hidden group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-secondary via-secondary/90 to-secondary/80">
-                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.15),transparent_60%)]" />
-                    </div>
-                    <div className="relative h-full flex items-center">
-                      <div className="container mx-auto px-8 md:px-16">
-                        <div className="max-w-2xl">
-                          <div className="flex items-center gap-2 mb-4">
-                            <Truck className="h-8 w-8 text-secondary-foreground" />
-                            <span className="text-lg font-bold text-secondary-foreground/90">توصيل مجاني</span>
-                          </div>
-                          <h3 className="text-4xl md:text-5xl font-bold text-secondary-foreground mb-4 leading-tight">
-                            شحن مجاني للطلبات فوق 5000 دج
-                          </h3>
-                          <p className="text-xl text-secondary-foreground/90 mb-6">
-                            لجميع ولايات الوطن - عرض لفترة محدودة
-                          </p>
-                          <Link to="/products">
-                            <Button size="lg" className="button-3d bg-secondary-foreground text-secondary hover:bg-secondary-foreground/90 transition-all">
-                              ابدأ التسوق
-                              <ArrowLeft className="mr-2 h-5 w-5" />
-                            </Button>
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CarouselItem>
-
-                {/* Slide 4 - Electronics Sale */}
-                <CarouselItem>
-                  <div className="relative h-[300px] md:h-[400px] rounded-2xl overflow-hidden group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/95 to-primary/85">
-                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_40%,rgba(255,255,255,0.2),transparent_60%)]" />
-                    </div>
-                    <div className="relative h-full flex items-center">
-                      <div className="container mx-auto px-8 md:px-16">
-                        <div className="max-w-2xl">
-                          <div className="flex items-center gap-2 mb-4">
-                            <Smartphone className="h-8 w-8 text-primary-foreground" />
-                            <span className="text-lg font-bold text-primary-foreground/90">عرض الإلكترونيات</span>
-                          </div>
-                          <h3 className="text-4xl md:text-5xl font-bold text-primary-foreground mb-4 leading-tight">
-                            خصومات على الهواتف والأجهزة
-                          </h3>
-                          <p className="text-xl text-primary-foreground/90 mb-6">
-                            أحدث الموديلات بأفضل الأسعار
-                          </p>
-                          <Link to="/products">
-                            <Button size="lg" className="button-3d bg-accent hover:bg-accent/90 text-accent-foreground transition-all">
-                              تسوق الإلكترونيات
-                              <ArrowLeft className="mr-2 h-5 w-5" />
-                            </Button>
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CarouselItem>
-
-                {/* Slide 5 - Beauty Products */}
-                <CarouselItem>
-                  <div className="relative h-[300px] md:h-[400px] rounded-2xl overflow-hidden group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-accent/90 via-accent to-accent/90">
-                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_60%_40%,rgba(255,255,255,0.2),transparent_60%)]" />
-                    </div>
-                    <div className="relative h-full flex items-center">
-                      <div className="container mx-auto px-8 md:px-16">
-                        <div className="max-w-2xl">
-                          <div className="flex items-center gap-2 mb-4">
-                            <Palette className="h-8 w-8 text-accent-foreground" />
-                            <span className="text-lg font-bold text-accent-foreground/90">عرض خاص</span>
-                          </div>
-                          <h3 className="text-4xl md:text-5xl font-bold text-accent-foreground mb-4 leading-tight">
-                            مستحضرات التجميل بأسعار مميزة
-                          </h3>
-                          <p className="text-xl text-accent-foreground/90 mb-6">
-                            منتجات عناية وجمال من أفضل الماركات
-                          </p>
-                          <Link to="/products">
-                            <Button size="lg" className="button-3d bg-accent-foreground text-accent hover:bg-accent-foreground/90 transition-all">
-                              اشتري الآن
-                              <ArrowLeft className="mr-2 h-5 w-5" />
-                            </Button>
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CarouselItem>
-
-                {/* Slide 6 - Home Decor */}
-                <CarouselItem>
-                  <div className="relative h-[300px] md:h-[400px] rounded-2xl overflow-hidden group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-secondary/90 via-secondary to-secondary/85">
-                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_30%,rgba(255,255,255,0.15),transparent_60%)]" />
-                    </div>
-                    <div className="relative h-full flex items-center">
-                      <div className="container mx-auto px-8 md:px-16">
-                        <div className="max-w-2xl">
-                          <div className="flex items-center gap-2 mb-4">
-                            <Home className="h-8 w-8 text-secondary-foreground" />
-                            <span className="text-lg font-bold text-secondary-foreground/90">ديكور منزلي</span>
-                          </div>
-                          <h3 className="text-4xl md:text-5xl font-bold text-secondary-foreground mb-4 leading-tight">
-                            تخفيضات على الديكور والإكسسوارات
-                          </h3>
-                          <p className="text-xl text-secondary-foreground/90 mb-6">
-                            جمّل منزلك بأحدث التصاميم العصرية
-                          </p>
-                          <Link to="/products">
-                            <Button size="lg" className="button-3d bg-secondary-foreground text-secondary hover:bg-secondary-foreground/90 transition-all">
-                              تصفح المجموعة
-                              <ArrowLeft className="mr-2 h-5 w-5" />
-                            </Button>
-                          </Link>
-                        </div>
-                      </div>
+                  <div className="relative h-[300px] md:h-[420px] rounded-2xl overflow-hidden shadow-lg group">
+                    <img
+                      src={image_slide_3} // Using local image
+                      alt="Free Shipping"
+                      className="absolute inset-0 w-full h-full object-cover brightness-75 group-hover:scale-105 transition-transform duration-700 ease-in-out"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-secondary/70 via-secondary/60 to-secondary/50 group-hover:bg-secondary/80 transition-all duration-500" />
+                    <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6">
+                      <span className="text-sm md:text-lg font-semibold text-white/90 mb-2 uppercase tracking-wide group-hover:text-white transition-colors duration-300">
+                        توصيل مجاني ومضمون
+                      </span>
+                      <h3 className="text-4xl md:text-6xl font-extrabold text-white mb-4 leading-tight drop-shadow-md group-hover:scale-105 transition-transform duration-300">
+                        شحن مجاني للطلبات فوق 10000 دج
+                      </h3>
+                      <p className="text-base md:text-xl text-white/95 mb-6 max-w-md drop-shadow group-hover:text-white transition-colors duration-300">
+                        استمتع بتجربة تسوق مريحة مع توصيل سريع ومجاني لجميع الولايات.
+                      </p>
+                      <Link to="/products">
+                        <Button className="bg-white text-primary text-lg font-bold hover:bg-white/90 px-8 py-3 rounded-full shadow-lg transition-all duration-300 transform group-hover:scale-110">
+                          ابدأ التسوق
+                          <ArrowLeft className="mr-2 h-5 w-5" />
+                        </Button>
+                      </Link>
                     </div>
                   </div>
                 </CarouselItem>
               </CarouselContent>
-              <div className="hidden md:block">
-                <CarouselPrevious className="left-4" />
-                <CarouselNext className="right-4" />
-              </div>
+              <CarouselPrevious className="hidden md:flex left-4" />
+              <CarouselNext className="hidden md:flex right-4" />
             </Carousel>
           </div>
         </section>
-
         {/* Features Section */}
         <section className="py-20 relative">
           <div className="container mx-auto px-4">
@@ -357,6 +288,58 @@ const Index = () => {
             </div>
           </div>
         </section>
+        {/* Newest Products Section */}
+        <section className="py-20 bg-background relative">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
+                أحدث المنتجات
+              </h2>
+              <p className="text-muted-foreground text-lg">اكتشف أحدث الإضافات في متجرنا</p>
+            </div>
+
+            {loadingProducts ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {[...Array(8)].map((_, i) => (
+                  <div key={i} className="h-96 rounded-lg bg-muted animate-pulse" />
+                ))}
+              </div>
+            ) : newestProducts.length === 0 ? (
+              <div className="text-center py-16">
+                <p className="text-xl text-muted-foreground">لا توجد منتجات جديدة حالياً</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {newestProducts.map((product) => (
+                  <div
+                    key={product.id}
+                    className="group rounded-xl overflow-hidden bg-card border border-border hover:shadow-xl hover:-translate-y-2 transition-all duration-300"
+                  >
+                    <div className="relative">
+                      <img
+                        src={product.image_url || '/placeholder.png'}
+                        alt={product.name_ar}
+                        className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-semibold px-2 py-1 rounded-lg">
+                        جديد
+                      </div>
+                    </div>
+
+                    <div className="p-4 space-y-2 text-right">
+                      <h3 className="text-lg font-bold text-foreground line-clamp-2">{product.name_ar}</h3>
+                      <p className="text-muted-foreground text-sm">
+                        {product.category_name} › {product.sub_category_name || '—'}
+                      </p>
+                      <p className="text-primary font-semibold">{product.price} دج</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+
 
         {/* Categories Section */}
         <section className="py-20 bg-gradient-to-b from-muted/30 to-background relative overflow-hidden">
