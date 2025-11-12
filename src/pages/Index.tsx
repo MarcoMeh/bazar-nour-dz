@@ -143,13 +143,6 @@ const Index = () => {
         {/* cursor slider*/}
        <section className="py-12 bg-background">
           <div className="container mx-auto px-4">
-            <Carousel
-              opts={{ align: "center", loop: true }}
-              plugins={[Autoplay({ delay: 4500 })]}
-              className="w-full">
-              <CarouselContent>
-                {/* Slide 1 - Redesigned with local image */}
-                <CarouselItem>
                   <div className="relative h-[300px] md:h-[420px] rounded-2xl overflow-hidden shadow-lg group">
                     <img
                       src={image_slide_1} // Using local image
@@ -158,36 +151,7 @@ const Index = () => {
                     />
                     <div className="absolute inset-0 bg-gradient-to-r from-accent/70 via-accent/60 to-accent/50 group-hover:bg-accent/80 transition-all duration-500" />
                     <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6">
-                      <span className="text-sm md:text-lg font-semibold text-white/90 mb-2 uppercase tracking-wide group-hover:text-white transition-colors duration-300">
-                        عرض خاص جداً
-                      </span>
-                      <h3 className="text-4xl md:text-6xl font-extrabold text-white mb-4 leading-tight drop-shadow-md group-hover:scale-105 transition-transform duration-300">
-                        وفر حتى 50%
-                      </h3>
-                      <p className="text-base md:text-xl text-white/95 mb-6 max-w-md drop-shadow group-hover:text-white transition-colors duration-300">
-                        اكتشف مجموعتنا المختارة من الملابس والإكسسوارات بأسعار لا تقاوم!
-                      </p>
-                      <Link to="/products">
-                        <Button className="bg-white text-primary text-lg font-bold hover:bg-white/90 px-8 py-3 rounded-full shadow-lg transition-all duration-300 transform group-hover:scale-110">
-                          تسوق الآن
-                          <ArrowLeft className="mr-2 h-5 w-5" />
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-                </CarouselItem>
-
-                {/* Slide 2 - with local image */}
-                <CarouselItem>
-                  <div className="relative h-[300px] md:h-[420px] rounded-2xl overflow-hidden shadow-lg group">
-                    <img
-                      src={image_slide_2} // Using local image
-                      alt="New Arrivals"
-                      className="absolute inset-0 w-full h-full object-cover brightness-75 group-hover:scale-105 transition-transform duration-700 ease-in-out"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary/70 via-primary/60 to-primary/50 group-hover:bg-primary/80 transition-all duration-500" />
-                    <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6">
-                      <span className="text-sm md:text-lg font-semibold text-white/90 mb-2 uppercase tracking-wide group-hover:text-white transition-colors duration-300">
+                       <span className="text-sm md:text-lg font-semibold text-white/90 mb-2 uppercase tracking-wide group-hover:text-white transition-colors duration-300">
                         وصل حديثاً
                       </span>
                       <h3 className="text-4xl md:text-6xl font-extrabold text-white mb-4 leading-tight drop-shadow-md group-hover:scale-105 transition-transform duration-300">
@@ -204,40 +168,6 @@ const Index = () => {
                       </Link>
                     </div>
                   </div>
-                </CarouselItem>
-
-                {/* Slide 3 - with local image */}
-                <CarouselItem>
-                  <div className="relative h-[300px] md:h-[420px] rounded-2xl overflow-hidden shadow-lg group">
-                    <img
-                      src={image_slide_3} // Using local image
-                      alt="Free Shipping"
-                      className="absolute inset-0 w-full h-full object-cover brightness-75 group-hover:scale-105 transition-transform duration-700 ease-in-out"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-r from-secondary/70 via-secondary/60 to-secondary/50 group-hover:bg-secondary/80 transition-all duration-500" />
-                    <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6">
-                      <span className="text-sm md:text-lg font-semibold text-white/90 mb-2 uppercase tracking-wide group-hover:text-white transition-colors duration-300">
-                        توصيل مجاني ومضمون
-                      </span>
-                      <h3 className="text-4xl md:text-6xl font-extrabold text-white mb-4 leading-tight drop-shadow-md group-hover:scale-105 transition-transform duration-300">
-                        شحن مجاني للطلبات فوق 10000 دج
-                      </h3>
-                      <p className="text-base md:text-xl text-white/95 mb-6 max-w-md drop-shadow group-hover:text-white transition-colors duration-300">
-                        استمتع بتجربة تسوق مريحة مع توصيل سريع ومجاني لجميع الولايات.
-                      </p>
-                      <Link to="/products">
-                        <Button className="bg-white text-primary text-lg font-bold hover:bg-white/90 px-8 py-3 rounded-full shadow-lg transition-all duration-300 transform group-hover:scale-110">
-                          ابدأ التسوق
-                          <ArrowLeft className="mr-2 h-5 w-5" />
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-                </CarouselItem>
-              </CarouselContent>
-              <CarouselPrevious className="hidden md:flex left-4" />
-              <CarouselNext className="hidden md:flex right-4" />
-            </Carousel>
           </div>
         </section>
         {/* Features Section */}
