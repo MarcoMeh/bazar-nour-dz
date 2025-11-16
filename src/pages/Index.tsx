@@ -218,59 +218,6 @@ const Index = () => {
             </div>
           </div>
         </section>
-        {/* Newest Products Section */}
-        <section className="py-20 bg-background relative">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
-                أحدث المنتجات
-              </h2>
-              <p className="text-muted-foreground text-lg">اكتشف أحدث الإضافات في متجرنا</p>
-            </div>
-
-            {loadingProducts ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {[...Array(8)].map((_, i) => (
-                  <div key={i} className="h-96 rounded-lg bg-muted animate-pulse" />
-                ))}
-              </div>
-            ) : newestProducts.length === 0 ? (
-              <div className="text-center py-16">
-                <p className="text-xl text-muted-foreground">لا توجد منتجات جديدة حالياً</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {newestProducts.map((product) => (
-                  <div
-                    key={product.id}
-                    className="group rounded-xl overflow-hidden bg-card border border-border hover:shadow-xl hover:-translate-y-2 transition-all duration-300"
-                  >
-                    <div className="relative">
-                      <img
-                        src={product.image_url || '/placeholder.png'}
-                        alt={product.name_ar}
-                        className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                      <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-semibold px-2 py-1 rounded-lg">
-                        جديد
-                      </div>
-                    </div>
-
-                    <div className="p-4 space-y-2 text-right">
-                      <h3 className="text-lg font-bold text-foreground line-clamp-2">{product.name_ar}</h3>
-                      <p className="text-muted-foreground text-sm">
-                        {product.category_name} › {product.sub_category_name || '—'}
-                      </p>
-                      <p className="text-primary font-semibold">{product.price} دج</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
-
-
         {/* Categories Section */}
         <section className="py-20 bg-gradient-to-b from-muted/30 to-background relative overflow-hidden">
           {/* Decorative Background Elements */}
@@ -325,6 +272,60 @@ const Index = () => {
             </div>
           </div>
         </section>
+        {/* Newest Products Section */}
+        <section className="py-20 bg-background relative">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
+                أحدث المنتجات
+              </h2>
+              <p className="text-muted-foreground text-lg">اكتشف أحدث الإضافات في متجرنا</p>
+            </div>
+
+            {loadingProducts ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {[...Array(8)].map((_, i) => (
+                  <div key={i} className="h-96 rounded-lg bg-muted animate-pulse" />
+                ))}
+              </div>
+            ) : newestProducts.length === 0 ? (
+              <div className="text-center py-16">
+                <p className="text-xl text-muted-foreground">لا توجد منتجات جديدة حالياً</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {newestProducts.map((product) => (
+                  <div
+                    key={product.id}
+                    className="group rounded-xl overflow-hidden bg-card border border-border hover:shadow-xl hover:-translate-y-2 transition-all duration-300"
+                  >
+                    <div className="relative">
+                      <img
+                        src={product.image_url || '/placeholder.png'}
+                        alt={product.name_ar}
+                        className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-semibold px-2 py-1 rounded-lg">
+                        جديد
+                      </div>
+                    </div>
+
+                    <div className="p-4 space-y-2 text-right">
+                      <h3 className="text-lg font-bold text-foreground line-clamp-2">{product.name_ar}</h3>
+                      <p className="text-muted-foreground text-sm">
+                        {product.category_name} › {product.sub_category_name || '—'}
+                      </p>
+                      <p className="text-primary font-semibold">{product.price} دج</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+
+
+        
       </main>
 
       <Footer />

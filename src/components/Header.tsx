@@ -54,14 +54,7 @@ export const Header = () => {
 
           {/* Center Section: Search & Navigation */}
           <div className="flex-1 flex items-center justify-center gap-6 px-2">
-            <div className="hidden md:flex flex-grow max-w-lg relative">
-              <Input
-                type="search"
-                placeholder="ابحث عن المنتجات..."
-                className="pr-10 text-right border-green-300 focus:border-green-500 transition-colors duration-200"
-              />
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-green-500" />
-            </div>
+            
 
             <nav className="hidden md:flex items-center gap-4">
               {/* Categories Dropdown */}
