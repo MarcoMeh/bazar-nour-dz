@@ -55,7 +55,6 @@ const AdminLogin = () => {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="admin1730"
               required
               autoComplete="username"
             />

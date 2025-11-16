@@ -14,16 +14,23 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
-import { ArrowRight, ShoppingCart, Truck, Shield } from 'lucide-react';
+import { ArrowRight, ShoppingCart, Truck, Shield, Home, Package } from 'lucide-react'; // Added Home and Package for delivery icons
+import { PostgrestError } from '@supabase/supabase-js'; // Make sure this import is present
 
+// Updated Product interface to include new fields
 interface Product {
   id: string;
   name_ar: string;
   description_ar?: string;
   price: number;
   image_url?: string;
-  images?: any;
+  images?: string[]; // Assuming images is an array of strings
   category_id?: string;
+  // New fields
+  is_delivery_home_available: boolean;
+  is_delivery_desktop_available: boolean;
+  is_sold_out: boolean;
+  is_free_delivery: boolean;
 }
 
 const ProductDetail = () => {
@@ -40,16 +47,19 @@ const ProductDetail = () => {
     }
   }, [id]);
 
-  const fetchProduct = async () => {
+ const fetchProduct = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    // Updated select statement to include all new columns
+    // --- CRITICAL CHANGE HERE ---
+    const { data, error } = (await supabase
       .from('products')
-      .select('*')
+      .select('*, is_delivery_home_available, is_delivery_desktop_available, is_sold_out, is_free_delivery')
       .eq('id', id)
-      .maybeSingle();
+      .maybeSingle()) as { data: Product | null; error: PostgrestError | null }; // Notice Product | null for maybeSingle()
+    // --- END CRITICAL CHANGE ---
 
     if (error) {
-      toast.error('حدث خطأ في تحميل المنتج');
+      toast.error('حدث خطأ في تحميل المنتج: ' + error.message); // Added error.message for better debugging
       setLoading(false);
       return;
     }
@@ -65,13 +75,16 @@ const ProductDetail = () => {
   };
 
   const handleAddToCart = () => {
-    if (product) {
+    if (product && !product.is_sold_out) { // Prevent adding to cart if sold out
       addItem({
         id: product.id,
         name_ar: product.name_ar,
         price: product.price,
         image_url: product.image_url,
       });
+      toast.success('تمت إضافة المنتج إلى السلة!'); // Optional: Add a success toast
+    } else if (product?.is_sold_out) {
+      toast.error('عذراً، هذا المنتج نفد من المخزون.'); // Optional: Inform user if trying to add sold-out item
     }
   };
 
@@ -121,7 +134,12 @@ const ProductDetail = () => {
 
         <div className="grid md:grid-cols-2 gap-8 mb-12">
           {/* Images Section */}
-          <div className="space-y-4">
+          <div className="space-y-4 relative"> {/* Added relative for "Sold Out" badge */}
+            {product.is_sold_out && ( // <-- FIXED
+              <div className="absolute top-4 left-4 bg-red-600 text-white text-lg px-4 py-2 rounded-full shadow-xl z-10 font-bold">
+                نفد
+              </div>
+            )}
             {allImages.length > 1 ? (
               <Carousel className="w-full">
                 <CarouselContent>
@@ -185,6 +203,25 @@ const ProductDetail = () => {
               </div>
             </div>
 
+            {/* Product Status / Delivery Info */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              {product.is_free_delivery && (
+                <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 text-sm px-3 py-1.5 rounded-full font-medium">
+                  <Truck className="h-4 w-4" /> توصيل مجاني
+                </span>
+              )}
+              {product.is_delivery_home_available && (
+                <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 text-sm px-3 py-1.5 rounded-full font-medium">
+                  <Home className="h-4 w-4" /> توصيل للمنزل
+                </span>
+              )}
+              {product.is_delivery_desktop_available && (
+                <span className="inline-flex items-center gap-1 bg-purple-100 text-purple-700 text-sm px-3 py-1.5 rounded-full font-medium">
+                  <Package className="h-4 w-4" /> استلام من المكتب
+                </span>
+              )}
+            </div>
+
             {product.description_ar && (
               <Card className="p-6 bg-muted/50 border-muted">
                 <h2 className="text-xl font-semibold mb-3">وصف المنتج</h2>
@@ -194,16 +231,27 @@ const ProductDetail = () => {
               </Card>
             )}
 
-            <Button
-              size="lg"
-              onClick={handleAddToCart}
-              className="w-full shadow-lg hover:shadow-xl transition-all duration-300"
-            >
-              <ShoppingCart className="ml-2 h-5 w-5" />
-              إضافة إلى السلة
-            </Button>
+            {/* Add to Cart / Sold Out Button */}
+            {product.is_sold_out ? (
+              <Button
+                size="lg"
+                disabled
+                className="w-full bg-red-500 text-white cursor-not-allowed shadow-lg"
+              >
+                نفد
+              </Button>
+            ) : (
+              <Button
+                size="lg"
+                onClick={handleAddToCart}
+                className="w-full shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                <ShoppingCart className="ml-2 h-5 w-5" />
+                إضافة إلى السلة
+              </Button>
+            )}
 
-            {/* Features */}
+            {/* Features (Original) */}
             <div className="grid grid-cols-2 gap-4">
               <Card className="p-4 text-center border-muted hover:border-accent/40 transition-all duration-300">
                 <Truck className="h-8 w-8 mx-auto mb-2 text-primary" />

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { PostgrestError } from '@supabase/supabase-js'; // Import PostgrestError
 
 interface Category {
   id: string;
@@ -23,6 +24,10 @@ interface Product {
   price: number;
   image_url?: string;
   category_id?: string;
+  is_delivery_home_available: boolean;
+  is_delivery_desktop_available: boolean;
+  is_sold_out: boolean;
+  is_free_delivery: boolean;
 }
 
 const Products = () => {
@@ -36,7 +41,6 @@ const Products = () => {
   useEffect(() => {
     fetchCategories();
     
-    // Check if category param exists in URL
     const categoryParam = searchParams.get('category');
     if (categoryParam) {
       setSelectedMainCategory(categoryParam);
@@ -52,7 +56,7 @@ const Products = () => {
       .order('name_ar');
 
     if (error) {
-      toast.error('حدث خطأ في تحميل الفئات');
+      toast.error('حدث خطأ في تحميل الفئات: ' + error.message);
       return;
     }
 
@@ -61,17 +65,20 @@ const Products = () => {
 
   const fetchProducts = async () => {
     setLoading(true);
-    let query = supabase.from('products').select('*');
+    let query = supabase.from('products').select('*, is_delivery_home_available, is_delivery_desktop_available, is_sold_out, is_free_delivery');
 
     if (selectedSubCategory) {
       query = query.eq('category_id', selectedSubCategory);
     }
 
-    const { data, error } = await query.order('created_at', { ascending: false });
+    // --- CRITICAL CHANGE HERE ---
+    const { data, error } = (await query.order('created_at', { ascending: false })) as { data: Product[] | null; error: PostgrestError | null };
+    // --- END CRITICAL CHANGE ---
 
     if (error) {
-      toast.error('حدث خطأ في تحميل المنتجات');
+      toast.error('حدث خطأ في تحميل المنتجات: ' + error.message);
       setLoading(false);
+      setProducts([]); 
       return;
     }
 
@@ -80,8 +87,12 @@ const Products = () => {
   };
 
   useEffect(() => {
-    fetchProducts();
-  }, [selectedSubCategory]);
+    if (selectedSubCategory || (!selectedMainCategory && !selectedSubCategory)) {
+        fetchProducts();
+    } else {
+        setProducts([]);
+    }
+  }, [selectedSubCategory, selectedMainCategory]);
 
   const getMainCategories = () => categories.filter(cat => !cat.parent_id);
   const getSubCategories = (parentId: string) => categories.filter(cat => cat.parent_id === parentId);
@@ -105,7 +116,6 @@ const Products = () => {
       <main className="flex-1 container mx-auto px-4 py-8">
         <h1 className="text-3xl md:text-4xl font-bold mb-8">منتجاتنا</h1>
 
-        {/* Main Categories */}
         {!selectedMainCategory && (
           <div className="mb-8">
             <h2 className="text-xl font-semibold mb-4">اختر التصنيف</h2>
@@ -134,7 +144,6 @@ const Products = () => {
           </div>
         )}
 
-        {/* Subcategories */}
         {selectedMainCategory && !selectedSubCategory && (
           <div className="mb-8">
             <Button variant="ghost" onClick={handleBackToMain} className="mb-4">
@@ -155,6 +164,9 @@ const Products = () => {
                         alt={cat.name_ar}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-4">
+                        <h3 className="text-white font-semibold text-lg">{cat.name_ar}</h3>
+                      </div>
                     </div>
                   )}
                   <div className={`p-4 ${!cat.image_url ? 'h-24' : 'min-h-[4rem]'} flex items-center justify-center`}>
@@ -166,16 +178,18 @@ const Products = () => {
           </div>
         )}
 
-        {/* Products Grid */}
-        {selectedSubCategory && (
+        {(selectedSubCategory || (!selectedMainCategory && !selectedSubCategory)) && (
           <>
-            <Button 
-              variant="ghost" 
-              onClick={() => setSelectedSubCategory(null)} 
-              className="mb-4"
-            >
-              ← العودة للتصنيفات الفرعية
-            </Button>
+            {(selectedSubCategory || selectedMainCategory) && (
+              <Button 
+                variant="ghost" 
+                onClick={() => selectedSubCategory ? setSelectedSubCategory(null) : handleBackToMain()} 
+                className="mb-4"
+              >
+                ← العودة {selectedSubCategory ? 'للتصنيفات الفرعية' : 'للتصنيفات الرئيسية'}
+              </Button>
+            )}
+
             {loading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {[...Array(8)].map((_, i) => (

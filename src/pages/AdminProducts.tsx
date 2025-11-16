@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Switch } from '@/components/ui/switch'; // Import Switch component
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ArrowRight, Plus, Trash2, Edit, Upload } from 'lucide-react';
@@ -29,7 +30,12 @@ const AdminProducts = () => {
     price: '',
     category_id: '',
     image_url: '',
-    supplier_name: ''
+    supplier_name: '',
+    // New fields
+    is_delivery_home_available: true,
+    is_delivery_desktop_available: true,
+    is_sold_out: false,
+    is_free_delivery: false
   });
   const [uploading, setUploading] = useState(false);
 
@@ -75,7 +81,12 @@ const AdminProducts = () => {
       price: parseFloat(formData.price),
       category_id: formData.category_id || null,
       image_url: formData.image_url || null,
-      supplier_name: formData.supplier_name || null
+      supplier_name: formData.supplier_name || null,
+      // New fields
+      is_delivery_home_available: formData.is_delivery_home_available,
+      is_delivery_desktop_available: formData.is_delivery_desktop_available,
+      is_sold_out: formData.is_sold_out,
+      is_free_delivery: formData.is_free_delivery
     };
 
     let error;
@@ -134,7 +145,12 @@ const AdminProducts = () => {
       price: '',
       category_id: '',
       image_url: '',
-      supplier_name: ''
+      supplier_name: '',
+      // Reset new fields
+      is_delivery_home_available: true,
+      is_delivery_desktop_available: true,
+      is_sold_out: false,
+      is_free_delivery: false
     });
     setEditingProduct(null);
   };
@@ -149,7 +165,12 @@ const AdminProducts = () => {
       price: product.price?.toString() || '',
       category_id: product.category_id || '',
       image_url: product.image_url || '',
-      supplier_name: product.supplier_name || ''
+      supplier_name: product.supplier_name || '',
+      // Load new fields, providing defaults if null/undefined
+      is_delivery_home_available: product.is_delivery_home_available ?? true,
+      is_delivery_desktop_available: product.is_delivery_desktop_available ?? true,
+      is_sold_out: product.is_sold_out ?? false,
+      is_free_delivery: product.is_free_delivery ?? false
     });
     setIsDialogOpen(true);
   };
@@ -309,6 +330,59 @@ const AdminProducts = () => {
                     )}
                   </div>
                 </div>
+
+                {/* New delivery and status options */}
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="delivery-home"
+                      checked={formData.is_delivery_home_available}
+                      onCheckedChange={(checked) => {
+                        setFormData(prev => ({
+                          ...prev,
+                          is_delivery_home_available: checked,
+                          // If home delivery is off, desktop delivery should be off
+                          is_delivery_desktop_available: checked ? prev.is_delivery_desktop_available : false
+                        }));
+                      }}
+                    />
+                    <Label htmlFor="delivery-home">التوصيل للمنزل متاح</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="delivery-desktop"
+                      checked={formData.is_delivery_desktop_available}
+                      onCheckedChange={(checked) => {
+                        setFormData(prev => ({
+                          ...prev,
+                          is_delivery_desktop_available: checked
+                        }));
+                      }}
+                      disabled={!formData.is_delivery_home_available} // Disable if home delivery is not available
+                    />
+                    <Label htmlFor="delivery-desktop">الاستلام من المكتب متاح</Label>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="sold-out"
+                      checked={formData.is_sold_out}
+                      onCheckedChange={(checked) => setFormData({ ...formData, is_sold_out: checked })}
+                    />
+                    <Label htmlFor="sold-out">المنتج نفد</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="free-delivery"
+                      checked={formData.is_free_delivery}
+                      onCheckedChange={(checked) => setFormData({ ...formData, is_free_delivery: checked })}
+                    />
+                    <Label htmlFor="free-delivery">توصيل مجاني</Label>
+                  </div>
+                </div>
+
                 <div className="flex gap-2 justify-end">
                   <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                     إلغاء
@@ -331,6 +405,12 @@ const AdminProducts = () => {
                 {product.description_ar && (
                   <p className="text-sm text-muted-foreground mt-1">{product.description_ar}</p>
                 )}
+                <div className="mt-2 text-xs flex flex-wrap gap-2">
+                  {product.is_sold_out && <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full">نفد</span>}
+                  {product.is_free_delivery && <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full">توصيل مجاني</span>}
+                  {product.is_delivery_home_available && <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full">توصيل للمنزل</span>}
+                  {product.is_delivery_desktop_available && <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full">استلام من المكتب</span>}
+                </div>
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" size="icon" onClick={() => handleEdit(product)}>
