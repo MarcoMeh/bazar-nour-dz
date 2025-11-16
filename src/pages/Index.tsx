@@ -295,10 +295,12 @@ const Index = () => {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {newestProducts.map((product) => (
+                 <Link to={`/product/${product.id}`}>
                   <div
                     key={product.id}
-                    className="group rounded-xl overflow-hidden bg-card border border-border hover:shadow-xl hover:-translate-y-2 transition-all duration-300"
+                    className="group rounded-xl overflow-hidden bg-card border border-border hover:shadow-xl hover:-translate-y-2 transition-all duration-300 cursor-pointer"
                   >
+
                     <div className="relative">
                       <img
                         src={product.image_url || '/placeholder.png'}
@@ -318,6 +320,7 @@ const Index = () => {
                       <p className="text-primary font-semibold">{product.price} دج</p>
                     </div>
                   </div>
+                  </Link>
                 ))}
               </div>
             )}
