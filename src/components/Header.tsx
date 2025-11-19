@@ -73,6 +73,12 @@ export const Header = () => {
                 المنتجات
               </Link>
               <Link
+                to="/productstores"
+                className="text-green-700 hover:text-green-900 font-semibold"
+              >
+                محلاتنا
+              </Link>
+              <Link
                 to="/about"
                 className="text-green-700 hover:text-green-900 font-semibold"
               >
