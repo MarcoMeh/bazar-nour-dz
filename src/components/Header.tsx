@@ -1,14 +1,16 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { ShoppingCart, Search, Menu, User, Heart, Box, ChevronDown } from "lucide-react";
+import {
+  ShoppingCart,
+  Search,
+  Menu,
+  X,
+  ChevronDown,
+  ChevronUp,
+  Box
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
 import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/bazzarna-logo.jpeg";
@@ -16,7 +18,8 @@ import logo from "@/assets/bazzarna-logo.jpeg";
 export const Header = () => {
   const { totalItems } = useCart();
   const [categories, setCategories] = useState([]);
-  const [isAuthenticated, setIsAuthenticated] = useState(true); // Replace with real auth
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [openCategory, setOpenCategory] = useState<string | null>(null);
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -31,141 +34,166 @@ export const Header = () => {
   }, []);
 
   const mainCategories = categories.filter((c) => c.parent_id === null);
-  const subCategories = (parentId: string) => categories.filter((c) => c.parent_id === parentId);
+  const subCategories = (parentId: string) =>
+    categories.filter((c) => c.parent_id === parentId);
 
   return (
-    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-green-500/40 shadow-sm">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16 gap-2 md:gap-4">
+    <>
+      {/* HEADER */}
+      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-green-500/40 shadow-sm">
+        <div className="container mx-auto px-3">
+          <div className="flex items-center justify-between h-16 gap-2">
 
-          {/* Left Section: Logo & Mobile Menu */}
-          <div className="flex items-center gap-2 md:gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden text-green-700 hover:bg-green-100 transition-colors"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-            <Link to="/" className="flex items-center gap-2 shrink-0">
-              <img src={logo} alt="Bazzarna" className="h-10 w-auto rounded-lg shadow-sm" />
-            </Link>
-          </div>
-
-          {/* Center Section: Search & Navigation */}
-          <div className="flex-1 flex items-center justify-center gap-6 px-2">
-            
-
-            <nav className="hidden md:flex items-center gap-4">
-              {/* Categories Dropdown */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="text-green-700 hover:text-green-900 font-semibold text-base transition-colors duration-200 flex items-center gap-1"
-                  >
-                    <Box className="ml-2 h-4 w-4" />
-                    الفئات
-                    <ChevronDown className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-60">
-                  {mainCategories.map((main) => (
-                    <div key={main.id} className="flex flex-col text-right">
-                      <div className="px-3 py-2 font-bold text-green-700 border-b">{main.name_ar}</div>
-                      {subCategories(main.id).map((sub) => (
-                        <DropdownMenuItem key={sub.id} asChild>
-                          <Link
-                            to={`/products?category=${sub.slug}`}
-                            className="flex justify-end text-right pr-4"
-                          >
-                            {sub.name_ar}
-                          </Link>
-                        </DropdownMenuItem>
-                      ))}
-                    </div>
-                  ))}
-                  <DropdownMenuItem asChild>
-                    <Link
-                      to="/products"
-                      className="flex justify-end text-right font-bold text-primary mt-1"
-                    >
-                      عرض كل المنتجات
-                    </Link>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <Link to="/products">
-                <Button variant="ghost" className="text-green-700 hover:text-green-900 font-semibold text-base">
-                  المنتجات
-                </Button>
-              </Link>
-              <Link to="/about">
-                <Button variant="ghost" className="text-green-700 hover:text-green-900 font-semibold text-base">
-                  من نحن
-                </Button>
-              </Link>
-            </nav>
-          </div>
-
-          {/* Right Section: User, Wishlist, Cart */}
-          <div className="flex items-center gap-2 md:gap-4 shrink-0">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden text-green-700 hover:bg-green-100 transition-colors"
-            >
-              <Search className="h-5 w-5" />
-            </Button>
-
-            {isAuthenticated ? (
+            {/* LEFT: MENU + LOGO */}
+            <div className="flex items-center gap-2">
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-green-700 hover:bg-green-100 transition-colors"
+                onClick={() => setMobileOpen(true)}
+                className="md:hidden text-green-700 hover:bg-green-100"
               >
-                <User className="h-5 w-5" />
+                <Menu className="h-5 w-5" />
               </Button>
-            ) : (
-              <>
-                <Link to="/login" className="hidden sm:block">
-                  <Button variant="ghost" className="text-green-700 hover:text-green-900 font-semibold text-base">
-                    تسجيل الدخول
-                  </Button>
-                </Link>
-                <Link to="/register" className="hidden sm:block">
-                  <Button variant="ghost" className="text-green-700 hover:text-green-900 font-semibold text-base">
-                    إنشاء حساب
-                  </Button>
-                </Link>
-                <Link to="/login" className="sm:hidden">
-                  <Button variant="ghost" size="icon" className="text-green-700 hover:bg-green-100 transition-colors">
-                    <User className="h-5 w-5" />
-                  </Button>
-                </Link>
-              </>
-            )}
 
-            <Link to="/wishlist" className="relative">
-              <Button variant="ghost" size="icon" className="relative text-green-700 hover:bg-green-100 transition-colors">
-                <Heart className="h-5 w-5" />
-              </Button>
-            </Link>
+              <Link to="/" className="flex items-center gap-2 shrink-0">
+                <img
+                  src={logo}
+                  alt="Bazzarna"
+                  className="h-9 w-auto rounded-lg shadow-sm"
+                />
+              </Link>
+            </div>
 
-            <Link to="/cart" className="relative">
-              <Button variant="ghost" size="icon" className="relative text-green-700 hover:bg-green-100 transition-colors">
-                <ShoppingCart className="h-5 w-5" />
-                {totalItems > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-green-600 text-white text-xs px-2 py-0.5 rounded-full">
-                    {totalItems}
-                  </span>
-                )}
-              </Button>
-            </Link>
+            {/* CENTER DESKTOP NAV */}
+            <nav className="hidden md:flex items-center gap-6">
+              <Link
+                to="/products"
+                className="text-green-700 hover:text-green-900 font-semibold"
+              >
+                المنتجات
+              </Link>
+              <Link
+                to="/about"
+                className="text-green-700 hover:text-green-900 font-semibold"
+              >
+                من نحن
+              </Link>
+            </nav>
+
+            {/* RIGHT: SEARCH + CART */}
+            <div className="flex items-center gap-2 shrink-0">
+              <Link to="/search">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-green-700 hover:bg-green-100"
+                >
+                  <Search className="h-5 w-5" />
+                </Button>
+              </Link>
+
+              <Link to="/cart" className="relative">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative text-green-700 hover:bg-green-100"
+                >
+                  <ShoppingCart className="h-5 w-5" />
+                  {totalItems > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-green-600 text-white text-xs px-2 py-0.5 rounded-full">
+                      {totalItems}
+                    </span>
+                  )}
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
-      </div>
-    </header>
+      </header>
+
+      {/* MOBILE SIDEBAR */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 bg-black/40" onClick={() => setMobileOpen(false)}>
+          <div
+            className="absolute right-0 top-0 h-full w-72 bg-white shadow-xl p-5 overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* HEADER */}
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-green-700">القائمة</h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setMobileOpen(false)}
+              >
+                <X className="h-6 w-6" />
+              </Button>
+            </div>
+
+            {/* SEARCH */}
+            <div className="mb-4">
+              <Input placeholder="ابحث عن منتج..." className="text-right" />
+            </div>
+
+            {/* LINKS */}
+            <div className="space-y-4">
+
+              <Link
+                to="/products"
+                className="block text-lg font-semibold text-green-700 text-right"
+              >
+                كل المنتجات
+              </Link>
+
+              {/* CATEGORIES ACCORDION */}
+              <div className="border-t pt-3">
+                <h3 className="text-green-700 font-bold text-right mb-2">
+                  الفئات
+                </h3>
+
+                {mainCategories.map((main) => (
+                  <div key={main.id} className="mb-2">
+                    <button
+                      onClick={() =>
+                        setOpenCategory(openCategory === main.id ? null : main.id)
+                      }
+                      className="w-full flex justify-between items-center text-right text-green-800 font-semibold"
+                    >
+                      {main.name_ar}
+                      {openCategory === main.id ? (
+                        <ChevronUp className="w-5 h-5" />
+                      ) : (
+                        <ChevronDown className="w-5 h-5" />
+                      )}
+                    </button>
+
+                    {openCategory === main.id && (
+                      <div className="pl-2 mt-1 space-y-1">
+                        {subCategories(main.id).map((sub) => (
+                          <Link
+                            key={sub.id}
+                            to={`/products?category=${sub.slug}`}
+                            className="block text-right text-gray-600 pr-2"
+                          >
+                            {sub.name_ar}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <Link
+                to="/about"
+                className="block text-lg font-semibold text-green-700 text-right"
+              >
+                من نحن
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };

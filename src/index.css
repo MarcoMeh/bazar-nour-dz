@@ -125,4 +125,13 @@ All colors MUST be HSL.
   .float-3d {
     animation: float-3d 3s ease-in-out infinite;
   }
+  /* Hide scrollbar for horizontal sections */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
 }

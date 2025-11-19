@@ -170,12 +170,14 @@ const Index = () => {
                   </div>
           </div>
         </section>
-        {/* Features Section */}
         <section className="py-20 relative">
-          <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+        <div className="container mx-auto px-4">
+
+          {/* Mobile: horizontal row | Desktop: grid */}
+          <div className="flex overflow-x-auto gap-4 md:grid md:grid-cols-3 md:gap-8 no-scrollbar px-1">
+          {/* Features Section */}
               {/* Feature 1 */}
-              <div className="group relative p-8 rounded-2xl bg-gradient-to-br from-card to-card/80 border border-border/50 hover:border-accent/50 shadow-lg hover:shadow-2xl hover:shadow-accent/10 hover:-translate-y-2 transition-all duration-500">
+              <div className="min-w-[260px] md:min-w-0 group relative p-8 rounded-2xl bg-gradient-to-br from-card to-card/80 border border-border/50 hover:border-accent/50 shadow-lg hover:shadow-2xl hover:shadow-accent/10 hover:-translate-y-2 transition-all duration-500">
                 <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative">
                   <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
@@ -187,9 +189,9 @@ const Index = () => {
                   </p>
                 </div>
               </div>
-              
+
               {/* Feature 2 */}
-              <div className="group relative p-8 rounded-2xl bg-gradient-to-br from-card to-card/80 border border-border/50 hover:border-secondary/50 shadow-lg hover:shadow-2xl hover:shadow-secondary/10 hover:-translate-y-2 transition-all duration-500">
+              <div className="min-w-[260px] md:min-w-0 group relative p-8 rounded-2xl bg-gradient-to-br from-card to-card/80 border border-border/50 hover:border-secondary/50 shadow-lg hover:shadow-2xl hover:shadow-secondary/10 hover:-translate-y-2 transition-all duration-500">
                 <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative">
                   <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-secondary/20 to-secondary/5 mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
@@ -201,9 +203,9 @@ const Index = () => {
                   </p>
                 </div>
               </div>
-              
+
               {/* Feature 3 */}
-              <div className="group relative p-8 rounded-2xl bg-gradient-to-br from-card to-card/80 border border-border/50 hover:border-primary/50 shadow-lg hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-2 transition-all duration-500">
+              <div className="min-w-[260px] md:min-w-0 group relative p-8 rounded-2xl bg-gradient-to-br from-card to-card/80 border border-border/50 hover:border-primary/50 shadow-lg hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-2 transition-all duration-500">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative">
                   <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
@@ -215,6 +217,7 @@ const Index = () => {
                   </p>
                 </div>
               </div>
+
             </div>
           </div>
         </section>

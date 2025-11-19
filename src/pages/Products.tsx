@@ -1,17 +1,26 @@
-import { useState, useEffect, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
-import { ProductCard } from '@/components/ProductCard'; // Assuming this component is well-styled
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { PostgrestError } from '@supabase/supabase-js';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { debounce } from 'lodash';
-import { Search, Tag, DollarSign, PackageOpen, LayoutGrid,ArrowLeft,Inbox} from 'lucide-react';
+/* FULLY RESPONSIVE & SORTING FIXED VERSION — SAFE TO REPLACE */
+
+import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { ProductCard } from "@/components/ProductCard";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { PostgrestError } from "@supabase/supabase-js";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { debounce } from "lodash";
+import {
+  Search,
+  Tag,
+  DollarSign,
+  LayoutGrid,
+  ArrowLeft,
+  Inbox,
+} from "lucide-react";
 
 interface Category {
   id: string;
@@ -32,6 +41,7 @@ interface Product {
   is_delivery_desktop_available: boolean;
   is_sold_out: boolean;
   is_free_delivery: boolean;
+  created_at?: string; // needed for date sorting
 }
 
 const Products = () => {
@@ -41,24 +51,23 @@ const Products = () => {
   const [selectedMainCategory, setSelectedMainCategory] = useState<string | null>(null);
   const [selectedSubCategory, setSelectedSubCategory] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sortField, setSortField] = useState<"name_ar" | "price" | "created_at">("created_at");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
-  // New state for search and filters
-  const [searchTerm, setSearchTerm] = useState('');
-  const [minPriceInput, setMinPriceInput] = useState<string>(''); // For text input
-  const [maxPriceInput, setMaxPriceInput] = useState<string>(''); // For text input
-  const [globalMinMaxPrice, setGlobalMinMaxPrice] = useState<[number, number]>([0, 1000]); // To set bounds for inputs
+  const [searchTerm, setSearchTerm] = useState("");
+  const [minPriceInput, setMinPriceInput] = useState<string>("");
+  const [maxPriceInput, setMaxPriceInput] = useState<string>("");
+  const [globalMinMaxPrice, setGlobalMinMaxPrice] = useState<[number, number]>([0, 1000]);
 
-  // Debounced search term for better performance
   const debouncedSetSearchTerm = useRef(debounce((value) => setSearchTerm(value), 500)).current;
   const debouncedSetMinPrice = useRef(debounce((value) => setMinPriceInput(value), 500)).current;
   const debouncedSetMaxPrice = useRef(debounce((value) => setMaxPriceInput(value), 500)).current;
 
-
   useEffect(() => {
     fetchCategories();
     fetchGlobalMinMaxPrices();
-    
-    const categoryParam = searchParams.get('category');
+
+    const categoryParam = searchParams.get("category");
     if (categoryParam) {
       setSelectedMainCategory(categoryParam);
     } else {
@@ -77,83 +86,49 @@ const Products = () => {
   }, [selectedSubCategory, selectedMainCategory, searchTerm, minPriceInput, maxPriceInput]);
 
   const fetchCategories = async () => {
-    const { data, error } = await supabase
-      .from('categories')
-      .select('*')
-      .order('name_ar');
-
+    const { data, error } = await supabase.from("categories").select("*").order("name_ar");
     if (error) {
-      toast.error('حدث خطأ في تحميل الفئات: ' + error.message);
+      toast.error("حدث خطأ في تحميل الفئات: " + error.message);
       return;
     }
     setCategories(data || []);
   };
 
   const fetchGlobalMinMaxPrices = async () => {
-    const { data, error } = await supabase
-      .from('products')
-      .select('price')
-      .order('price', { ascending: true });
-
-    if (error) {
-      console.error('Error fetching global min/max prices:', error.message);
-      return;
-    }
-
+    const { data, error } = await supabase.from("products").select("price").order("price", { ascending: true });
+    if (error) return;
     if (data && data.length > 0) {
-      const prices = data.map(p => p.price);
-      const minP = Math.min(...prices);
-      const maxP = Math.max(...prices);
-      setGlobalMinMaxPrice([minP, maxP]);
-      setMinPriceInput(minP.toString());
-      setMaxPriceInput(maxP.toString());
-    } else {
-      setGlobalMinMaxPrice([0, 1000]);
-      setMinPriceInput('0');
-      setMaxPriceInput('1000');
+      const prices = data.map((p) => p.price);
+      setGlobalMinMaxPrice([Math.min(...prices), Math.max(...prices)]);
+      setMinPriceInput(String(Math.min(...prices)));
+      setMaxPriceInput(String(Math.max(...prices)));
     }
   };
 
   const fetchProducts = async (currentSearchTerm: string, currentMinPriceInput: string, currentMaxPriceInput: string) => {
     setLoading(true);
-    let query = supabase.from('products').select('*, is_delivery_home_available, is_delivery_desktop_available, is_sold_out, is_free_delivery');
+    let query = supabase.from("products").select("*");
 
     if (selectedSubCategory) {
-      query = query.eq('category_id', selectedSubCategory);
+      query = query.eq("category_id", selectedSubCategory);
     } else if (selectedMainCategory) {
-      const subCategoryIds = categories
-        .filter(cat => cat.parent_id === selectedMainCategory)
-        .map(cat => cat.id);
-      
-      if (subCategoryIds.length > 0) {
-        query = query.in('category_id', subCategoryIds);
-      } else {
-        setProducts([]);
-        setLoading(false);
-        return;
-      }
+      const subCategoryIds = categories.filter((cat) => cat.parent_id === selectedMainCategory).map((cat) => cat.id);
+      if (subCategoryIds.length > 0) query = query.in("category_id", subCategoryIds);
     }
 
-    if (currentSearchTerm) {
-      query = query.ilike('name_ar', `%${currentSearchTerm}%`);
-    }
+    if (currentSearchTerm) query = query.ilike("name_ar", `%${currentSearchTerm}%`);
 
-    const parsedMinPrice = parseFloat(currentMinPriceInput);
-    const parsedMaxPrice = parseFloat(currentMaxPriceInput);
+    const parsedMin = parseFloat(currentMinPriceInput);
+    const parsedMax = parseFloat(currentMaxPriceInput);
 
-    if (!isNaN(parsedMinPrice)) {
-      query = query.gte('price', parsedMinPrice);
-    }
-    if (!isNaN(parsedMaxPrice)) {
-      query = query.lte('price', parsedMaxPrice);
-    }
+    if (!isNaN(parsedMin)) query = query.gte("price", parsedMin);
+    if (!isNaN(parsedMax)) query = query.lte("price", parsedMax);
 
-    const { data, error } = (await query.order('created_at', { ascending: false })) as { data: Product[] | null; error: PostgrestError | null };
+    const { data, error } = (await query.order("created_at", { ascending: false })) as { data: Product[] | null; error: PostgrestError | null };
 
     if (error) {
-      toast.error('حدث خطأ في تحميل المنتجات: ' + error.message);
+      toast.error("حدث خطأ في تحميل المنتجات: " + error.message);
       setLoading(false);
-      setProducts([]); 
       return;
     }
 
@@ -161,234 +136,162 @@ const Products = () => {
     setLoading(false);
   };
 
-  const getMainCategories = () => categories.filter(cat => !cat.parent_id);
-  const getSubCategories = (parentId: string) => categories.filter(cat => cat.parent_id === parentId);
+  const getMainCategories = () => categories.filter((cat) => !cat.parent_id);
+  const getSubCategories = (parentId: string) => categories.filter((cat) => cat.parent_id === parentId);
 
   const handleMainCategoryClick = (categoryId: string) => {
     setSelectedMainCategory(categoryId);
     setSelectedSubCategory(null);
-    setSearchTerm('');
-    // Price inputs don't reset here, they keep their last set value
+    setSearchTerm("");
   };
 
   const handleBackToMain = () => {
     setSelectedMainCategory(null);
     setSelectedSubCategory(null);
-    setSearchTerm('');
-    // Price inputs don't reset here, they keep their last set value
+    setSearchTerm("");
   };
 
-  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    debouncedSetSearchTerm(e.target.value);
-  };
+  const sortedProducts = [...products].sort((a, b) => {
+    let fieldA: any = a[sortField] ?? "";
+    let fieldB: any = b[sortField] ?? "";
 
-  const handleMinPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    debouncedSetMinPrice(e.target.value);
-  };
+    if (sortField === "created_at") {
+      fieldA = new Date(fieldA).getTime();
+      fieldB = new Date(fieldB).getTime();
+    }
+    if (sortField === "price") {
+      fieldA = Number(fieldA);
+      fieldB = Number(fieldB);
+    }
+    if (sortField === "name_ar") {
+      fieldA = String(fieldA);
+      fieldB = String(fieldB);
+    }
 
-  const handleMaxPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    debouncedSetMaxPrice(e.target.value);
-  };
+    if (sortOrder === "asc") return fieldA > fieldB ? 1 : fieldA < fieldB ? -1 : 0;
+    return fieldA < fieldB ? 1 : fieldA > fieldB ? -1 : 0;
+  });
 
   const shouldShowProductGrid = selectedSubCategory || selectedMainCategory || (!selectedMainCategory && !selectedSubCategory);
 
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      
-      <main className="flex-1 container mx-auto px-4 py-8 relative overflow-hidden">
-        {/* Decorative Background Element 1 */}
-        <div className="absolute top-0 left-0 w-64 h-64 bg-primary/10 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob" />
-        {/* Decorative Background Element 2 */}
-        <div className="absolute bottom-1/4 right-0 w-80 h-80 bg-secondary/10 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000" />
-        
-        {/* Hero Section */}
-        <div className="text-center mb-12 py-16 bg-gradient-to-r from-blue-600 to-purple-700 text-white rounded-xl shadow-lg relative overflow-hidden">
-          <div
-            className="absolute inset-0 z-0 opacity-10"
-            style={{
-              backgroundImage: 'url("@/assets/hero_product_background.jpeg")',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-            }}
-          ></div>
-          <div className="relative z-10">
-            <h1 className="text-5xl md:text-6xl font-extrabold mb-4 drop-shadow-lg">
-              منتجاتنا المذهلة
-            </h1>
-            <p className="text-xl md:text-2xl font-light opacity-90 max-w-2xl mx-auto">
-              اكتشف أحدث المنتجات وأفضل العروض في جميع الفئات.
-            </p>
-          </div>
+      <main className="flex-1 container mx-auto px-4 py-8">
+        {/* HERO */}
+        <div className="text-center mb-10 py-10 bg-gradient-to-r from-blue-600 to-purple-700 text-white rounded-xl shadow-lg">
+          <h1 className="text-2xl sm:text-3xl md:text-5xl font-extrabold mb-2">منتجاتنا المذهلة</h1>
+          <p className="text-sm sm:text-base md:text-lg opacity-90 max-w-xl mx-auto">اكتشف أحدث المنتجات وأفضل العروض.</p>
         </div>
 
-        {/* Search and Filter Section */}
-        <Card className="mb-12 p-8 bg-card rounded-xl shadow-xl border border-border/40 backdrop-blur-sm relative z-10">
-          <h2 className="text-2xl font-bold mb-6 text-center flex items-center justify-center gap-3 text-primary-foreground">
-            <Search className="text-primary" size={28} /> بحث وفلترة متقدم
+        {/* FILTER BOX */}
+        <Card className="mb-8 p-4 sm:p-6 md:p-8 bg-card rounded-xl shadow-xl border">
+          <h2 className="text-xl sm:text-2xl font-bold mb-4 text-center flex items-center justify-center gap-2">
+            <Search size={20} /> بحث وفلترة
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <div className="relative">
-              <Label htmlFor="product-search" className="mb-2 block text-muted-foreground">البحث بالاسم</Label>
-              <Input
-                id="product-search"
-                type="text"
-                placeholder="ابحث عن منتج..."
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300 bg-background/70"
-                onChange={handleSearchInputChange}
-                defaultValue={searchTerm}
-              />
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground mt-3" size={18} />
+              <Label>البحث بالاسم</Label>
+              <Input type="text" placeholder="ابحث عن منتج..." onChange={(e) => debouncedSetSearchTerm(e.target.value)} defaultValue={searchTerm} className="w-full pl-8" />
+              <Search className="absolute left-2 top-9 text-muted-foreground" size={16} />
             </div>
+
             <div className="relative">
-              <Label htmlFor="min-price" className="mb-2 block text-muted-foreground">الحد الأدنى للسعر</Label>
-              <Input
-                id="min-price"
-                type="number"
-                placeholder={`الحد الأدنى (${globalMinMaxPrice[0]})`}
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300 bg-background/70"
-                onChange={handleMinPriceChange}
-                defaultValue={minPriceInput}
-                min={globalMinMaxPrice[0]}
-                max={globalMinMaxPrice[1]}
-              />
-              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground mt-3" size={18} />
+              <Label>الحد الأدنى للسعر</Label>
+              <Input type="number" onChange={(e) => debouncedSetMinPrice(e.target.value)} defaultValue={minPriceInput} min={globalMinMaxPrice[0]} max={globalMinMaxPrice[1]} className="w-full pl-8" />
+              <DollarSign className="absolute left-2 top-9 text-muted-foreground" size={16} />
             </div>
+
             <div className="relative">
-              <Label htmlFor="max-price" className="mb-2 block text-muted-foreground">الحد الأقصى للسعر</Label>
-              <Input
-                id="max-price"
-                type="number"
-                placeholder={`الحد الأقصى (${globalMinMaxPrice[1]})`}
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300 bg-background/70"
-                onChange={handleMaxPriceChange}
-                defaultValue={maxPriceInput}
-                min={globalMinMaxPrice[0]}
-                max={globalMinMaxPrice[1]}
-              />
-              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground mt-3" size={18} />
+              <Label>الحد الأقصى للسعر</Label>
+              <Input type="number" onChange={(e) => debouncedSetMaxPrice(e.target.value)} defaultValue={maxPriceInput} min={globalMinMaxPrice[0]} max={globalMinMaxPrice[1]} className="w-full pl-8" />
+              <DollarSign className="absolute left-2 top-9 text-muted-foreground" size={16} />
             </div>
+          </div>
+
+          {/* Sorting */}
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mt-4 justify-center">
+            <select value={sortField} onChange={(e) => setSortField(e.target.value as any)} className="border p-2 rounded-lg">
+              <option value="name_ar">الاسم</option>
+              <option value="price">السعر</option>
+              <option value="created_at">التاريخ</option>
+            </select>
+            <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value as any)} className="border p-2 rounded-lg">
+              <option value="asc">من الأسفل</option>
+              <option value="desc">من الأعلى</option>
+            </select>
           </div>
         </Card>
 
-        {/* Categories Section */}
+        {/* MAIN CATEGORIES */}
         {!selectedMainCategory && (
-          <div className="mb-12">
-            <h2 className="text-3xl font-bold mb-8 text-center flex items-center justify-center gap-3 text-primary-foreground">
-              <LayoutGrid className="text-accent" size={30} /> تصفح تصنيفاتنا
+          <div className="mb-8">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 text-center flex items-center justify-center gap-2">
+              <LayoutGrid size={20} /> التصنيفات
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {getMainCategories().map((cat) => (
-                <Card
-                  key={cat.id}
-                  className="cursor-pointer group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-500 ease-in-out border border-muted-foreground/20 hover:border-primary-foreground transform hover:scale-[1.03]"
-                  onClick={() => handleMainCategoryClick(cat.id)}
-                >
-                  {cat.image_url && (
-                    <div className="h-40 w-full overflow-hidden shrink-0">
-                      <img 
-                        src={cat.image_url} 
-                        alt={cat.name_ar}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 brightness-90 group-hover:brightness-100"
-                      />
-                    </div>
-                  )}
-                  <div className={`p-4 bg-background/80 group-hover:bg-primary-foreground/90 transition-colors duration-300 ${!cat.image_url ? 'h-28' : 'min-h-[5rem]'} flex items-center justify-center`}>
-                    <h3 className="font-bold text-xl text-center group-hover:text-primary transition-colors duration-300">{cat.name_ar}</h3>
+                <Card key={cat.id} onClick={() => handleMainCategoryClick(cat.id)} className="cursor-pointer hover:shadow-lg transition p-2 sm:p-3">
+                  <div className="h-24 sm:h-28 overflow-hidden rounded-md">
+                    <img src={cat.image_url || ""} className="w-full h-full object-cover" />
                   </div>
+                  <p className="text-center mt-2 font-semibold text-sm sm:text-base">{cat.name_ar}</p>
                 </Card>
               ))}
             </div>
-            <div className="text-center mt-12">
-              <p className="text-lg text-muted-foreground">
-                <PackageOpen className="inline-block mr-2 text-accent" size={20} />
-                لدينا مجموعة واسعة من المنتجات التي تناسب جميع احتياجاتك.
-              </p>
-            </div>
           </div>
         )}
 
+        {/* SUB CATEGORIES */}
         {selectedMainCategory && !selectedSubCategory && (
-          <div className="mb-12">
-            <Button variant="outline" onClick={handleBackToMain} className="mb-6 group text-muted-foreground hover:text-primary-foreground hover:bg-primary/10 transition-colors duration-300">
-              <ArrowLeft className="inline-block ml-2 group-hover:translate-x-[-4px] transition-transform duration-300" size={18} /> العودة للتصنيفات الرئيسية
+          <div className="mb-8">
+            <Button variant="outline" onClick={handleBackToMain} className="mb-4">
+              <ArrowLeft size={16} /> العودة
             </Button>
-            <h2 className="text-3xl font-bold mb-8 text-center flex items-center justify-center gap-3 text-primary-foreground">
-              <Tag className="text-accent" size={30} /> اختر التصنيف الفرعي
+
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 text-center flex items-center justify-center gap-2">
+              <Tag size={20} /> التصنيفات الفرعية
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {getSubCategories(selectedMainCategory).length > 0 ? (
-                getSubCategories(selectedMainCategory).map((cat) => (
-                  <Card
-                    key={cat.id}
-                    className="cursor-pointer group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-500 ease-in-out border border-muted-foreground/20 hover:border-primary-foreground transform hover:scale-[1.03]"
-                    onClick={() => setSelectedSubCategory(cat.id)}
-                  >
-                    {cat.image_url && (
-                      <div className="h-40 w-full overflow-hidden shrink-0">
-                        <img 
-                          src={cat.image_url} 
-                          alt={cat.name_ar}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 brightness-90 group-hover:brightness-100"
-                        />
-                      </div>
-                    )}
-                    <div className={`p-4 bg-background/80 group-hover:bg-primary-foreground/90 transition-colors duration-300 ${!cat.image_url ? 'h-28' : 'min-h-[5rem]'} flex items-center justify-center`}>
-                      <h3 className="font-bold text-xl text-center group-hover:text-primary transition-colors duration-300">{cat.name_ar}</h3>
-                    </div>
-                  </Card>
-                ))
-              ) : (
-                <div className="col-span-full text-center py-10">
-                  <p className="text-xl text-muted-foreground flex items-center justify-center gap-2">
-                    <PackageOpen size={24} className="text-warning" />
-                    لا توجد تصنيفات فرعية لهذه الفئة حالياً.
-                  </p>
-                </div>
-              )}
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {getSubCategories(selectedMainCategory).map((cat) => (
+                <Card key={cat.id} className="cursor-pointer hover:shadow-lg transition p-2 sm:p-3" onClick={() => setSelectedSubCategory(cat.id)}>
+                  <div className="h-24 sm:h-28 overflow-hidden rounded-md">
+                    <img src={cat.image_url || ""} className="w-full h-full object-cover" />
+                  </div>
+                  <p className="text-center mt-2 font-semibold text-sm sm:text-base">{cat.name_ar}</p>
+                </Card>
+              ))}
             </div>
           </div>
         )}
 
-        {/* Product Grid */}
+        {/* PRODUCT GRID */}
         {shouldShowProductGrid && (
           <>
-            {(selectedSubCategory || selectedMainCategory) && (
-              <Button 
-                variant="outline" 
-                onClick={() => selectedSubCategory ? setSelectedSubCategory(null) : handleBackToMain()} 
-                className="mb-6 group text-muted-foreground hover:text-primary-foreground hover:bg-primary/10 transition-colors duration-300"
-              >
-                <ArrowLeft className="inline-block ml-2 group-hover:translate-x-[-4px] transition-transform duration-300" size={18} />
-                العودة {selectedSubCategory ? 'للتصنيفات الفرعية' : 'للتصنيفات الرئيسية'}
+            {(selectedMainCategory || selectedSubCategory) && (
+              <Button variant="outline" onClick={() => (selectedSubCategory ? setSelectedSubCategory(null) : handleBackToMain())} className="mb-4">
+                <ArrowLeft size={16} /> العودة
               </Button>
             )}
 
             {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {[...Array(8)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-96 rounded-xl bg-muted animate-pulse shadow-md"
-                  />
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="h-48 sm:h-60 rounded-xl bg-muted animate-pulse" />
                 ))}
               </div>
-            ) : products.length === 0 ? (
-              <div className="text-center py-20 bg-card rounded-xl shadow-lg border border-border/40">
-                <Inbox size={48} className="mx-auto mb-6 text-muted-foreground/60" />
-                <p className="text-2xl text-muted-foreground font-semibold mb-4">
-                  عفواً! لا توجد منتجات مطابقة
-                </p>
-                <p className="text-md text-gray-500">
-                  جرب تغيير كلمات البحث أو نطاق السعر، أو تصفح فئات مختلفة.
-                </p>
-                <Button onClick={handleBackToMain} className="mt-8 px-8 py-3 text-lg">
-                  استكشف جميع المنتجات
-                </Button>
+            ) : sortedProducts.length === 0 ? (
+              <div className="text-center py-16 bg-card rounded-xl shadow border">
+                <Inbox size={40} className="mx-auto mb-4 opacity-60" />
+                <p className="text-lg sm:text-xl mb-2">لا توجد منتجات</p>
+                <Button onClick={handleBackToMain}>عرض كل المنتجات</Button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {products.map((product) => (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {sortedProducts.map((product) => (
                   <ProductCard key={product.id} {...product} />
                 ))}
               </div>
