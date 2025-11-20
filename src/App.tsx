@@ -20,6 +20,7 @@ import AdminStoreOwner from "./pages/StoreOwners";
 import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 import ProductStores from "./pages/productstores";
+import AdminStoreOwnerProfile from "./pages/AdminStoreOwnerProfile";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ const App = () => (
             <Route path="/about" element={<About />} />
             <Route path="/admin/categories" element={<AdminCategories />} />
             <Route path="/admin/storeowners" element={<AdminStoreOwner />} />
+            <Route path="/admin/adminstoreownerprofile" element={<AdminStoreOwnerProfile />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

@@ -71,6 +71,14 @@ const Admin = () => {
             </Card>
           </Link>
 
+          <Link to="/admin/adminstoreownerprofile">
+            <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
+              <MapPin className="h-12 w-12 text-secondary mb-4" />
+              <h2 className="text-xl font-bold mb-2">معلومات المتجر</h2>
+              <p className="text-muted-foreground">تعديل وإدارة العلومات المتجر</p>
+            </Card>
+          </Link>
+
           <Link to="/admin/storeowners">
             <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
               <MapPin className="h-12 w-12 text-secondary mb-4" />

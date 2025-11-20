@@ -261,16 +261,28 @@ const AdminProducts = () => {
                   </div>
                   <div>
                     <Label htmlFor="category">الفئة</Label>
-                    <Select value={formData.category_id} onValueChange={(value) => setFormData({ ...formData, category_id: value })}>
+                    <Select
+                      value={formData.category_id}
+                      onValueChange={(value) => setFormData({ ...formData, category_id: value })}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="اختر الفئة" />
                       </SelectTrigger>
+
                       <SelectContent>
-                        {categories.map((cat) => (
-                          <SelectItem key={cat.id} value={cat.id}>
-                            {cat.name_ar}
-                          </SelectItem>
-                        ))}
+                        {categories
+                          // فقط الفئات الفرعية
+                          .filter((cat) => cat.parent_id !== null)
+                          // استبعاد الفئات التي أبوها اسمه "محلاتنا"
+                          .filter((cat) => {
+                            const parent = categories.find((p) => p.id === cat.parent_id);
+                            return parent?.name_ar !== "محلاتنا";
+                          })
+                          .map((cat) => (
+                            <SelectItem key={cat.id} value={cat.id}>
+                              {cat.name_ar}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                   </div>
