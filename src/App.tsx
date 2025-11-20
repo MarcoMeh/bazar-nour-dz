@@ -16,6 +16,7 @@ import AdminProducts from "./pages/AdminProducts";
 import AdminOrders from "./pages/AdminOrders";
 import AdminDelivery from "./pages/AdminDelivery";
 import AdminCategories from "./pages/AdminCategories";
+import AdminStoreOwner from "./pages/StoreOwners";
 import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 import ProductStores from "./pages/productstores";
@@ -44,6 +45,7 @@ const App = () => (
             <Route path="/admin/delivery" element={<AdminDelivery />} />
             <Route path="/about" element={<About />} />
             <Route path="/admin/categories" element={<AdminCategories />} />
+            <Route path="/admin/storeowners" element={<AdminStoreOwner />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
