@@ -9,17 +9,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ArrowRight, Plus, Trash2, Edit, Store, User, KeyRound, Phone } from 'lucide-react';
-// You might need to import your logo if you want it in the header, otherwise I removed it to keep it generic
-// import logo from '@/assets/bazzarna-logo.jpeg'; 
 
 const StoreOwners = () => {
-  const navigate = useNavigate();
+  // State variables
   const [owners, setOwners] = useState([]);
   const [stores, setStores] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingOwner, setEditingOwner] = useState(null);
-  
+
   const [formData, setFormData] = useState({
     owner_name: "",
     phone: "",
@@ -35,6 +33,7 @@ const StoreOwners = () => {
     fetchOwners();
   }, []);
 
+  // 1. Fetch Categories (Stores)
   const fetchStores = async () => {
     try {
       const { data: ourStores } = await supabase
@@ -55,6 +54,7 @@ const StoreOwners = () => {
     }
   };
 
+  // 2. Fetch Existing Owners
   const fetchOwners = async () => {
     setLoading(true);
     const { data, error } = await supabase
@@ -62,8 +62,12 @@ const StoreOwners = () => {
       .select("*, categories(name_ar)")
       .order("created_at", { ascending: false });
 
-    if (error) toast.error("فشل تحميل البيانات");
-    setOwners(data || []);
+    if (error) {
+      console.error(error);
+      toast.error("فشل تحميل البيانات");
+    } else {
+      setOwners(data || []);
+    }
     setLoading(false);
   };
 
@@ -80,83 +84,90 @@ const StoreOwners = () => {
     setEditingOwner(null);
   };
 
+  // Logic to auto-generate username based on store selection
   const handleStoreSelect = (storeId) => {
     const store = stores.find((s) => s.id === storeId);
+    // Generate unique username: StoreName_RandomNumber
+    const autoUsername = store 
+      ? `${store.name_ar.replace(/\s+/g, '_')}_${Math.floor(Math.random() * 1000)}` 
+      : "";
+    
     setFormData(prev => ({
       ...prev,
       subcategory_id: storeId,
-      username: store ? store.name_ar : ""
+      username: autoUsername
     }));
   };
 
+  // 3. Handle Submit (Create/Update)
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  // التحقق الأساسي
-  if (!formData.owner_name || !formData.subcategory_id || !formData.username || !formData.password || !formData.email) {
-    toast.error("الرجاء تعبئة جميع الحقول الأساسية");
-    return;
-  }
+    if (!formData.owner_name || !formData.subcategory_id || !formData.username || (!editingOwner && !formData.password)) {
+      toast.error("الرجاء تعبئة الحقول الأساسية وكلمة المرور");
+      return;
+    }
 
-  setLoading(true);
+    setLoading(true);
 
-  // 1) إنشاء حساب auth جديد لصاحب المحل
-  const { data: newUser, error: signUpError } = await supabase.auth.signUp({
-    email: formData.email,
-    password: formData.password
-  });
+    // Prepare payload
+    const payload = {
+      owner_name: formData.owner_name,
+      phone: formData.phone,
+      email: formData.email, // Important for Auth
+      address: formData.address,
+      subcategory_id: formData.subcategory_id,
+      username: formData.username,
+      // We send password to DB so the trigger can pick it up to create Auth User
+      password: formData.password 
+    };
 
-  console.log("New user:", newUser, "Signup error:", signUpError);
+    try {
+      let error;
+      if (editingOwner) {
+        // Update logic (Password update is complex, usually handled separately, sending payload without password if empty)
+        const updatePayload = { ...payload };
+        if (!updatePayload.password) delete updatePayload.password;
+        
+        ({ error } = await supabase
+          .from('store_owners')
+          .update(updatePayload)
+          .eq('id', editingOwner.id));
+      } else {
+        // Insert logic - Trigger will handle Auth creation
+        ({ error } = await supabase
+          .from('store_owners')
+          .insert([payload]));
+      }
 
-  if (signUpError) {
-    toast.error("فشل إنشاء حساب المستخدم");
-    setLoading(false);
-    return;
-  }
+      if (error) throw error;
 
-  const authUserId = newUser?.user?.id;
-  if (!authUserId) {
-    toast.error("لم يتم الحصول على معرف المستخدم");
-    setLoading(false);
-    return;
-  }
+      toast.success(editingOwner ? 'تم تحديث البيانات' : 'تم إضافة المالك وإنشاء حساب الدخول');
+      setIsDialogOpen(false);
+      resetForm();
+      fetchOwners();
 
-  // 2) تجهيز البيانات لحفظها في store_owners
-  const payload = {
-    owner_name: formData.owner_name,
-    phone: formData.phone,
-    email: formData.email,
-    address: formData.address,
-    subcategory_id: formData.subcategory_id,
-    username: formData.username,
-    auth_user_id: authUserId, // مهم!
-    password: formData.password  // لو تريد حفظه (غير آمن لكنه حسب اختيارك)
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("حدث خطأ: " + error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  let error;
+  const handleDelete = async (id) => {
+    if (!confirm("هل أنت متأكد؟ سيتم حذف حساب الدخول أيضاً.")) return;
 
-  // 3) التعديل أو الإضافة
-  if (editingOwner) {
-    ({ error } = await supabase.from('store_owners').update(payload).eq('id', editingOwner.id));
-  } else {
-    ({ error } = await supabase.from('store_owners').insert([payload]));
-  }
+    // Delete from store_owners (Cascade logic should handle the rest if configured, or trigger needed)
+    const { error } = await supabase.from("store_owners").delete().eq("id", id);
 
-  setLoading(false);
-
-  if (error) {
-    console.log(error);
-    toast.error('حدث خطأ أثناء الحفظ');
-    return;
-  }
-
-  toast.success(editingOwner ? 'تم تحديث البيانات' : 'تم إضافة المالك');
-
-  setIsDialogOpen(false);
-  resetForm();
-  fetchOwners();
-};
-
+    if (error) {
+      toast.error("فشل الحذف");
+    } else {
+      toast.success("تم الحذف");
+      fetchOwners();
+    }
+  };
 
   const handleEdit = (owner) => {
     setEditingOwner(owner);
@@ -167,219 +178,106 @@ const StoreOwners = () => {
       address: owner.address || "",
       subcategory_id: owner.subcategory_id || "",
       username: owner.username || "",
-      password: owner.password || ""
+      password: "" // Reset password field for security
     });
     setIsDialogOpen(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm("هل أنت متأكد من حذف هذا المالك؟")) return;
-    
-    const { error } = await supabase.from("store_owners").delete().eq("id", id);
-    
-    if (error) {
-      toast.error("فشل الحذف");
-      return;
-    }
-    
-    toast.success("تم الحذف بنجاح");
-    fetchOwners();
-  };
-
   return (
     <div className="min-h-screen bg-background" dir="rtl">
-      {/* Header */}
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <Link to="/admin">
-            <Button variant="ghost">
-              <ArrowRight className="ml-2 h-4 w-4" />
-              العودة
-            </Button>
-          </Link>
+      <header className="border-b bg-card p-4">
+        <div className="container mx-auto flex justify-between items-center">
+          <Link to="/admin"><Button variant="ghost"><ArrowRight className="ml-2 h-4 w-4" />العودة</Button></Link>
           <h1 className="text-xl font-bold">لوحة التحكم</h1>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
-        {/* Page Title & Action Button */}
+      <main className="container mx-auto p-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">إدارة أصحاب المحلات</h1>
-          
-          <Dialog open={isDialogOpen} onOpenChange={(open) => {
-            setIsDialogOpen(open);
-            if (!open) resetForm();
-          }}>
+          <Dialog open={isDialogOpen} onOpenChange={(open) => {setIsDialogOpen(open); if(!open) resetForm();}}>
             <DialogTrigger asChild>
-              <Button>
-                <Plus className="ml-2 h-4 w-4" />
-                إضافة مالك
-              </Button>
+              <Button><Plus className="ml-2 h-4 w-4" />إضافة مالك</Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-2xl">
               <DialogHeader>
-                <DialogTitle>{editingOwner ? 'تعديل بيانات المالك' : 'إضافة مالك جديد'}</DialogTitle>
+                <DialogTitle>{editingOwner ? 'تعديل المالك' : 'إضافة مالك جديد'}</DialogTitle>
               </DialogHeader>
               
               <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-                {/* Row 1: Store & Owner Name */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="store">المحل التابع له</Label>
-                    <Select 
-                      value={formData.subcategory_id} 
-                      onValueChange={(value) => handleStoreSelect(value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="اختر المتجر" />
-                      </SelectTrigger>
+                    <Label>المحل التابع له</Label>
+                    <Select value={formData.subcategory_id} onValueChange={handleStoreSelect}>
+                      <SelectTrigger><SelectValue placeholder="اختر المتجر" /></SelectTrigger>
                       <SelectContent>
-                        {stores.map((s) => (
-                          <SelectItem key={s.id} value={s.id}>
-                            {s.name_ar}
-                          </SelectItem>
-                        ))}
+                        {stores.map((s) => <SelectItem key={s.id} value={s.id}>{s.name_ar}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
-                  
                   <div>
-                    <Label htmlFor="owner_name">اسم المالك</Label>
-                    <Input
-                      id="owner_name"
-                      value={formData.owner_name}
-                      onChange={(e) => setFormData({ ...formData, owner_name: e.target.value })}
-                      placeholder="الاسم الثلاثي"
-                      required
-                    />
+                    <Label>اسم المالك</Label>
+                    <Input value={formData.owner_name} onChange={(e) => setFormData({...formData, owner_name: e.target.value})} required />
                   </div>
                 </div>
 
-                {/* Row 2: Credentials */}
-                <div className="bg-muted/50 p-4 rounded-lg border border-dashed">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="username">اسم المستخدم (تلقائي)</Label>
-                      <Input
-                        id="username"
-                        value={formData.username}
-                        disabled
-                        className="bg-muted cursor-not-allowed font-mono"
-                        placeholder="يظهر بعد اختيار المتجر"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="password">كلمة المرور</Label>
-                      <Input
-                        id="password"
-                        value={formData.password}
-                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                        placeholder="تعيين كلمة مرور"
-                      />
-                    </div>
+                <div className="bg-muted/50 p-4 rounded border border-dashed grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>اسم المستخدم (Login ID)</Label>
+                    <Input value={formData.username} readOnly className="bg-muted font-mono" />
+                  </div>
+                  <div>
+                    <Label>كلمة المرور {editingOwner && '(اتركها فارغة لعدم التغيير)'}</Label>
+                    <Input value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} placeholder="******" required={!editingOwner} />
                   </div>
                 </div>
 
-                {/* Row 3: Phone & Email */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="phone">رقم الهاتف</Label>
-                    <Input
-                      id="phone"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      placeholder="05xxxxxxxx"
-                      className="text-right"
-                      dir="ltr"
-                    />
+                    <Label>رقم الهاتف</Label>
+                    <Input value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} dir="ltr" className="text-right" />
                   </div>
                   <div>
-                    <Label htmlFor="email">البريد الإلكتروني</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      placeholder="example@mail.com"
-                      className="text-right"
-                      dir="ltr"
-                    />
+                    <Label>البريد الإلكتروني (للدخول)</Label>
+                    <Input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} required dir="ltr" className="text-right" />
                   </div>
                 </div>
 
-                {/* Row 4: Address */}
                 <div>
-                  <Label htmlFor="address">العنوان</Label>
-                  <Input
-                    id="address"
-                    value={formData.address}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    placeholder="المدينة، الحي، الشارع"
-                  />
+                  <Label>العنوان</Label>
+                  <Input value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} />
                 </div>
 
                 <div className="flex gap-2 justify-end pt-4">
-                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                    إلغاء
-                  </Button>
-                  <Button type="submit" disabled={loading}>
-                    {loading ? 'جاري الحفظ...' : editingOwner ? 'تحديث' : 'إضافة'}
-                  </Button>
+                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>إلغاء</Button>
+                  <Button type="submit" disabled={loading}>{loading ? 'جاري الحفظ...' : 'حفظ'}</Button>
                 </div>
               </form>
             </DialogContent>
           </Dialog>
         </div>
 
-        {/* Products Grid/List */}
         <div className="grid gap-4">
-          {loading ? (
-            <p className="text-center text-muted-foreground">جاري التحميل...</p>
-          ) : owners.length === 0 ? (
-            <div className="text-center py-10 border-2 border-dashed rounded-lg">
-              <p className="text-muted-foreground">لا يوجد أصحاب محلات حالياً.</p>
-            </div>
-          ) : (
-            owners.map((owner) => (
-              <Card key={owner.id} className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-lg">{owner.owner_name}</h3>
-                    <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full flex items-center gap-1">
-                      <Store className="w-3 h-3" />
-                      {owner.categories?.name_ar}
-                    </span>
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mt-2">
-                    <div className="flex items-center gap-1">
-                       <User className="w-3 h-3" />
-                       <span className="font-mono text-foreground">{owner.username}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                       <KeyRound className="w-3 h-3" />
-                       <span className="font-mono text-foreground">{owner.password}</span>
-                    </div>
-                    {owner.phone && (
-                      <div className="flex items-center gap-1">
-                        <Phone className="w-3 h-3" />
-                        <span dir="ltr">{owner.phone}</span>
-                      </div>
-                    )}
-                  </div>
+          {loading ? <p>جاري التحميل...</p> : owners.map((owner) => (
+            <Card key={owner.id} className="p-4 flex flex-col md:flex-row justify-between items-center gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-lg">{owner.owner_name}</h3>
+                  <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full flex items-center gap-1">
+                    <Store className="w-3 h-3" /> {owner.categories?.name_ar}
+                  </span>
                 </div>
-
-                <div className="flex gap-2 w-full md:w-auto justify-end">
-                  <Button variant="outline" size="icon" onClick={() => handleEdit(owner)}>
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button variant="destructive" size="icon" onClick={() => handleDelete(owner.id)}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                <div className="text-sm text-muted-foreground mt-1 flex gap-4">
+                  <span><User className="inline w-3 h-3"/> {owner.username}</span>
+                  <span><KeyRound className="inline w-3 h-3"/> {owner.password}</span>
                 </div>
-              </Card>
-            ))
-          )}
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="icon" onClick={() => handleEdit(owner)}><Edit className="h-4 w-4" /></Button>
+                <Button variant="destructive" size="icon" onClick={() => handleDelete(owner.id)}><Trash2 className="h-4 w-4" /></Button>
+              </div>
+            </Card>
+          ))}
         </div>
       </main>
     </div>
