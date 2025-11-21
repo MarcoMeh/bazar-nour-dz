@@ -24,14 +24,15 @@ interface Product {
   description_ar?: string;
   price: number;
   image_url?: string;
-  images?: string[]; // Assuming images is an array of strings
+  images?: string[];
   category_id?: string;
-  // New fields
+
   is_delivery_home_available: boolean;
-  is_delivery_desktop_available: boolean;
+  is_delivery_desk_available: boolean; // <-- الصحيح
   is_sold_out: boolean;
   is_free_delivery: boolean;
 }
+
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -53,7 +54,7 @@ const ProductDetail = () => {
     // --- CRITICAL CHANGE HERE ---
     const { data, error } = (await supabase
       .from('products')
-      .select('*, is_delivery_home_available, is_delivery_desktop_available, is_sold_out, is_free_delivery')
+      .select('*, is_delivery_home_available, is_delivery_desk_available, is_sold_out, is_free_delivery')
       .eq('id', id)
       .maybeSingle()) as { data: Product | null; error: PostgrestError | null }; // Notice Product | null for maybeSingle()
     // --- END CRITICAL CHANGE ---
@@ -215,7 +216,7 @@ const ProductDetail = () => {
                   <Home className="h-4 w-4" /> توصيل للمنزل
                 </span>
               )}
-              {product.is_delivery_desktop_available && (
+              {product.is_delivery_desk_available && (
                 <span className="inline-flex items-center gap-1 bg-purple-100 text-purple-700 text-sm px-3 py-1.5 rounded-full font-medium">
                   <Package className="h-4 w-4" /> استلام من المكتب
                 </span>

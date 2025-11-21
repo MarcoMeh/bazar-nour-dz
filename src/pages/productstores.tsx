@@ -13,7 +13,7 @@ import { PostgrestError } from "@supabase/supabase-js";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { debounce } from "lodash";
-import { Search, DollarSign, ArrowLeft, Inbox } from "lucide-react";
+import { ArrowLeft, Inbox } from "lucide-react";
 
 interface Category {
   id: string;
@@ -30,6 +30,8 @@ interface Product {
   price: number;
   image_url?: string;
   supplier_name?: string;
+  colors?: string[];
+  sizes?: string[];
   is_delivery_home_available: boolean;
   is_delivery_desktop_available: boolean;
   is_sold_out: boolean;
@@ -47,8 +49,8 @@ const ProductStores = () => {
   const [minPriceInput, setMinPriceInput] = useState<string>("");
   const [maxPriceInput, setMaxPriceInput] = useState<string>("");
 
-  const [sortField, setSortField] = useState<"name_ar" | "price" | "created_at">("created_at");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [selectedColor, setSelectedColor] = useState<string>("");
+  const [selectedSize, setSelectedSize] = useState<string>("");
 
   const debouncedSetSearchTerm = useRef(debounce((value) => setSearchTerm(value), 500)).current;
   const debouncedSetMinPrice = useRef(debounce((value) => setMinPriceInput(value), 500)).current;
@@ -57,37 +59,33 @@ const ProductStores = () => {
   const supplierId = searchParams.get("supplier");
 
   useEffect(() => {
-    if (supplierId) {
-      fetchSupplierCategory(supplierId);
-    }
+    if (supplierId) fetchSupplierCategory(supplierId);
   }, [supplierId]);
 
   useEffect(() => {
-    if (supplierCategory) {
-      fetchProducts();
-    }
-  }, [supplierCategory, searchTerm, minPriceInput, maxPriceInput, sortField, sortOrder]);
+    if (supplierCategory) fetchProducts();
+  }, [supplierCategory, searchTerm, minPriceInput, maxPriceInput, selectedColor, selectedSize]);
 
   const fetchSupplierCategory = async (id: string) => {
-    const { data, error } = await supabase
-      .from("categories")
-      .select("*")
-      .eq("id", id)
-      .single();
+    const { data, error } = await supabase.from("store_owners").select("*").eq("id", id).single();
 
     if (error || !data) {
       toast.error("المورد غير موجود");
       return;
     }
 
-    setSupplierCategory(data);
+    setSupplierCategory({
+      id: data.id,
+      name_ar: data.username,
+      slug: data.username,
+    });
   };
 
   const fetchProducts = async () => {
     setLoading(true);
+
     let query = supabase.from("products").select("*");
 
-    // filter by supplier_name = subcategory.name_ar
     query = query.eq("supplier_name", supplierCategory?.name_ar || "");
 
     if (searchTerm) query = query.ilike("name_ar", `%${searchTerm}%`);
@@ -97,6 +95,9 @@ const ProductStores = () => {
 
     if (!isNaN(parsedMin)) query = query.gte("price", parsedMin);
     if (!isNaN(parsedMax)) query = query.lte("price", parsedMax);
+
+    if (selectedColor) query = query.contains("colors", [selectedColor]);
+    if (selectedSize) query = query.contains("sizes", [selectedSize]);
 
     const { data, error } = (await query.order("created_at", { ascending: false })) as {
       data: Product[] | null;
@@ -109,39 +110,19 @@ const ProductStores = () => {
     setLoading(false);
   };
 
-  const sortedProducts = [...products].sort((a, b) => {
-    let A: any = a[sortField] ?? "";
-    let B: any = b[sortField] ?? "";
-
-    if (sortField === "created_at") {
-      A = new Date(A).getTime();
-      B = new Date(B).getTime();
-    }
-    if (sortField === "price") {
-      A = Number(A);
-      B = Number(B);
-    }
-
-    if (sortOrder === "asc") return A > B ? 1 : -1;
-    return A < B ? 1 : -1;
-  });
+  const allColors = Array.from(new Set(products.flatMap((p) => p.colors || [])));
+  const allSizes = Array.from(new Set(products.flatMap((p) => p.sizes || [])));
 
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-1 container mx-auto px-4 py-8">
 
-        {/* TITLE */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">
-            منتجات {supplierCategory?.name_ar}
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            جميع المنتجات التابعة لهذا المورد
-          </p>
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">منتجات {supplierCategory?.name_ar}</h1>
+          <p className="text-muted-foreground text-lg">جميع منتجات هذا المورد</p>
         </div>
 
-        {/* FILTER BOX */}
         <Card className="mb-8 p-6 rounded-xl shadow-xl">
           <h2 className="text-2xl font-bold mb-4 text-center">بحث وفلترة</h2>
 
@@ -162,32 +143,47 @@ const ProductStores = () => {
             </div>
           </div>
 
-          {/* Sorting */}
-          <div className="flex gap-4 mt-4 justify-center">
-            <select value={sortField} onChange={(e) => setSortField(e.target.value as any)} className="border p-2 rounded-lg">
-              <option value="name_ar">الاسم</option>
-              <option value="price">السعر</option>
-              <option value="created_at">الأحدث</option>
-            </select>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+            <div>
+              <Label>اللون</Label>
+              <select
+                className="border p-2 rounded-lg w-full"
+                value={selectedColor}
+                onChange={(e) => setSelectedColor(e.target.value)}
+              >
+                <option value="">كل الألوان</option>
+                {allColors.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
 
-            <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value as any)} className="border p-2 rounded-lg">
-              <option value="asc">⬆ تصاعدي</option>
-              <option value="desc">⬇ تنازلي</option>
-            </select>
+            <div>
+              <Label>المقاس</Label>
+              <select
+                className="border p-2 rounded-lg w-full"
+                value={selectedSize}
+                onChange={(e) => setSelectedSize(e.target.value)}
+              >
+                <option value="">كل المقاسات</option>
+                {allSizes.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
           </div>
         </Card>
 
-        {/* PRODUCT LIST */}
         {loading ? (
           <p className="text-center">جاري التحميل...</p>
-        ) : sortedProducts.length === 0 ? (
+        ) : products.length === 0 ? (
           <div className="text-center py-16 bg-card rounded-xl shadow border">
             <Inbox size={40} className="mx-auto mb-4 opacity-60" />
             <p className="text-xl mb-2">لا توجد منتجات</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {sortedProducts.map((product) => (
+            {products.map((product) => (
               <ProductCard key={product.id} {...product} />
             ))}
           </div>

@@ -1,4 +1,4 @@
-/* FULLY RESPONSIVE & SORTING FIXED VERSION — SAFE TO REPLACE */
+/* FULLY RESPONSIVE & SORTING + COLORS/SIZES FILTER — SAFE TO REPLACE */
 
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
@@ -36,7 +36,9 @@ interface Product {
   description_ar?: string;
   price: number;
   image_url?: string;
-  category_id?: string;
+  category_id?: string | null;
+  colors?: string[]; // NEW
+  sizes?: string[];  // NEW
   is_delivery_home_available: boolean;
   is_delivery_desktop_available: boolean;
   is_sold_out: boolean;
@@ -59,19 +61,26 @@ const Products = () => {
   const [maxPriceInput, setMaxPriceInput] = useState<string>("");
   const [globalMinMaxPrice, setGlobalMinMaxPrice] = useState<[number, number]>([0, 1000]);
 
-  const debouncedSetSearchTerm = useRef(debounce((value) => setSearchTerm(value), 500)).current;
-  const debouncedSetMinPrice = useRef(debounce((value) => setMinPriceInput(value), 500)).current;
-  const debouncedSetMaxPrice = useRef(debounce((value) => setMaxPriceInput(value), 500)).current;
+  // NEW: color / size filters
+  const [selectedColor, setSelectedColor] = useState<string>("");
+  const [selectedSize, setSelectedSize] = useState<string>("");
+  const [availableColors, setAvailableColors] = useState<string[]>([]);
+  const [availableSizes, setAvailableSizes] = useState<string[]>([]);
+
+  const debouncedSetSearchTerm = useRef(debounce((value: string) => setSearchTerm(value), 500)).current;
+  const debouncedSetMinPrice = useRef(debounce((value: string) => setMinPriceInput(value), 500)).current;
+  const debouncedSetMaxPrice = useRef(debounce((value: string) => setMaxPriceInput(value), 500)).current;
 
   useEffect(() => {
     fetchCategories();
     fetchGlobalMinMaxPrices();
+    fetchAvailableColorsAndSizes();
 
     const categoryParam = searchParams.get("category");
     if (categoryParam) {
       setSelectedMainCategory(categoryParam);
     } else {
-      fetchProducts(searchTerm, minPriceInput, maxPriceInput);
+      fetchProducts("", "", "");
     }
 
     return () => {
@@ -79,33 +88,63 @@ const Products = () => {
       debouncedSetMinPrice.cancel();
       debouncedSetMaxPrice.cancel();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   useEffect(() => {
-    fetchProducts(searchTerm, minPriceInput, maxPriceInput);
-  }, [selectedSubCategory, selectedMainCategory, searchTerm, minPriceInput, maxPriceInput]);
+    fetchProducts(searchTerm, minPriceInput, maxPriceInput, selectedColor, selectedSize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSubCategory, selectedMainCategory, searchTerm, minPriceInput, maxPriceInput, selectedColor, selectedSize]);
 
   const fetchCategories = async () => {
     const { data, error } = await supabase.from("categories").select("*").order("name_ar");
     if (error) {
-      toast.error("حدث خطأ في تحميل الفئات: " + error.message);
+      toast.error("حدث خطأ في تحميل الفئات: " + (error.message || ""));
       return;
     }
     setCategories(data || []);
   };
 
   const fetchGlobalMinMaxPrices = async () => {
-    const { data, error } = await supabase.from("products").select("price").order("price", { ascending: true });
-    if (error) return;
-    if (data && data.length > 0) {
-      const prices = data.map((p) => p.price);
-      setGlobalMinMaxPrice([Math.min(...prices), Math.max(...prices)]);
-      setMinPriceInput(String(Math.min(...prices)));
-      setMaxPriceInput(String(Math.max(...prices)));
-    }
+    // get min and max price quickly
+    const { data, error } = await supabase
+      .from("products")
+      .select("price")
+      .order("price", { ascending: true })
+      .limit(10000); // safe guard - adjust if many products
+
+    if (error || !data || data.length === 0) return;
+    const prices = data.map((p) => Number(p.price));
+    const min = Math.min(...prices);
+    const max = Math.max(...prices);
+    setGlobalMinMaxPrice([min, max]);
+    setMinPriceInput(String(min));
+    setMaxPriceInput(String(max));
   };
 
-  const fetchProducts = async (currentSearchTerm: string, currentMinPriceInput: string, currentMaxPriceInput: string) => {
+  const fetchAvailableColorsAndSizes = async () => {
+    // fetch colors and sizes arrays from products and flatten unique values
+    const { data, error } = await supabase
+      .from("products")
+      .select("colors, sizes")
+      .limit(10000);
+
+    if (error || !data) return;
+
+    const colors = Array.from(new Set((data.flatMap((p: any) => p.colors || []) as string[])));
+    const sizes = Array.from(new Set((data.flatMap((p: any) => p.sizes || []) as string[])));
+
+    setAvailableColors(colors.sort());
+    setAvailableSizes(sizes.sort());
+  };
+
+  const fetchProducts = async (
+    currentSearchTerm: string,
+    currentMinPriceInput: string,
+    currentMaxPriceInput: string,
+    colorFilter: string = "",
+    sizeFilter: string = ""
+  ) => {
     setLoading(true);
     let query = supabase.from("products").select("*");
 
@@ -124,10 +163,21 @@ const Products = () => {
     if (!isNaN(parsedMin)) query = query.gte("price", parsedMin);
     if (!isNaN(parsedMax)) query = query.lte("price", parsedMax);
 
-    const { data, error } = (await query.order("created_at", { ascending: false })) as { data: Product[] | null; error: PostgrestError | null };
+    // filter arrays using PostgREST `contains`
+    if (colorFilter) {
+      query = query.contains("colors", [colorFilter]);
+    }
+    if (sizeFilter) {
+      query = query.contains("sizes", [sizeFilter]);
+    }
+
+    const { data, error } = (await query.order("created_at", { ascending: false })) as {
+      data: Product[] | null;
+      error: PostgrestError | null;
+    };
 
     if (error) {
-      toast.error("حدث خطأ في تحميل المنتجات: " + error.message);
+      toast.error("حدث خطأ في تحميل المنتجات: " + (error.message || ""));
       setLoading(false);
       return;
     }
@@ -149,6 +199,8 @@ const Products = () => {
     setSelectedMainCategory(null);
     setSelectedSubCategory(null);
     setSearchTerm("");
+    setSelectedColor("");
+    setSelectedSize("");
   };
 
   const sortedProducts = [...products].sort((a, b) => {
@@ -207,6 +259,25 @@ const Products = () => {
               <Label>الحد الأقصى للسعر</Label>
               <Input type="number" onChange={(e) => debouncedSetMaxPrice(e.target.value)} defaultValue={maxPriceInput} min={globalMinMaxPrice[0]} max={globalMinMaxPrice[1]} className="w-full pl-8" />
               <DollarSign className="absolute left-2 top-9 text-muted-foreground" size={16} />
+            </div>
+          </div>
+
+          {/* NEW: color & size selectors */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+            <div>
+              <Label>اللون</Label>
+              <select value={selectedColor} onChange={(e) => setSelectedColor(e.target.value)} className="w-full border p-2 rounded-lg">
+                <option value="">كل الألوان</option>
+                {availableColors.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+
+            <div>
+              <Label>المقاس</Label>
+              <select value={selectedSize} onChange={(e) => setSelectedSize(e.target.value)} className="w-full border p-2 rounded-lg">
+                <option value="">كل المقاسات</option>
+                {availableSizes.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
             </div>
           </div>
 

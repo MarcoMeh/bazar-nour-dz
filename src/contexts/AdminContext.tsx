@@ -15,16 +15,37 @@ const AdminContext = createContext<AdminContextType | undefined>(undefined);
 export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  // Check if the user exists in the admins table
+  const checkIfAdmin = async (authUserId: string | undefined) => {
+    if (!authUserId) {
+      setIsAdmin(false);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("admins")
+      .select("id")
+      .eq("auth_user_id", authUserId)
+      .single();
+
+    setIsAdmin(!error && data ? true : false);
+  };
 
   useEffect(() => {
     supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
-      setUser(session?.user ?? null);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      checkIfAdmin(currentUser?.id);
     });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      setUser(session?.user ?? null);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      checkIfAdmin(currentUser?.id);
     });
   }, []);
 
@@ -33,11 +54,13 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       email,
       password,
     });
+
     return { error };
   };
 
   const logout = async () => {
     await supabase.auth.signOut();
+    setIsAdmin(false);
   };
 
   return (
@@ -45,7 +68,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       value={{
         user,
         session,
-        isAdmin: !!user,
+        isAdmin,
         login,
         logout,
       }}

@@ -11,11 +11,12 @@ import { Save, Loader2 } from 'lucide-react';
 const AdminStoreOwnerProfile = () => {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
-  
-  // حالة لتخزين بيانات النموذج
+
+  // default fields empty
   const [formData, setFormData] = useState({
     owner_name: '',
     phone: '',
+    store_number: '',
     email: '',
     address: '',
     whatsapp_number: '',
@@ -24,24 +25,19 @@ const AdminStoreOwnerProfile = () => {
     tiktok_link: ''
   });
 
-  // 1. جلب بيانات المالك عند فتح الصفحة
   useEffect(() => {
     fetchOwnerData();
   }, []);
 
   const fetchOwnerData = async () => {
     try {
-      // منطق: نحصل على المستخدم الحالي أولاً
       const { data: { user } } = await supabase.auth.getUser();
-      
       if (!user) return;
 
-      // نفترض أن هناك علاقة بين id المستخدم و id الجدول، أو عمود يربطهم
-      // هنا سأفترض أن id المالك هو نفسه id المستخدم (أو يمكنك التعديل للبحث بالبريد)
       const { data, error } = await supabase
         .from('store_owners')
         .select('*')
-        .eq('id', user.id) // أو .eq('email', user.email)
+        .eq('id', user.id)
         .single();
 
       if (error) throw error;
@@ -50,6 +46,7 @@ const AdminStoreOwnerProfile = () => {
         setFormData({
           owner_name: data.owner_name || '',
           phone: data.phone || '',
+          store_number: data.store_number || '',
           email: data.email || '',
           address: data.address || '',
           whatsapp_number: data.whatsapp_number || '',
@@ -59,37 +56,37 @@ const AdminStoreOwnerProfile = () => {
         });
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error(error);
       toast.error('فشل في جلب البيانات');
     } finally {
       setFetching(false);
     }
   };
 
-  // 2. تحديث البيانات عند الضغط على حفظ
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("No user found");
+      if (!user) throw new Error("User not found");
 
       const { error } = await supabase
         .from('store_owners')
         .update({
           owner_name: formData.owner_name,
           phone: formData.phone,
+          store_number: formData.store_number,
           address: formData.address,
           whatsapp_number: formData.whatsapp_number,
           instagram_link: formData.instagram_link,
           facebook_link: formData.facebook_link,
           tiktok_link: formData.tiktok_link
-          // لا نحدث البريد الإلكتروني عادةً هنا لأسباب أمنية
         })
-        .eq('id', user.id); // شرط التحديث
+        .eq('id', user.id);
 
       if (error) throw error;
+
       toast.success('تم تحديث المعلومات بنجاح');
     } catch (error) {
       toast.error('حدث خطأ أثناء الحفظ');
@@ -99,18 +96,27 @@ const AdminStoreOwnerProfile = () => {
     }
   };
 
-  if (fetching) return <div className="flex justify-center p-10"><Loader2 className="animate-spin" /></div>;
+  if (fetching) {
+    return (
+      <div className="flex justify-center p-10">
+        <Loader2 className="animate-spin h-10 w-10" />
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">إعدادات الملف الشخصي للمتجر</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">
+            إعدادات الملف الشخصي للمتجر
+          </CardTitle>
         </CardHeader>
+
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            
-            {/* المعلومات الأساسية */}
+
+            {/* Basic Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="owner_name">اسم المالك / المتجر</Label>
@@ -121,19 +127,16 @@ const AdminStoreOwnerProfile = () => {
                   required
                 />
               </div>
+
               <div className="space-y-2">
                 <Label htmlFor="email">البريد الإلكتروني</Label>
-                <Input
-                  id="email"
-                  value={formData.email}
-                  disabled // نجعل البريد للقراءة فقط
-                  className="bg-muted"
-                />
+                <Input id="email" value={formData.email} disabled className="bg-muted" />
               </div>
             </div>
 
+            {/* Address */}
             <div className="space-y-2">
-              <Label htmlFor="address">العنوان التفصيلي</Label>
+              <Label htmlFor="address">العنوان</Label>
               <Textarea
                 id="address"
                 value={formData.address}
@@ -142,7 +145,7 @@ const AdminStoreOwnerProfile = () => {
               />
             </div>
 
-            {/* معلومات الاتصال */}
+            {/* Contact */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="phone">رقم الهاتف</Label>
@@ -152,23 +155,33 @@ const AdminStoreOwnerProfile = () => {
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 />
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="store_number">رقم المتجر</Label>
+                <Input
+                  id="store_number"
+                  value={formData.store_number}
+                  onChange={(e) => setFormData({ ...formData, store_number: e.target.value })}
+                />
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="whatsapp">رقم الواتساب</Label>
                 <Input
                   id="whatsapp"
                   value={formData.whatsapp_number}
                   onChange={(e) => setFormData({ ...formData, whatsapp_number: e.target.value })}
-                  placeholder="مثال: 213660..."
+                  placeholder="مثال: 2136..."
                 />
               </div>
             </div>
 
-            {/* روابط التواصل الاجتماعي */}
+            {/* Social Links */}
             <div className="space-y-4 border-t pt-4 mt-4">
               <h3 className="font-semibold text-lg">روابط التواصل الاجتماعي</h3>
-              
+
               <div className="space-y-2">
-                <Label htmlFor="facebook">رابط فيسبوك</Label>
+                <Label htmlFor="facebook">فيسبوك</Label>
                 <Input
                   id="facebook"
                   value={formData.facebook_link}
@@ -178,7 +191,7 @@ const AdminStoreOwnerProfile = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="instagram">رابط انستغرام</Label>
+                <Label htmlFor="instagram">انستغرام</Label>
                 <Input
                   id="instagram"
                   value={formData.instagram_link}
@@ -188,7 +201,7 @@ const AdminStoreOwnerProfile = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="tiktok">رابط تيك توك</Label>
+                <Label htmlFor="tiktok">تيك توك</Label>
                 <Input
                   id="tiktok"
                   value={formData.tiktok_link}

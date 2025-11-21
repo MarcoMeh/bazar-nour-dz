@@ -1,256 +1,277 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+// src/pages/Checkout.tsx
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { useCart } from '@/contexts/CartContext';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+  SelectValue
+} from "@/components/ui/select";
+import { useCart } from "@/contexts/CartContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface Wilaya {
-  id: string;
-  code: string;
+  id: number;
+  name: string;
   name_ar: string;
-  delivery_price: number;
   home_delivery_price: number;
   desk_delivery_price: number;
-  home_delivery_available?: boolean;
-  desk_delivery_available?: boolean;
+  created_at?: string;
 }
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { items, totalPrice, clearCart } = useCart();
+  const { items, totalPrice, clearCart, ownerId } = useCart();
+
   const [wilayas, setWilayas] = useState<Wilaya[]>([]);
   const [loading, setLoading] = useState(false);
-  
+
   const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    address: '',
-    wilaya: '',
-    deliveryType: 'home' as 'home' | 'office',
+    name: "",
+    phone: "",
+    address: "",
+    wilayaId: "", // store as string for Select; convert to number on submit
+    deliveryType: "home" as "home" | "office"
   });
 
-  const selectedWilaya = wilayas.find((w) => w.code === formData.wilaya);
-  const deliveryPrice = selectedWilaya 
-    ? (formData.deliveryType === 'home' 
-        ? (selectedWilaya.home_delivery_price || 0) 
-        : (selectedWilaya.desk_delivery_price || 0))
-    : 0;
-  const finalTotal = totalPrice + deliveryPrice;
-
   useEffect(() => {
-    if (items.length === 0) {
-      navigate('/cart');
-    }
-    fetchWilayas();
-  }, [items, navigate]);
+    if (items.length === 0) navigate("/cart");
+    loadWilayas();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const fetchWilayas = async () => {
+  const loadWilayas = async () => {
     const { data, error } = await supabase
-      .from('wilayas')
-      .select('*')
-      .order('code');
+      .from("wilayas")
+      .select("*")
+      .order("id", { ascending: true });
 
     if (error) {
-      toast.error('حدث خطأ في تحميل الولايات');
+      console.error(error);
+      toast.error("خطأ في تحميل الولايات");
       return;
     }
 
-    setWilayas(data || []);
+    // data items may not contain 'code' — we expect id,name,name_ar,home_delivery_price,desk_delivery_price
+    setWilayas((data as any) || []);
   };
+
+  const selectedWilaya = wilayas.find((w) => String(w.id) === formData.wilayaId);
+  const deliveryPrice = selectedWilaya
+    ? formData.deliveryType === "home"
+      ? selectedWilaya.home_delivery_price
+      : selectedWilaya.desk_delivery_price
+    : 0;
+
+  const finalTotal = totalPrice + deliveryPrice;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.name || !formData.phone || !formData.address || !formData.wilaya) {
-      toast.error('يرجى ملء جميع الحقول');
+
+    if (!formData.name || !formData.phone || !formData.address || !formData.wilayaId) {
+      toast.error("يرجى ملء جميع الحقول");
+      return;
+    }
+
+    if (!selectedWilaya) {
+      toast.error("اختر ولاية صحيحة");
       return;
     }
 
     setLoading(true);
 
-    const orderData = {
-      customer_name: formData.name,
-      customer_phone: formData.phone,
-      customer_address: formData.address,
-      wilaya_code: formData.wilaya,
-      delivery_type: formData.deliveryType,
-      total_price: finalTotal,
-      delivery_price: deliveryPrice,
-      items: items as any,
-    };
+    try {
+      // prepare order payload
+      const orderPayload = {
+        owner_id: ownerId || null, // nullable
+        customer_name: formData.name,
+        customer_phone: formData.phone,
+        wilaya_id: selectedWilaya.id, // number
+        address: formData.address,
+        delivery_type: formData.deliveryType,
+        delivery_price: deliveryPrice,
+        total_price: finalTotal,
+        items: items.map((it) => ({
+          id: it.id,
+          name_ar: it.name_ar,
+          price: it.price,
+          quantity: it.quantity,
+          color: it.color ?? null,
+          size: it.size ?? null,
+          image_url: it.image_url ?? null,
+          ownerId: it.ownerId ?? null
+        })) // snapshot
+      };
 
-    const { error } = await supabase
-      .from('orders')
-      .insert([orderData]);
+      // Insert order — use array form and cast to any to satisfy TS
+      const { data: orderData, error: orderError } = await supabase
+        .from("orders")
+        .insert([orderPayload] as any)
+        .select("id")
+        .single();
 
-    if (error) {
-      toast.error('حدث خطأ في إرسال الطلب');
+      if (orderError || !orderData) {
+        console.error("order insert error:", orderError);
+        toast.error("فشل إنشاء الطلب");
+        setLoading(false);
+        return;
+      }
+
+      const orderId = orderData.id;
+
+      // Prepare order_items payload
+      const orderItemsPayload = items.map((it) => ({
+        order_id: orderId,
+        product_id: it.id,
+        quantity: it.quantity,
+        unit_price: it.price,
+        color: it.color ?? null,
+        size: it.size ?? null
+      }));
+
+      const { error: itemsError } = await supabase
+        .from("order_items")
+        .insert(orderItemsPayload);
+
+      if (itemsError) {
+        console.error("order_items insert error:", itemsError);
+        toast.error("فشل حفظ عناصر الطلب");
+        setLoading(false);
+        return;
+      }
+
+      toast.success("تم إرسال الطلب بنجاح!");
+      clearCart();
+      navigate("/");
+    } catch (err) {
+      console.error(err);
+      toast.error("حصل خطأ غير متوقع");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    toast.success('تم إرسال طلبك بنجاح! سنتواصل معك قريباً');
-    clearCart();
-    navigate('/');
   };
 
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      
-      <main className="flex-1 container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">إتمام الطلب</h1>
 
-        <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
-              <Card className="p-6 mb-6">
-                <h2 className="text-xl font-bold mb-6">معلومات الاتصال</h2>
-                
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="name">الاسم الكامل *</Label>
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      placeholder="أدخل اسمك الكامل"
-                      required
-                    />
-                  </div>
+      <main className="flex-1 container mx-auto py-8 px-4">
+        <h1 className="text-3xl font-bold mb-6">إتمام الطلب</h1>
 
-                  <div>
-                    <Label htmlFor="phone">رقم الهاتف *</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      placeholder="0555 12 34 56"
-                      required
-                    />
-                  </div>
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* LEFT */}
+          <div className="lg:col-span-2 space-y-6">
+            <Card className="p-6">
+              <h2 className="text-xl font-semibold mb-4">معلومات العميل</h2>
 
-                  <div>
-                    <Label htmlFor="address">العنوان الكامل *</Label>
-                    <Input
-                      id="address"
-                      value={formData.address}
-                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                      placeholder="الشارع، الحي، الرقم..."
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="wilaya">الولاية *</Label>
-                    <Select value={formData.wilaya} onValueChange={(value) => setFormData({ ...formData, wilaya: value })}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="اختر الولاية" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {wilayas.map((wilaya) => (
-                          <SelectItem key={wilaya.code} value={wilaya.code}>
-                            {wilaya.name_ar}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+              <div className="space-y-4">
+                <div>
+                  <Label>الاسم</Label>
+                  <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
                 </div>
-              </Card>
 
-              <Card className="p-6">
-                <h2 className="text-xl font-bold mb-6">نوع التوصيل</h2>
-                
-                <RadioGroup
-                  value={formData.deliveryType}
-                  onValueChange={(value) => setFormData({ ...formData, deliveryType: value as 'home' | 'office' })}
-                >
-                  <div className="flex items-center justify-between p-4 rounded-lg border border-muted mb-3 hover:bg-muted/50 transition-colors">
-                    <div className="flex items-center space-x-2 space-x-reverse">
-                      <RadioGroupItem value="home" id="home" />
-                      <Label htmlFor="home" className="cursor-pointer">توصيل إلى المنزل</Label>
+                <div>
+                  <Label>الهاتف</Label>
+                  <Input value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
+                </div>
+
+                <div>
+                  <Label>العنوان</Label>
+                  <Input value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} />
+                </div>
+
+                <div>
+                  <Label>الولاية</Label>
+                  <Select value={formData.wilayaId} onValueChange={(v) => setFormData({ ...formData, wilayaId: v })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="اختر الولاية" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {wilayas.map((w) => (
+                        <SelectItem key={w.id} value={String(w.id)}>
+                          {w.name_ar || w.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-6">
+              <h2 className="text-xl font-semibold mb-4">طريقة التوصيل</h2>
+
+              <RadioGroup value={formData.deliveryType} onValueChange={(v) => setFormData({ ...formData, deliveryType: v as any })}>
+                <div className="flex items-center justify-between p-4 border rounded mb-3">
+                  <div>
+                    <RadioGroupItem value="home" id="home" />
+                    <Label htmlFor="home" className="ml-2">توصيل إلى المنزل</Label>
+                  </div>
+                  <div className="font-bold">{selectedWilaya ? selectedWilaya.home_delivery_price : "--"} دج</div>
+                </div>
+
+                <div className="flex items-center justify-between p-4 border rounded">
+                  <div>
+                    <RadioGroupItem value="office" id="office" />
+                    <Label htmlFor="office" className="ml-2">استلام من المكتب</Label>
+                  </div>
+                  <div className="font-bold">{selectedWilaya ? selectedWilaya.desk_delivery_price : "--"} دج</div>
+                </div>
+              </RadioGroup>
+            </Card>
+          </div>
+
+          {/* RIGHT */}
+          <div>
+            <Card className="p-6 sticky top-28">
+              <h2 className="text-xl font-semibold mb-4">ملخص الطلب</h2>
+
+              <div className="space-y-3 mb-4 border-b pb-4">
+                {items.map((it) => (
+                  <div key={it.id + (it.color ?? "") + (it.size ?? "")} className="flex justify-between text-sm">
+                    <div>
+                      <div className="font-medium">{it.name_ar}</div>
+                      <div className="text-muted-foreground text-xs">
+                        {it.color && <>لون: {it.color} </>}
+                        {it.size && <>• مقاس: {it.size}</>}
+                      </div>
+                      <div className="text-muted-foreground text-xs">كمية: {it.quantity}</div>
                     </div>
-                    {selectedWilaya && (
-                      <span className="font-bold text-primary">{selectedWilaya.home_delivery_price?.toFixed(2)} دج</span>
-                    )}
+                    <div className="font-medium">{(it.price * it.quantity).toFixed(2)} دج</div>
                   </div>
-                  <div className="flex items-center justify-between p-4 rounded-lg border border-muted hover:bg-muted/50 transition-colors">
-                    <div className="flex items-center space-x-2 space-x-reverse">
-                      <RadioGroupItem value="office" id="office" />
-                      <Label htmlFor="office" className="cursor-pointer">توصيل إلى المكتب</Label>
-                    </div>
-                    {selectedWilaya && (
-                      <span className="font-bold text-primary">{selectedWilaya.desk_delivery_price?.toFixed(2)} دج</span>
-                    )}
-                  </div>
-                </RadioGroup>
-              </Card>
-            </div>
+                ))}
+              </div>
 
-            <div className="lg:col-span-1">
-              <Card className="p-6 sticky top-24">
-                <h2 className="text-xl font-bold mb-4">ملخص الطلب</h2>
-                
-                <div className="space-y-2 mb-4 pb-4 border-b">
-                  {items.map((item) => (
-                    <div key={item.id} className="flex justify-between text-sm">
-                      <span>{item.name_ar} × {item.quantity}</span>
-                      <span>{(item.price * item.quantity).toFixed(2)} دج</span>
-                    </div>
-                  ))}
-                </div>
+              <div className="flex justify-between">
+                <span>المجموع الفرعي</span>
+                <strong>{totalPrice.toFixed(2)} دج</strong>
+              </div>
 
-                <div className="space-y-2 mb-4">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">المجموع الفرعي:</span>
-                    <span className="font-bold">{totalPrice.toFixed(2)} دج</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">رسوم التوصيل:</span>
-                    <span className="font-bold">{deliveryPrice.toFixed(2)} دج</span>
-                  </div>
-                </div>
-                
-                <div className="border-t pt-4 mb-6">
-                  <div className="flex justify-between text-lg font-bold">
-                    <span>المجموع النهائي:</span>
-                    <span className="text-accent">{finalTotal.toFixed(2)} دج</span>
-                  </div>
-                </div>
+              <div className="flex justify-between">
+                <span>رسوم التوصيل</span>
+                <strong>{deliveryPrice.toFixed(2)} دج</strong>
+              </div>
 
-                <div className="bg-muted/50 p-4 rounded-lg mb-6">
-                  <p className="text-sm font-medium">طريقة الدفع</p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    الدفع عند الاستلام فقط
-                  </p>
-                </div>
-                
-                <Button 
-                  type="submit" 
-                  className="w-full bg-secondary hover:bg-secondary/90" 
-                  size="lg"
-                  disabled={loading}
-                >
-                  {loading ? 'جاري الإرسال...' : 'تأكيد الطلب'}
-                </Button>
-              </Card>
-            </div>
+              <hr className="my-4" />
+
+              <div className="flex justify-between text-lg font-bold">
+                <span>الإجمالي</span>
+                <span>{finalTotal.toFixed(2)} دج</span>
+              </div>
+
+              <Button type="submit" className="mt-6 w-full" disabled={loading}>
+                {loading ? "جاري الإرسال..." : "تأكيد الطلب"}
+              </Button>
+            </Card>
           </div>
         </form>
       </main>
