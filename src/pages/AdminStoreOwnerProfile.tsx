@@ -8,9 +8,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Save, Loader2 } from 'lucide-react';
 
+const BUCKET = 'store-owner-images';
+
 const AdminStoreOwnerProfile = () => {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   // default fields empty
   const [formData, setFormData] = useState({
@@ -34,10 +38,11 @@ const AdminStoreOwnerProfile = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // IMPORTANT: store_owners.user_id links to auth.users.id
       const { data, error } = await supabase
         .from('store_owners')
         .select('*')
-        .eq('id', user.id)
+        .eq('user_id', user.id)
         .single();
 
       if (error) throw error;
@@ -47,19 +52,40 @@ const AdminStoreOwnerProfile = () => {
           owner_name: data.owner_name || '',
           phone: data.phone || '',
           store_number: data.store_number || '',
-          email: data.email || '',
+          email: user.email || '',
           address: data.address || '',
           whatsapp_number: data.whatsapp_number || '',
           instagram_link: data.instagram_link || '',
           facebook_link: data.facebook_link || '',
           tiktok_link: data.tiktok_link || ''
         });
+        setPreviewUrl(data.store_image_url ?? null);
       }
     } catch (error) {
       console.error(error);
       toast.error('فشل في جلب البيانات');
     } finally {
       setFetching(false);
+    }
+  };
+
+  // helper: upload image and return public url (or null)
+  const uploadImageAndGetUrl = async (file: File | null, keyPrefix = 'stores') => {
+    if (!file) return null;
+    try {
+      const filePath = `${keyPrefix}/${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+      const { error: uploadError } = await supabase.storage.from(BUCKET).upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(filePath);
+      // @ts-ignore
+      return urlData?.publicUrl ?? null;
+    } catch (err) {
+      console.error('Upload error', err);
+      toast.error('فشل رفع صورة المتجر');
+      return null;
     }
   };
 
@@ -71,23 +97,30 @@ const AdminStoreOwnerProfile = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not found");
 
+      const uploadedUrl = await uploadImageAndGetUrl(imageFile, user.id ?? 'stores');
+
+      const updatePayload: any = {
+        owner_name: formData.owner_name,
+        phone: formData.phone,
+        store_number: formData.store_number,
+        address: formData.address,
+        whatsapp_number: formData.whatsapp_number,
+        instagram_link: formData.instagram_link,
+        facebook_link: formData.facebook_link,
+        tiktok_link: formData.tiktok_link
+      };
+
+      if (uploadedUrl) updatePayload.store_image_url = uploadedUrl;
+
       const { error } = await supabase
         .from('store_owners')
-        .update({
-          owner_name: formData.owner_name,
-          phone: formData.phone,
-          store_number: formData.store_number,
-          address: formData.address,
-          whatsapp_number: formData.whatsapp_number,
-          instagram_link: formData.instagram_link,
-          facebook_link: formData.facebook_link,
-          tiktok_link: formData.tiktok_link
-        })
-        .eq('id', user.id);
+        .update(updatePayload)
+        .eq('user_id', user.id);
 
       if (error) throw error;
 
       toast.success('تم تحديث المعلومات بنجاح');
+      if (uploadedUrl) setPreviewUrl(uploadedUrl);
     } catch (error) {
       toast.error('حدث خطأ أثناء الحفظ');
       console.error(error);
@@ -174,6 +207,26 @@ const AdminStoreOwnerProfile = () => {
                   placeholder="مثال: 2136..."
                 />
               </div>
+            </div>
+
+            {/* Store image */}
+            <div className="space-y-2">
+              <Label>صورة المتجر</Label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const f = e.target.files?.[0] ?? null;
+                  setImageFile(f);
+                  if (f) {
+                    const url = URL.createObjectURL(f);
+                    setPreviewUrl(url);
+                  }
+                }}
+              />
+              {previewUrl && (
+                <img src={previewUrl} alt="preview" className="mt-2 w-48 h-32 object-cover rounded" />
+              )}
             </div>
 
             {/* Social Links */}

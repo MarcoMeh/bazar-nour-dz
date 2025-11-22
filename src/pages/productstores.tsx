@@ -29,7 +29,7 @@ interface Product {
   description_ar?: string;
   price: number;
   image_url?: string;
-  supplier_name?: string;
+  // removed supplier_name: string;
   colors?: string[];
   sizes?: string[];
   is_delivery_home_available: boolean;
@@ -37,11 +37,12 @@ interface Product {
   is_sold_out: boolean;
   is_free_delivery: boolean;
   created_at?: string;
+  owner_id?: string;
 }
 
 const ProductStores = () => {
   const [searchParams] = useSearchParams();
-  const [supplierCategory, setSupplierCategory] = useState<Category | null>(null);
+  const [supplierCategory, setSupplierCategory] = useState<{ id: string; name_ar: string; slug: string; image_url?: string | null } | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -52,9 +53,9 @@ const ProductStores = () => {
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [selectedSize, setSelectedSize] = useState<string>("");
 
-  const debouncedSetSearchTerm = useRef(debounce((value) => setSearchTerm(value), 500)).current;
-  const debouncedSetMinPrice = useRef(debounce((value) => setMinPriceInput(value), 500)).current;
-  const debouncedSetMaxPrice = useRef(debounce((value) => setMaxPriceInput(value), 500)).current;
+  const debouncedSetSearchTerm = useRef(debounce((value: string) => setSearchTerm(value), 500)).current;
+  const debouncedSetMinPrice = useRef(debounce((value: string) => setMinPriceInput(value), 500)).current;
+  const debouncedSetMaxPrice = useRef(debounce((value: string) => setMaxPriceInput(value), 500)).current;
 
   const supplierId = searchParams.get("supplier");
 
@@ -64,6 +65,7 @@ const ProductStores = () => {
 
   useEffect(() => {
     if (supplierCategory) fetchProducts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supplierCategory, searchTerm, minPriceInput, maxPriceInput, selectedColor, selectedSize]);
 
   const fetchSupplierCategory = async (id: string) => {
@@ -76,38 +78,46 @@ const ProductStores = () => {
 
     setSupplierCategory({
       id: data.id,
-      name_ar: data.username,
+      name_ar: data.owner_name ?? data.username,
       slug: data.username,
+      image_url: data.store_image_url ?? null
     });
   };
 
   const fetchProducts = async () => {
     setLoading(true);
 
-    let query = supabase.from("products").select("*");
+    try {
+      // query by owner_id instead of supplier_name
+      let query = supabase.from("products").select("*").eq("owner_id", supplierCategory?.id || "");
 
-    query = query.eq("supplier_name", supplierCategory?.name_ar || "");
+      if (searchTerm) query = query.ilike("name_ar", `%${searchTerm}%`);
 
-    if (searchTerm) query = query.ilike("name_ar", `%${searchTerm}%`);
+      const parsedMin = parseFloat(minPriceInput);
+      const parsedMax = parseFloat(maxPriceInput);
 
-    const parsedMin = parseFloat(minPriceInput);
-    const parsedMax = parseFloat(maxPriceInput);
+      if (!isNaN(parsedMin)) query = query.gte("price", parsedMin);
+      if (!isNaN(parsedMax)) query = query.lte("price", parsedMax);
 
-    if (!isNaN(parsedMin)) query = query.gte("price", parsedMin);
-    if (!isNaN(parsedMax)) query = query.lte("price", parsedMax);
+      if (selectedColor) query = query.contains("colors", [selectedColor]);
+      if (selectedSize) query = query.contains("sizes", [selectedSize]);
 
-    if (selectedColor) query = query.contains("colors", [selectedColor]);
-    if (selectedSize) query = query.contains("sizes", [selectedSize]);
+      const { data, error } = (await query.order("created_at", { ascending: false })) as {
+        data: Product[] | null;
+        error: PostgrestError | null;
+      };
 
-    const { data, error } = (await query.order("created_at", { ascending: false })) as {
-      data: Product[] | null;
-      error: PostgrestError | null;
-    };
+      if (error) {
+        throw error;
+      }
 
-    if (error) toast.error("خطأ في تحميل المنتجات");
-
-    setProducts(data || []);
-    setLoading(false);
+      setProducts(data || []);
+    } catch (err) {
+      console.error(err);
+      toast.error("خطأ في تحميل المنتجات");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const allColors = Array.from(new Set(products.flatMap((p) => p.colors || [])));
@@ -119,8 +129,15 @@ const ProductStores = () => {
       <main className="flex-1 container mx-auto px-4 py-8">
 
         <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">منتجات {supplierCategory?.name_ar}</h1>
-          <p className="text-muted-foreground text-lg">جميع منتجات هذا المورد</p>
+          <div className="flex items-center justify-center gap-4">
+            {supplierCategory?.image_url ? (
+              <img src={supplierCategory.image_url} alt="store" className="w-20 h-16 object-cover rounded" />
+            ) : null}
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold mb-2">منتجات {supplierCategory?.name_ar}</h1>
+              <p className="text-muted-foreground text-lg">جميع منتجات هذا المورد</p>
+            </div>
+          </div>
         </div>
 
         <Card className="mb-8 p-6 rounded-xl shadow-xl">
@@ -189,7 +206,7 @@ const ProductStores = () => {
           </div>
         )}
 
-        <Button variant="outline" onClick={() => history.back()} className="mt-6">
+        <Button variant="outline" onClick={() => window.history.back()} className="mt-6">
           <ArrowLeft size={16} /> الرجوع
         </Button>
       </main>
