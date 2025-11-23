@@ -16,6 +16,7 @@ const AdminLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errorDetails, setErrorDetails] = useState<any>(null);
 
   // Test Database Connection on Mount
   useEffect(() => {
@@ -40,6 +41,7 @@ const AdminLogin = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    console.log("Attempting login with:", email);
 
     let loginEmail = email;
     function isEmail(input: string) {
@@ -48,63 +50,89 @@ const AdminLogin = () => {
 
     // If the user typed a username (not an email)
     if (!isEmail(email)) {
+      console.log("Input is not an email, checking store_owners for username:", email);
       // find email by username
-      const userRes = await supabase
+      const { data: userRes, error: userError } = await supabase
         .from("store_owners")
         .select("email")
         .eq("username", email)
-        .single();
+        .maybeSingle(); // Use maybeSingle to avoid error if not found
 
-      if (!userRes.data) {
-        console.error("Username lookup failed:", userRes.error);
-        toast.error("❌ اسم المستخدم غير موجود");
+      if (userError) {
+        console.error("Error querying store_owners:", userError);
+        toast.error("خطأ في البحث عن اسم المستخدم: " + userError.message);
         setLoading(false);
         return;
       }
 
-      loginEmail = userRes.data.email;
+      if (!userRes) {
+        console.warn("Username not found in store_owners");
+        toast.error("❌ اسم المستخدم غير موجود. (المشرفون يجب أن يستخدموا البريد الإلكتروني)");
+        setLoading(false);
+        return;
+      }
+
+      loginEmail = userRes.email;
+      console.log("Found email for username:", loginEmail);
     }
 
     // Now login using EMAIL
+    console.log("Calling supabase.auth.signInWithPassword with:", loginEmail);
     const { error: loginError } = await login(loginEmail, password);
 
     if (loginError) {
-      console.error("Login error:", loginError);
-      toast.error("❌ خطأ في تسجيل الدخول: " + loginError.message);
+      console.error("Login error details:", loginError);
+      setErrorDetails(loginError); // Show on UI
+      if (loginError.message.includes("Database error querying schema")) {
+        toast.error("❌ خطأ في قاعدة البيانات. يرجى تشغيل سكربت الإصلاح (master_rebuild_database.sql) في Supabase.");
+      } else {
+        toast.error("❌ خطأ في تسجيل الدخول: " + loginError.message);
+      }
       setLoading(false);
       return;
     }
 
-    // Get auth user
-    const { data } = await (supabase.auth.getUser() as any);
-    const authUser = data?.user;
+    console.log("Login successful, checking roles...");
 
-    if (!authUser) {
+    // Get auth user
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    const authUser = authData?.user;
+
+    if (authError || !authUser) {
+      console.error("Auth user retrieval failed:", authError);
       toast.error("فشل الحصول على بيانات المستخدم");
       setLoading(false);
       return;
     }
 
+    console.log("Auth user ID:", authUser.id);
+
     // Check Admin
-    const adminRes = await supabase
+    const { data: adminData, error: adminError } = await supabase
       .from("admins")
       .select("id")
       .eq("auth_user_id", authUser.id)
-      .single();
+      .maybeSingle();
 
-    const isAdminUser = adminRes.data && !adminRes.error;
+    if (adminError) console.error("Error checking admin role:", adminError);
+    const isAdminUser = !!adminData;
+    console.log("Is Admin?", isAdminUser);
 
     // Check Store Owner
-    const ownerRes = await supabase
+    const { data: ownerData, error: ownerError } = await supabase
       .from("store_owners")
       .select("id, username")
       .eq("user_id", authUser.id)
-      .single();
+      .maybeSingle();
 
-    const isStoreOwner = ownerRes.data && !ownerRes.error;
+    if (ownerError) console.error("Error checking store owner role:", ownerError);
+    const isStoreOwner = !!ownerData;
+    console.log("Is Store Owner?", isStoreOwner);
 
     if (!isAdminUser && !isStoreOwner) {
+      console.warn("User is neither Admin nor Store Owner");
       toast.error("❌ لا تملك صلاحية الدخول للوحة التحكم");
+      await supabase.auth.signOut(); // Sign out if not authorized
       setLoading(false);
       return;
     }
@@ -158,6 +186,15 @@ const AdminLogin = () => {
           >
             {loading ? "جاري تسجيل الدخول..." : "تسجيل الدخول"}
           </Button>
+
+          {errorDetails && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md text-left dir-ltr">
+              <p className="text-red-600 font-bold text-sm mb-2">Error Details (Please share this):</p>
+              <pre className="text-xs text-red-800 overflow-auto whitespace-pre-wrap font-mono">
+                {JSON.stringify(errorDetails, null, 2)}
+              </pre>
+            </div>
+          )}
         </form>
 
         <div className="mt-6 text-center">
