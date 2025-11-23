@@ -11,11 +11,26 @@ import logo from "@/assets/bazzarna-logo.jpeg";
 
 const AdminLogin = () => {
   const navigate = useNavigate();
-  const { login, isAdmin, user } = useAdmin();
+  const { login, isAdmin } = useAdmin();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Test Database Connection on Mount
+  useEffect(() => {
+    const testConnection = async () => {
+      console.log("Testing DB connection...");
+      const { data, error } = await supabase.from("admins").select("count", { count: 'exact', head: true });
+      if (error) {
+        console.error("DB Connection Test Failed:", error);
+        toast.error("⚠️ خطأ في الاتصال بقاعدة البيانات: " + error.message);
+      } else {
+        console.log("DB Connection Test Passed. Admins count:", data);
+      }
+    };
+    testConnection();
+  }, []);
 
   // لو هو already logged in → يدخل لصفحة التحكم مباشرة
   useEffect(() => {
@@ -41,6 +56,7 @@ const AdminLogin = () => {
         .single();
 
       if (!userRes.data) {
+        console.error("Username lookup failed:", userRes.error);
         toast.error("❌ اسم المستخدم غير موجود");
         setLoading(false);
         return;
@@ -53,7 +69,8 @@ const AdminLogin = () => {
     const { error: loginError } = await login(loginEmail, password);
 
     if (loginError) {
-      toast.error("❌ البريد الإلكتروني أو كلمة المرور غير صحيحة");
+      console.error("Login error:", loginError);
+      toast.error("❌ خطأ في تسجيل الدخول: " + loginError.message);
       setLoading(false);
       return;
     }
@@ -95,9 +112,6 @@ const AdminLogin = () => {
     toast.success("✔️ تم تسجيل الدخول بنجاح");
     navigate("/admin");
   };
-
-
-
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-bl from-primary via-primary/95 to-primary/90 p-4">

@@ -17,20 +17,38 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // Check if the user exists in the admins table
+  // Check if the user exists in the admins table OR is a store owner
   const checkIfAdmin = async (authUserId: string | undefined) => {
     if (!authUserId) {
       setIsAdmin(false);
       return;
     }
 
-    const { data, error } = await supabase
+    // 1. Check Admins table
+    const { data: adminData, error: adminError } = await supabase
       .from("admins")
       .select("id")
       .eq("auth_user_id", authUserId)
       .single();
 
-    setIsAdmin(!error && data ? true : false);
+    if (adminData && !adminError) {
+      setIsAdmin(true);
+      return;
+    }
+
+    // 2. Check Store Owners table
+    const { data: ownerData, error: ownerError } = await supabase
+      .from("store_owners")
+      .select("id")
+      .eq("user_id", authUserId)
+      .single();
+
+    if (ownerData && !ownerError) {
+      setIsAdmin(true);
+      return;
+    }
+
+    setIsAdmin(false);
   };
 
   useEffect(() => {

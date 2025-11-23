@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { ArrowRight, Plus, Trash2, Edit, Upload } from 'lucide-react';
+import { ArrowRight, Plus, Trash2, Edit, Upload, Palette, Ruler, Truck, PackageX } from 'lucide-react';
 import logo from '@/assets/bazzarna-logo.jpeg';
 import { Badge } from '@/components/ui/badge';
 
@@ -29,6 +29,10 @@ const AdminProducts = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [uploading, setUploading] = useState(false);
+
+  // UI Toggles
+  const [hasColors, setHasColors] = useState(false);
+  const [hasSizes, setHasSizes] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -114,10 +118,15 @@ const AdminProducts = () => {
     setCustomSize('');
     setSelectedPresetColor('');
     setSelectedPresetSize('');
+    setHasColors(false);
+    setHasSizes(false);
   };
 
   const handleEdit = (product: any) => {
     setEditingProduct(product);
+    const productColors = product.colors ?? [];
+    const productSizes = product.sizes ?? [];
+
     setFormData({
       name: product.name || '',
       name_ar: product.name_ar || '',
@@ -131,9 +140,12 @@ const AdminProducts = () => {
       is_delivery_desk_available: product.is_delivery_desk_available ?? true,
       is_sold_out: product.is_sold_out ?? false,
       is_free_delivery: product.is_free_delivery ?? false,
-      colors: product.colors ?? [],
-      sizes: product.sizes ?? [],
+      colors: productColors,
+      sizes: productSizes,
     });
+
+    setHasColors(productColors.length > 0);
+    setHasSizes(productSizes.length > 0);
     setIsDialogOpen(true);
   };
 
@@ -239,8 +251,8 @@ const AdminProducts = () => {
       is_delivery_desk_available: !!formData.is_delivery_desk_available,
       is_sold_out: !!formData.is_sold_out,
       is_free_delivery: !!formData.is_free_delivery,
-      colors: formData.colors.length ? formData.colors : null,
-      sizes: formData.sizes.length ? formData.sizes : null,
+      colors: hasColors && formData.colors.length ? formData.colors : null,
+      sizes: hasSizes && formData.sizes.length ? formData.sizes : null,
       updated_at: new Date().toISOString(),
     };
 
@@ -301,147 +313,223 @@ const AdminProducts = () => {
                 </DialogDescription>
               </DialogHeader>
 
-              <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>الاسم بالعربية</Label>
-                    <Input value={formData.name_ar} onChange={(e) => setFormData(prev => ({ ...prev, name_ar: e.target.value }))} required />
+              <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+                {/* Basic Info */}
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg border-b pb-2">المعلومات الأساسية</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>الاسم بالعربية</Label>
+                      <Input value={formData.name_ar} onChange={(e) => setFormData(prev => ({ ...prev, name_ar: e.target.value }))} required />
+                    </div>
+                    <div>
+                      <Label>الاسم بالإنجليزية</Label>
+                      <Input value={formData.name} onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))} />
+                    </div>
                   </div>
-                  <div>
-                    <Label>الاسم بالإنجليزية</Label>
-                    <Input value={formData.name} onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))} />
-                  </div>
-                </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>الوصف بالعربية</Label>
-                    <Textarea value={formData.description_ar} onChange={(e) => setFormData(prev => ({ ...prev, description_ar: e.target.value }))} />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>الوصف بالعربية</Label>
+                      <Textarea value={formData.description_ar} onChange={(e) => setFormData(prev => ({ ...prev, description_ar: e.target.value }))} />
+                    </div>
+                    <div>
+                      <Label>الوصف بالإنجليزية</Label>
+                      <Textarea value={formData.description} onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))} />
+                    </div>
                   </div>
-                  <div>
-                    <Label>الوصف بالإنجليزية</Label>
-                    <Textarea value={formData.description} onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))} />
-                  </div>
-                </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>السعر (دج)</Label>
-                    <Input type="number" step="0.01" value={formData.price} onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))} required />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>السعر (دج)</Label>
+                      <Input type="number" step="0.01" value={formData.price} onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))} required />
+                    </div>
+                    <div>
+                      <Label>الفئة</Label>
+                      <Select value={formData.category_id} onValueChange={(v) => setFormData(prev => ({ ...prev, category_id: v }))}>
+                        <SelectTrigger><SelectValue placeholder="اختر الفئة" /></SelectTrigger>
+                        <SelectContent>
+                          {categories
+                            .filter(cat => cat.parent_id !== null) // subcategories only
+                            .filter(cat => {
+                              const parent = categories.find(p => p.id === cat.parent_id);
+                              return parent?.name_ar !== 'محلاتنا';
+                            })
+                            .map(cat => (<SelectItem key={cat.id} value={String(cat.id)}>{cat.name_ar}</SelectItem>))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
+
                   <div>
-                    <Label>الفئة</Label>
-                    <Select value={formData.category_id} onValueChange={(v) => setFormData(prev => ({ ...prev, category_id: v }))}>
-                      <SelectTrigger><SelectValue placeholder="اختر الفئة" /></SelectTrigger>
+                    <Label>اسم المورد</Label>
+                    <Select value={formData.supplier_name || "none"} onValueChange={(v) => setFormData(prev => ({ ...prev, supplier_name: v === "none" ? "" : v }))}>
+                      <SelectTrigger><SelectValue placeholder="اختر المورد (اختياري)" /></SelectTrigger>
                       <SelectContent>
-                        {categories
-                          .filter(cat => cat.parent_id !== null) // subcategories only
-                          .filter(cat => {
-                            const parent = categories.find(p => p.id === cat.parent_id);
-                            return parent?.name_ar !== 'محلاتنا';
-                          })
-                          .map(cat => (<SelectItem key={cat.id} value={String(cat.id)}>{cat.name_ar}</SelectItem>))}
+                        <SelectItem value="none">بدون مورد</SelectItem>
+                        {stores.map(s => (
+                          s.username ? <SelectItem key={s.id} value={s.username}>{s.owner_name} ({s.username})</SelectItem> : null
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
 
-                <div>
-                  <Label>اسم المورد</Label>
-                  <Select value={formData.supplier_name || "none"} onValueChange={(v) => setFormData(prev => ({ ...prev, supplier_name: v === "none" ? "" : v }))}>
-                    <SelectTrigger><SelectValue placeholder="اختر المورد (اختياري)" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">بدون مورد</SelectItem>
-                      {stores.map(s => (
-                        s.username ? <SelectItem key={s.id} value={s.username}>{s.owner_name} ({s.username})</SelectItem> : null
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label>صورة المنتج</Label>
-                  <div className="flex items-center gap-3">
-                    <input id="image-upload" type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-                    <label htmlFor="image-upload">
-                      <Button type="button" variant="outline" asChild>
-                        <span><Upload className="ml-2 h-4 w-4" />{uploading ? 'جاري الرفع...' : 'رفع صورة'}</span>
-                      </Button>
-                    </label>
-                    <Input placeholder="أو ضع رابط الصورة" value={formData.image_url} onChange={(e) => setFormData(prev => ({ ...prev, image_url: e.target.value }))} />
-                  </div>
-                  {formData.image_url && <img src={formData.image_url} alt="preview" className="h-32 w-32 object-cover rounded mt-2" onError={(e) => (e.currentTarget.style.display = 'none')} />}
-                </div>
-
-                {/* colors */}
-                <div>
-                  <Label>الألوان</Label>
-                  <div className="flex gap-2 mb-2">
-                    <select className="border p-2 rounded" value={selectedPresetColor} onChange={(e) => setSelectedPresetColor(e.target.value)}>
-                      <option value="">اختر لونًا مسبقًا</option>
-                      {PRESET_COLORS.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                    <Button type="button" onClick={handleAddPresetColor}>أضف</Button>
-                    <Input placeholder="أو لون مخصص" value={customColor} onChange={(e) => setCustomColor(e.target.value)} />
-                    <Button type="button" onClick={handleAddCustomColor}>أضف</Button>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {formData.colors.map(c => (
-                      <Badge key={c} className="flex items-center gap-2">
-                        {c}
-                        <button onClick={() => handleRemoveColor(c)} className="text-xs px-1">×</button>
-                      </Badge>
-                    ))}
+                  <div>
+                    <Label>صورة المنتج</Label>
+                    <div className="flex items-center gap-3">
+                      <input id="image-upload" type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                      <label htmlFor="image-upload">
+                        <Button type="button" variant="outline" asChild>
+                          <span><Upload className="ml-2 h-4 w-4" />{uploading ? 'جاري الرفع...' : 'رفع صورة'}</span>
+                        </Button>
+                      </label>
+                      <Input placeholder="أو ضع رابط الصورة" value={formData.image_url} onChange={(e) => setFormData(prev => ({ ...prev, image_url: e.target.value }))} />
+                    </div>
+                    {formData.image_url && <img src={formData.image_url} alt="preview" className="h-32 w-32 object-cover rounded mt-2" onError={(e) => (e.currentTarget.style.display = 'none')} />}
                   </div>
                 </div>
 
-                {/* sizes */}
-                <div>
-                  <Label>المقاسات</Label>
-                  <div className="flex gap-2 mb-2">
-                    <select className="border p-2 rounded" value={selectedPresetSize} onChange={(e) => setSelectedPresetSize(e.target.value)}>
-                      <option value="">اختر مقاسًا مسبقًا</option>
-                      {PRESET_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                    <Button type="button" onClick={handleAddPresetSize}>أضف</Button>
-                    <Input placeholder="أو مقاس مخصص" value={customSize} onChange={(e) => setCustomSize(e.target.value)} />
-                    <Button type="button" onClick={handleAddCustomSize}>أضف</Button>
+                {/* Variants: Colors & Sizes */}
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg border-b pb-2 flex items-center gap-2">
+                    <Palette className="w-5 h-5" /> الخيارات (الألوان والمقاسات)
+                  </h3>
+
+                  {/* Colors Toggle */}
+                  <div className="bg-muted/30 p-4 rounded-lg border">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <Switch checked={hasColors} onCheckedChange={setHasColors} />
+                        <Label>تفعيل خيار الألوان</Label>
+                      </div>
+                    </div>
+
+                    {hasColors && (
+                      <div className="animate-in fade-in slide-in-from-top-2">
+                        <div className="flex gap-2 mb-2">
+                          <select className="border p-2 rounded" value={selectedPresetColor} onChange={(e) => setSelectedPresetColor(e.target.value)}>
+                            <option value="">اختر لونًا مسبقًا</option>
+                            {PRESET_COLORS.map(c => <option key={c} value={c}>{c}</option>)}
+                          </select>
+                          <Button type="button" size="sm" onClick={handleAddPresetColor}>أضف</Button>
+                          <Input className="w-32" placeholder="لون مخصص" value={customColor} onChange={(e) => setCustomColor(e.target.value)} />
+                          <Button type="button" size="sm" onClick={handleAddCustomColor}>أضف</Button>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {formData.colors.map(c => (
+                            <Badge key={c} className="flex items-center gap-2">
+                              {c}
+                              <button onClick={() => handleRemoveColor(c)} className="text-xs px-1 hover:text-destructive">×</button>
+                            </Badge>
+                          ))}
+                          {formData.colors.length === 0 && <span className="text-sm text-muted-foreground">لم يتم إضافة ألوان بعد</span>}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {formData.sizes.map(s => (
-                      <Badge key={s} className="flex items-center gap-2">
-                        {s}
-                        <button onClick={() => handleRemoveSize(s)} className="text-xs px-1">×</button>
-                      </Badge>
-                    ))}
+
+                  {/* Sizes Toggle */}
+                  <div className="bg-muted/30 p-4 rounded-lg border">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <Switch checked={hasSizes} onCheckedChange={setHasSizes} />
+                        <Label>تفعيل خيار المقاسات</Label>
+                      </div>
+                    </div>
+
+                    {hasSizes && (
+                      <div className="animate-in fade-in slide-in-from-top-2">
+                        <div className="flex gap-2 mb-2">
+                          <select className="border p-2 rounded" value={selectedPresetSize} onChange={(e) => setSelectedPresetSize(e.target.value)}>
+                            <option value="">اختر مقاسًا مسبقًا</option>
+                            {PRESET_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
+                          </select>
+                          <Button type="button" size="sm" onClick={handleAddPresetSize}>أضف</Button>
+                          <Input className="w-32" placeholder="مقاس مخصص" value={customSize} onChange={(e) => setCustomSize(e.target.value)} />
+                          <Button type="button" size="sm" onClick={handleAddCustomSize}>أضف</Button>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {formData.sizes.map(s => (
+                            <Badge key={s} className="flex items-center gap-2">
+                              {s}
+                              <button onClick={() => handleRemoveSize(s)} className="text-xs px-1 hover:text-destructive">×</button>
+                            </Badge>
+                          ))}
+                          {formData.sizes.length === 0 && <span className="text-sm text-muted-foreground">لم يتم إضافة مقاسات بعد</span>}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mt-4">
-                  <div className="flex items-center gap-2">
-                    <Switch checked={formData.is_delivery_home_available} onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_delivery_home_available: checked, is_delivery_desk_available: checked ? prev.is_delivery_desk_available : false }))} />
-                    <Label>التوصيل للمنزل متاح</Label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Switch checked={formData.is_delivery_desk_available} onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_delivery_desk_available: checked }))} disabled={!formData.is_delivery_home_available} />
-                    <Label>الاستلام من المكتب متاح</Label>
+                {/* Delivery & Stock */}
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg border-b pb-2 flex items-center gap-2">
+                    <Truck className="w-5 h-5" /> التوصيل والمخزون
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-muted/30 p-4 rounded-lg border">
+                    {/* Free Delivery */}
+                    <div className="flex items-center justify-between border-b pb-2 md:border-b-0">
+                      <Label className="flex flex-col">
+                        <span>توصيل مجاني</span>
+                        <span className="text-xs text-muted-foreground font-normal">هل هذا المنتج يشمل توصيل مجاني؟</span>
+                      </Label>
+                      <Switch checked={formData.is_free_delivery} onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_free_delivery: checked }))} />
+                    </div>
+
+                    {/* Home Delivery */}
+                    <div className="flex items-center justify-between border-b pb-2 md:border-b-0">
+                      <Label className="flex flex-col">
+                        <span>التوصيل للمنزل</span>
+                        <span className="text-xs text-muted-foreground font-normal">تفعيل خدمة التوصيل للمنزل</span>
+                      </Label>
+                      <Switch
+                        checked={formData.is_delivery_home_available}
+                        onCheckedChange={(checked) => setFormData(prev => ({
+                          ...prev,
+                          is_delivery_home_available: checked,
+                          // If home delivery is disabled, typically desk delivery might be disabled too or independent? 
+                          // User request: "if delivery avaible in home and delivery availbel in desk"
+                          // Let's keep logic: if home is off, desk is off? Or independent?
+                          // User said: "then if delivery avaible in home and delivery availbel in desk"
+                          // I will keep them somewhat linked but allow desk only if home is enabled based on previous logic, 
+                          // OR allow them to be independent. Let's stick to user request flow.
+                          is_delivery_desk_available: checked ? prev.is_delivery_desk_available : false
+                        }))}
+                      />
+                    </div>
+
+                    {/* Desk Delivery (Only if Home is ON, or just independent? User said "then if...") */}
+                    {formData.is_delivery_home_available && (
+                      <div className="flex items-center justify-between animate-in fade-in">
+                        <Label className="flex flex-col">
+                          <span>الاستلام من المكتب</span>
+                          <span className="text-xs text-muted-foreground font-normal">تفعيل خيار الاستلام من المكتب</span>
+                        </Label>
+                        <Switch
+                          checked={formData.is_delivery_desk_available}
+                          onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_delivery_desk_available: checked }))}
+                        />
+                      </div>
+                    )}
+
+                    {/* Sold Out */}
+                    <div className="flex items-center justify-between pt-2 md:pt-0">
+                      <Label className="flex flex-col text-destructive">
+                        <span className="flex items-center gap-2"><PackageX className="w-4 h-4" /> نفد من المخزون</span>
+                        <span className="text-xs text-muted-foreground font-normal">علم هذا الخيار إذا انتهت الكمية</span>
+                      </Label>
+                      <Switch checked={formData.is_sold_out} onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_sold_out: checked }))} />
+                    </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mt-2">
-                  <div className="flex items-center gap-2">
-                    <Switch checked={formData.is_sold_out} onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_sold_out: checked }))} />
-                    <Label>المنتج نفد</Label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Switch checked={formData.is_free_delivery} onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_free_delivery: checked }))} />
-                    <Label>توصيل مجاني</Label>
-                  </div>
-                </div>
-
-                <div className="flex gap-2 justify-end pt-4">
+                <div className="flex gap-2 justify-end pt-6 border-t mt-6">
                   <Button type="button" variant="outline" onClick={() => { setIsDialogOpen(false); resetForm(); }}>إلغاء</Button>
-                  <Button type="submit" disabled={loading}>{loading ? 'جاري الحفظ...' : (editingProduct ? 'تحديث' : 'إضافة')}</Button>
+                  <Button type="submit" disabled={loading} className="min-w-[120px]">
+                    {loading ? 'جاري الحفظ...' : (editingProduct ? 'تحديث المنتج' : 'إضافة المنتج')}
+                  </Button>
                 </div>
               </form>
             </DialogContent>
@@ -450,22 +538,37 @@ const AdminProducts = () => {
 
         <div className="grid gap-4">
           {products.map(product => (
-            <Card key={product.id} className="p-4 flex justify-between items-center">
+            <Card key={product.id} className="p-4 flex justify-between items-center hover:shadow-md transition-shadow">
               <div className="flex-1">
-                <h3 className="font-bold">{product.name_ar}</h3>
-                <p className="text-sm text-muted-foreground">{product.price} دج</p>
-                {product.description_ar && <p className="text-sm text-muted-foreground mt-1">{product.description_ar}</p>}
-                <div className="mt-2 text-xs flex flex-wrap gap-2">
-                  {product.is_sold_out && <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full">نفد</span>}
-                  {product.is_free_delivery && <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full">توصيل مجاني</span>}
-                  {product.is_delivery_home_available && <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full">توصيل للمنزل</span>}
-                  {product.is_delivery_desk_available && <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full">استلام من المكتب</span>}
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="font-bold text-lg">{product.name_ar}</h3>
+                  {product.is_sold_out && <Badge variant="destructive">نفد</Badge>}
+                </div>
+                <p className="text-sm font-medium text-primary">{product.price} دج</p>
+                {product.description_ar && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{product.description_ar}</p>}
+
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {product.is_free_delivery && <Badge variant="secondary" className="bg-green-100 text-green-800 hover:bg-green-200">توصيل مجاني</Badge>}
+                  {product.is_delivery_home_available && <Badge variant="outline">توصيل منزل</Badge>}
+                  {product.is_delivery_desk_available && <Badge variant="outline">استلام مكتب</Badge>}
                 </div>
 
-                <div className="mt-2 text-xs flex gap-2 flex-wrap">
-                  {(product.colors || []).slice(0, 6).map((c: string) => <Badge key={c}>{c}</Badge>)}
-                  {(product.sizes || []).slice(0, 6).map((s: string) => <Badge key={s}>{s}</Badge>)}
-                </div>
+                {(product.colors?.length > 0 || product.sizes?.length > 0) && (
+                  <div className="mt-3 flex gap-4 text-xs text-muted-foreground">
+                    {product.colors?.length > 0 && (
+                      <div className="flex items-center gap-1">
+                        <Palette className="w-3 h-3" />
+                        <span>{product.colors.length} ألوان</span>
+                      </div>
+                    )}
+                    {product.sizes?.length > 0 && (
+                      <div className="flex items-center gap-1">
+                        <Ruler className="w-3 h-3" />
+                        <span>{product.sizes.length} مقاسات</span>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 <div className="mt-2 text-xs text-muted-foreground">
                   مورد: {product.supplier_name || product.store_owners?.username || 'غير محدد'}

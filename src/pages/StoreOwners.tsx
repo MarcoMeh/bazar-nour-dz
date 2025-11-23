@@ -144,11 +144,16 @@ const StoreOwners = () => {
 
     // Check for duplicate store name
     const trimmedStoreName = formData.store_name.trim();
-    const existingStore = stores.find(s => s.name_ar === trimmedStoreName);
+
+    // Check DB directly for duplicate name to be safe (since we might not fetch all categories)
+    const { data: existingStore } = await supabase
+      .from('categories')
+      .select('id, name_ar')
+      .eq('name_ar', trimmedStoreName)
+      .maybeSingle();
 
     if (existingStore) {
-      // If creating, or if editing and changing to a DIFFERENT existing store (which shouldn't happen if we want 1:1, but let's be safe)
-      // Actually, if editing and the name matches the CURRENT owner's store, it's fine.
+      // If creating, or if editing and changing to a DIFFERENT existing store
       if (!editingOwner || (editingOwner && existingStore.id !== editingOwner.category_id)) {
         toast.error("هذا المتجر موجود بالفعل. يرجى اختيار اسم آخر.");
         return;
@@ -164,9 +169,6 @@ const StoreOwners = () => {
       if (editingOwner) {
         // Update existing category name if changed
         if (existingStore && existingStore.id === editingOwner.category_id) {
-          // Name didn't change effectively, or changed case/spacing but matched same ID? 
-          // If we are here, it means we found the store by name.
-          // If the name is exactly the same, no update needed.
           if (existingStore.name_ar !== trimmedStoreName) {
             await supabase.from('categories').update({ name_ar: trimmedStoreName, name: trimmedStoreName }).eq('id', categoryId);
           }
@@ -176,17 +178,11 @@ const StoreOwners = () => {
           await supabase.from('categories').update({
             name_ar: trimmedStoreName,
             name: trimmedStoreName,
-            // slug: ... maybe update slug too? let's keep it simple for now
           }).eq('id', categoryId);
         }
       } else {
         // Create new category
-        // User requested to remove requirement for parent category
-        // if (!parentCategoryId) {
-        //   toast.error("فشل العثور على الفئة الرئيسية للمتاجر");
-        //   setLoading(false);
-        //   return;
-        // }
+        // User requested to not set store owners in category (meaning don't link to parent 'ourstores')
 
         const slug = `${trimmedStoreName.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}`;
         const { data: newCat, error: catError } = await supabase
@@ -194,7 +190,7 @@ const StoreOwners = () => {
           .insert([{
             name_ar: trimmedStoreName,
             name: trimmedStoreName,
-            parent_id: parentCategoryId || null, // Allow null if not found
+            parent_id: null, // Explicitly null as requested
             slug: slug
           }])
           .select()
