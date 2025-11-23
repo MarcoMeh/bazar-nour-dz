@@ -22,79 +22,79 @@ const AdminLogin = () => {
     if (isAdmin) navigate("/admin");
   }, [isAdmin, navigate]);
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setLoading(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
 
-  let loginEmail = email;
-  function isEmail(input: string) {
-  return /\S+@\S+\.\S+/.test(input);
-}
+    let loginEmail = email;
+    function isEmail(input: string) {
+      return /\S+@\S+\.\S+/.test(input);
+    }
 
-  // If the user typed a username (not an email)
-  if (!isEmail(email)) {
-    // find email by username
-    const userRes = await supabase
-      .from("store_owners")
-      .select("email")
-      .eq("username", email)
-      .single();
+    // If the user typed a username (not an email)
+    if (!isEmail(email)) {
+      // find email by username
+      const userRes = await supabase
+        .from("store_owners")
+        .select("email")
+        .eq("username", email)
+        .single();
 
-    if (!userRes.data) {
-      toast.error("❌ اسم المستخدم غير موجود");
+      if (!userRes.data) {
+        toast.error("❌ اسم المستخدم غير موجود");
+        setLoading(false);
+        return;
+      }
+
+      loginEmail = userRes.data.email;
+    }
+
+    // Now login using EMAIL
+    const { error: loginError } = await login(loginEmail, password);
+
+    if (loginError) {
+      toast.error("❌ البريد الإلكتروني أو كلمة المرور غير صحيحة");
       setLoading(false);
       return;
     }
 
-    loginEmail = userRes.data.email;
-  }
+    // Get auth user
+    const { data } = await (supabase.auth.getUser() as any);
+    const authUser = data?.user;
 
-  // Now login using EMAIL
-  const { error: loginError } = await login(loginEmail, password);
+    if (!authUser) {
+      toast.error("فشل الحصول على بيانات المستخدم");
+      setLoading(false);
+      return;
+    }
 
-  if (loginError) {
-    toast.error("❌ البريد الإلكتروني أو كلمة المرور غير صحيحة");
-    setLoading(false);
-    return;
-  }
+    // Check Admin
+    const adminRes = await supabase
+      .from("admins")
+      .select("id")
+      .eq("auth_user_id", authUser.id)
+      .single();
 
-  // Get auth user
-  const { data } = await (supabase.auth.getUser() as any);
-  const authUser = data?.user;
+    const isAdminUser = adminRes.data && !adminRes.error;
 
-  if (!authUser) {
-    toast.error("فشل الحصول على بيانات المستخدم");
-    setLoading(false);
-    return;
-  }
+    // Check Store Owner
+    const ownerRes = await supabase
+      .from("store_owners")
+      .select("id, username")
+      .eq("user_id", authUser.id)
+      .single();
 
-  // Check Admin
-  const adminRes = await supabase
-    .from("admins")
-    .select("id")
-    .eq("auth_user_id", authUser.id)
-    .single();
+    const isStoreOwner = ownerRes.data && !ownerRes.error;
 
-  const isAdminUser = adminRes.data && !adminRes.error;
+    if (!isAdminUser && !isStoreOwner) {
+      toast.error("❌ لا تملك صلاحية الدخول للوحة التحكم");
+      setLoading(false);
+      return;
+    }
 
-  // Check Store Owner
-  const ownerRes = await supabase
-    .from("store_owners")
-    .select("id, username")
-    .eq("user_id", authUser.id)
-    .single();
-
-  const isStoreOwner = ownerRes.data && !ownerRes.error;
-
-  if (!isAdminUser && !isStoreOwner) {
-    toast.error("❌ لا تملك صلاحية الدخول للوحة التحكم");
-    setLoading(false);
-    return;
-  }
-
-  toast.success("✔️ تم تسجيل الدخول بنجاح");
-  navigate("/admin");
-};
+    toast.success("✔️ تم تسجيل الدخول بنجاح");
+    navigate("/admin");
+  };
 
 
 
@@ -112,15 +112,15 @@ const handleSubmit = async (e: React.FormEvent) => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="email">البريد الإلكتروني</Label>
+            <Label htmlFor="email">البريد الإلكتروني أو اسم المستخدم</Label>
             <Input
               id="email"
-              type="email"
-              placeholder="yourmail@gmail.com"
+              type="text"
+              placeholder="user@example.com OR username"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              autoComplete="email"
+              autoComplete="username"
             />
           </div>
 

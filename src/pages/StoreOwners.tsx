@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -15,6 +14,7 @@ const BUCKET = 'store-owner-images';
 const StoreOwners = () => {
   const [owners, setOwners] = useState<any[]>([]);
   const [stores, setStores] = useState<any[]>([]);
+  const [parentCategoryId, setParentCategoryId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingOwner, setEditingOwner] = useState<any | null>(null);
@@ -26,7 +26,7 @@ const StoreOwners = () => {
     phone: "",
     email: "",
     address: "",
-    subcategory_id: "",
+    store_name: "", // Changed from category_id to store_name
     username: "",
     password: ""
   });
@@ -51,6 +51,7 @@ const StoreOwners = () => {
       }
 
       if (ourStores) {
+        setParentCategoryId(ourStores.id);
         const { data: subcats, error } = await supabase
           .from("categories")
           .select("*")
@@ -70,7 +71,7 @@ const StoreOwners = () => {
     try {
       const { data, error } = await supabase
         .from("store_owners")
-        // include related category name if subcategory_id is present
+        // include related category name if category_id is present
         .select("*, categories(name_ar)")
         .order("created_at", { ascending: false });
 
@@ -90,7 +91,7 @@ const StoreOwners = () => {
       phone: "",
       email: "",
       address: "",
-      subcategory_id: "",
+      store_name: "",
       username: "",
       password: ""
     });
@@ -98,18 +99,12 @@ const StoreOwners = () => {
     setImageFile(null);
   };
 
-  // Auto-generate username
-  const handleStoreSelect = (storeId: string) => {
-    const store = stores.find((s) => s.id === storeId);
-
-    const autoUsername = store
-      ? `${store.name_ar.replace(/\s+/g, "_")}_${Math.floor(Math.random() * 1000)}`
-      : "";
-
+  // Auto-generate username based on store name
+  const handleStoreNameChange = (name: string) => {
     setFormData((prev) => ({
       ...prev,
-      subcategory_id: storeId,
-      username: autoUsername
+      store_name: name,
+      username: name // User requested username same as store name
     }));
   };
 
@@ -139,7 +134,7 @@ const StoreOwners = () => {
 
     if (
       !formData.owner_name ||
-      !formData.subcategory_id ||
+      !formData.store_name ||
       !formData.username ||
       (!editingOwner && !formData.password)
     ) {
@@ -147,18 +142,78 @@ const StoreOwners = () => {
       return;
     }
 
+    // Check for duplicate store name
+    const trimmedStoreName = formData.store_name.trim();
+    const existingStore = stores.find(s => s.name_ar === trimmedStoreName);
+
+    if (existingStore) {
+      // If creating, or if editing and changing to a DIFFERENT existing store (which shouldn't happen if we want 1:1, but let's be safe)
+      // Actually, if editing and the name matches the CURRENT owner's store, it's fine.
+      if (!editingOwner || (editingOwner && existingStore.id !== editingOwner.category_id)) {
+        toast.error("هذا المتجر موجود بالفعل. يرجى اختيار اسم آخر.");
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
-      // upload image first if present
+      let categoryId = editingOwner?.category_id;
+
+      // 1. Handle Category (Store) Creation/Update
+      if (editingOwner) {
+        // Update existing category name if changed
+        if (existingStore && existingStore.id === editingOwner.category_id) {
+          // Name didn't change effectively, or changed case/spacing but matched same ID? 
+          // If we are here, it means we found the store by name.
+          // If the name is exactly the same, no update needed.
+          if (existingStore.name_ar !== trimmedStoreName) {
+            await supabase.from('categories').update({ name_ar: trimmedStoreName, name: trimmedStoreName }).eq('id', categoryId);
+          }
+        } else {
+          // This case (editingOwner but no existingStore found) means we are renaming to a NEW name
+          // So we update the existing category
+          await supabase.from('categories').update({
+            name_ar: trimmedStoreName,
+            name: trimmedStoreName,
+            // slug: ... maybe update slug too? let's keep it simple for now
+          }).eq('id', categoryId);
+        }
+      } else {
+        // Create new category
+        // User requested to remove requirement for parent category
+        // if (!parentCategoryId) {
+        //   toast.error("فشل العثور على الفئة الرئيسية للمتاجر");
+        //   setLoading(false);
+        //   return;
+        // }
+
+        const slug = `${trimmedStoreName.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}`;
+        const { data: newCat, error: catError } = await supabase
+          .from('categories')
+          .insert([{
+            name_ar: trimmedStoreName,
+            name: trimmedStoreName,
+            parent_id: parentCategoryId || null, // Allow null if not found
+            slug: slug
+          }])
+          .select()
+          .single();
+
+        if (catError) throw catError;
+        categoryId = newCat.id;
+      }
+
+      // 2. Handle Image Upload
       const uploadedUrl = await uploadImageAndGetUrl(imageFile, formData.username || 'stores');
 
+      // 3. Create/Update Owner
       const payload: any = {
         owner_name: formData.owner_name,
         phone: formData.phone,
         email: formData.email,
         address: formData.address,
-        subcategory_id: formData.subcategory_id,
+        category_id: categoryId,
         username: formData.username
       };
 
@@ -183,11 +238,12 @@ const StoreOwners = () => {
 
       if (error) throw error;
 
-      toast.success(editingOwner ? "تم تحديث البيانات" : "تم إضافة المالك وإنشاء حساب الدخول");
+      toast.success(editingOwner ? "تم تحديث البيانات" : "تم إضافة المالك وإنشاء المتجر");
 
       setIsDialogOpen(false);
       resetForm();
       fetchOwners();
+      fetchStores(); // Refresh stores list as we might have added/renamed one
     } catch (error: any) {
       console.error("Error:", error);
       toast.error("حدث خطأ: " + (error?.message ?? error));
@@ -216,7 +272,7 @@ const StoreOwners = () => {
       phone: owner.phone || "",
       email: owner.email || "",
       address: owner.address || "",
-      subcategory_id: owner.subcategory_id || "",
+      store_name: owner.categories?.name_ar || "",
       username: owner.username || "",
       password: ""
     });
@@ -264,18 +320,12 @@ const StoreOwners = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label>المحل التابع له</Label>
-                    <Select value={formData.subcategory_id} onValueChange={handleStoreSelect}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="اختر المتجر" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {stores.map((s) => (
-                          <SelectItem key={s.id} value={s.id}>
-                            {s.name_ar}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Input
+                      value={formData.store_name}
+                      onChange={(e) => handleStoreNameChange(e.target.value)}
+                      placeholder="أدخل اسم المتجر الجديد"
+                      required
+                    />
                   </div>
 
                   <div>
@@ -293,7 +343,10 @@ const StoreOwners = () => {
                 <div className="bg-muted/50 p-4 rounded border border-dashed grid grid-cols-2 gap-4">
                   <div>
                     <Label>اسم المستخدم (Login ID)</Label>
-                    <Input value={formData.username} readOnly className="bg-muted font-mono" />
+                    <Input
+                      value={formData.username}
+                      onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                    />
                   </div>
 
                   <div>

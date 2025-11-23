@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -40,7 +40,7 @@ const AdminProducts = () => {
     image_url: '',
     supplier_name: '',
     is_delivery_home_available: true,
-    is_delivery_desktop_available: true,
+    is_delivery_desk_available: true,
     is_sold_out: false,
     is_free_delivery: false,
     colors: [] as string[],
@@ -103,7 +103,7 @@ const AdminProducts = () => {
       image_url: '',
       supplier_name: '',
       is_delivery_home_available: true,
-      is_delivery_desktop_available: true,
+      is_delivery_desk_available: true,
       is_sold_out: false,
       is_free_delivery: false,
       colors: [],
@@ -124,11 +124,11 @@ const AdminProducts = () => {
       description: product.description || '',
       description_ar: product.description_ar || '',
       price: product.price?.toString() || '',
-      category_id: product.category_id || '',
+      category_id: product.category_id?.toString() || '',
       image_url: product.image_url || '',
       supplier_name: product.supplier_name || (product.store_owners?.username ?? ''),
       is_delivery_home_available: product.is_delivery_home_available ?? true,
-      is_delivery_desktop_available: product.is_delivery_desk_available ?? product.is_delivery_desktop_available ?? true,
+      is_delivery_desk_available: product.is_delivery_desk_available ?? true,
       is_sold_out: product.is_sold_out ?? false,
       is_free_delivery: product.is_free_delivery ?? false,
       colors: product.colors ?? [],
@@ -219,8 +219,8 @@ const AdminProducts = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // validation
-    if (!formData.name_ar || !formData.price) {
-      toast.error('الرجاء ملء الاسم والسعر بالعربية/الأرقام');
+    if (!formData.name_ar || !formData.price || !formData.category_id) {
+      toast.error('الرجاء ملء الاسم، السعر، والفئة');
       return;
     }
 
@@ -232,11 +232,11 @@ const AdminProducts = () => {
       description: formData.description || null,
       description_ar: formData.description_ar || null,
       price: parseFloat(String(formData.price)) || 0,
-      category_id: formData.category_id || null,
+      category_id: formData.category_id,
       image_url: formData.image_url || null,
       supplier_name: formData.supplier_name || null,
       is_delivery_home_available: !!formData.is_delivery_home_available,
-      is_delivery_desktop_available: !!formData.is_delivery_desktop_available,
+      is_delivery_desk_available: !!formData.is_delivery_desk_available,
       is_sold_out: !!formData.is_sold_out,
       is_free_delivery: !!formData.is_free_delivery,
       colors: formData.colors.length ? formData.colors : null,
@@ -255,7 +255,7 @@ const AdminProducts = () => {
 
     if (error) {
       console.error(error);
-      toast.error('حدث خطأ عند الحفظ');
+      toast.error(`حدث خطأ عند الحفظ: ${error.message}`);
       return;
     }
 
@@ -296,6 +296,9 @@ const AdminProducts = () => {
             <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{editingProduct ? 'تعديل المنتج' : 'إضافة منتج جديد'}</DialogTitle>
+                <DialogDescription>
+                  {editingProduct ? 'قم بتعديل تفاصيل المنتج أدناه.' : 'أدخل تفاصيل المنتج الجديد أدناه.'}
+                </DialogDescription>
               </DialogHeader>
 
               <form onSubmit={handleSubmit} className="space-y-4 mt-4">
@@ -337,7 +340,7 @@ const AdminProducts = () => {
                             const parent = categories.find(p => p.id === cat.parent_id);
                             return parent?.name_ar !== 'محلاتنا';
                           })
-                          .map(cat => (<SelectItem key={cat.id} value={cat.id}>{cat.name_ar}</SelectItem>))}
+                          .map(cat => (<SelectItem key={cat.id} value={String(cat.id)}>{cat.name_ar}</SelectItem>))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -345,11 +348,13 @@ const AdminProducts = () => {
 
                 <div>
                   <Label>اسم المورد</Label>
-                  <Select value={formData.supplier_name} onValueChange={(v) => setFormData(prev => ({ ...prev, supplier_name: v }))}>
+                  <Select value={formData.supplier_name || "none"} onValueChange={(v) => setFormData(prev => ({ ...prev, supplier_name: v === "none" ? "" : v }))}>
                     <SelectTrigger><SelectValue placeholder="اختر المورد (اختياري)" /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">بدون مورد</SelectItem>
-                      {stores.map(s => (<SelectItem key={s.id} value={s.username}>{s.owner_name} ({s.username})</SelectItem>))}
+                      <SelectItem value="none">بدون مورد</SelectItem>
+                      {stores.map(s => (
+                        s.username ? <SelectItem key={s.id} value={s.username}>{s.owner_name} ({s.username})</SelectItem> : null
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -414,11 +419,11 @@ const AdminProducts = () => {
 
                 <div className="grid grid-cols-2 gap-4 mt-4">
                   <div className="flex items-center gap-2">
-                    <Switch checked={formData.is_delivery_home_available} onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_delivery_home_available: checked, is_delivery_desktop_available: checked ? prev.is_delivery_desktop_available : false }))} />
+                    <Switch checked={formData.is_delivery_home_available} onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_delivery_home_available: checked, is_delivery_desk_available: checked ? prev.is_delivery_desk_available : false }))} />
                     <Label>التوصيل للمنزل متاح</Label>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Switch checked={formData.is_delivery_desktop_available} onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_delivery_desktop_available: checked }))} disabled={!formData.is_delivery_home_available} />
+                    <Switch checked={formData.is_delivery_desk_available} onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_delivery_desk_available: checked }))} disabled={!formData.is_delivery_home_available} />
                     <Label>الاستلام من المكتب متاح</Label>
                   </div>
                 </div>
@@ -454,12 +459,12 @@ const AdminProducts = () => {
                   {product.is_sold_out && <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full">نفد</span>}
                   {product.is_free_delivery && <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full">توصيل مجاني</span>}
                   {product.is_delivery_home_available && <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full">توصيل للمنزل</span>}
-                  {product.is_delivery_desktop_available && <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full">استلام من المكتب</span>}
+                  {product.is_delivery_desk_available && <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full">استلام من المكتب</span>}
                 </div>
 
                 <div className="mt-2 text-xs flex gap-2 flex-wrap">
-                  {(product.colors || []).slice(0,6).map((c: string) => <Badge key={c}>{c}</Badge>)}
-                  {(product.sizes || []).slice(0,6).map((s: string) => <Badge key={s}>{s}</Badge>)}
+                  {(product.colors || []).slice(0, 6).map((c: string) => <Badge key={c}>{c}</Badge>)}
+                  {(product.sizes || []).slice(0, 6).map((s: string) => <Badge key={s}>{s}</Badge>)}
                 </div>
 
                 <div className="mt-2 text-xs text-muted-foreground">
