@@ -17,6 +17,7 @@ import AdminOrders from "./pages/AdminOrders";
 import AdminDelivery from "./pages/AdminDelivery";
 import AdminCategories from "./pages/AdminCategories";
 import NotFound from "./pages/NotFound";
+import About from "./pages/About";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ const App = () => (
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/admin" element={<Admin />} />
+              <Route path="/about" element={<About />} />
               <Route path="/admin/products" element={<AdminProducts />} />
             <Route path="/admin/orders" element={<AdminOrders />} />
             <Route path="/admin/delivery" element={<AdminDelivery />} />
