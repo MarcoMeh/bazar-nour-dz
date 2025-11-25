@@ -39,20 +39,25 @@ const AdminDelivery = () => {
   const handleEdit = (wilaya: any, field: 'home' | 'desk') => {
     setEditingId(wilaya.id);
     setEditingField(field);
-    const price = field === 'home' ? wilaya.home_delivery_price : wilaya.desk_delivery_price;
+    const price =
+      field === 'home' ? wilaya.home_delivery_price : wilaya.desk_delivery_price;
     setEditPrice(price.toString());
   };
 
-  const handleSave = async (id: string) => {
+  const handleSave = async (id: number) => {
     if (!editingField) return;
-    
+
     setLoading(true);
-    const updateField = editingField === 'home' ? 'home_delivery_price' : 'desk_delivery_price';
+    const updateField =
+      editingField === 'home'
+        ? 'home_delivery_price'
+        : 'desk_delivery_price';
+
     const { error } = await supabase
       .from('wilayas')
       .update({ [updateField]: parseFloat(editPrice) })
       .eq('id', id);
-    
+
     setLoading(false);
 
     if (error) {
@@ -63,6 +68,7 @@ const AdminDelivery = () => {
     toast.success('تم تحديث رسوم التوصيل');
     setEditingId(null);
     setEditingField(null);
+    setEditPrice('');
     fetchWilayas();
   };
 
@@ -72,14 +78,22 @@ const AdminDelivery = () => {
     setEditPrice('');
   };
 
-  const handleToggleAvailability = async (wilayaId: string, field: 'home' | 'desk', currentValue: boolean) => {
+  const handleToggleAvailability = async (
+    wilayaId: number,
+    field: 'home' | 'desk',
+    currentValue: boolean
+  ) => {
     setLoading(true);
-    const updateField = field === 'home' ? 'home_delivery_available' : 'desk_delivery_available';
+    const updateField =
+      field === 'home'
+        ? 'home_delivery_available'
+        : 'desk_delivery_available';
+
     const { error } = await supabase
       .from('wilayas')
       .update({ [updateField]: !currentValue })
       .eq('id', wilayaId);
-    
+
     setLoading(false);
 
     if (error) {
@@ -124,35 +138,59 @@ const AdminDelivery = () => {
                   <TableHead className="text-right">سعر المكتب (دج)</TableHead>
                 </TableRow>
               </TableHeader>
+
               <TableBody>
                 {wilayas.map((wilaya) => (
                   <TableRow key={wilaya.id}>
                     <TableCell className="font-mono">{wilaya.code}</TableCell>
                     <TableCell>{wilaya.name_ar}</TableCell>
+
+                    {/* HOME AVAILABLE */}
                     <TableCell>
                       <Button
                         size="sm"
-                        variant={wilaya.home_delivery_available ? "default" : "outline"}
-                        onClick={() => handleToggleAvailability(wilaya.id, 'home', wilaya.home_delivery_available)}
+                        variant={
+                          wilaya.home_delivery_available ? 'default' : 'outline'
+                        }
+                        onClick={() =>
+                          handleToggleAvailability(
+                            wilaya.id,
+                            'home',
+                            wilaya.home_delivery_available
+                          )
+                        }
                         disabled={loading}
                       >
                         {wilaya.home_delivery_available ? 'متاح' : 'غير متاح'}
                       </Button>
                     </TableCell>
+
+                    {/* HOME PRICE */}
                     <TableCell>
-                      {editingId === wilaya.id && editingField === 'home' ? (
+                      {editingId === wilaya.id &&
+                      editingField === 'home' ? (
                         <div className="flex gap-2">
                           <Input
                             type="number"
                             step="0.01"
-                            value={editPrice}
+                            value={editPrice}    // string only — no conversion
                             onChange={(e) => setEditPrice(e.target.value)}
                             className="w-24"
                           />
-                          <Button size="sm" onClick={() => handleSave(wilaya.id)} disabled={loading}>
+
+                          <Button
+                            size="sm"
+                            onClick={() => handleSave(wilaya.id)}
+                            disabled={loading}
+                          >
                             <Save className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="outline" onClick={handleCancel} disabled={loading}>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={handleCancel}
+                            disabled={loading}
+                          >
                             إلغاء
                           </Button>
                         </div>
@@ -171,30 +209,54 @@ const AdminDelivery = () => {
                         </div>
                       )}
                     </TableCell>
+
+                    {/* DESK AVAILABLE */}
                     <TableCell>
                       <Button
                         size="sm"
-                        variant={wilaya.desk_delivery_available ? "default" : "outline"}
-                        onClick={() => handleToggleAvailability(wilaya.id, 'desk', wilaya.desk_delivery_available)}
+                        variant={
+                          wilaya.desk_delivery_available
+                            ? 'default'
+                            : 'outline'
+                        }
+                        onClick={() =>
+                          handleToggleAvailability(
+                            wilaya.id,
+                            'desk',
+                            wilaya.desk_delivery_available
+                          )
+                        }
                         disabled={loading}
                       >
                         {wilaya.desk_delivery_available ? 'متاح' : 'غير متاح'}
                       </Button>
                     </TableCell>
+
+                    {/* DESK PRICE */}
                     <TableCell>
-                      {editingId === wilaya.id && editingField === 'desk' ? (
+                      {editingId === wilaya.id &&
+                      editingField === 'desk' ? (
                         <div className="flex gap-2">
                           <Input
                             type="number"
                             step="0.01"
-                            value={editPrice}
+                            value={editPrice === '' ? '' : Number(editPrice)}
                             onChange={(e) => setEditPrice(e.target.value)}
                             className="w-24"
                           />
-                          <Button size="sm" onClick={() => handleSave(wilaya.id)} disabled={loading}>
+                          <Button
+                            size="sm"
+                            onClick={() => handleSave(wilaya.id)}
+                            disabled={loading}
+                          >
                             <Save className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="outline" onClick={handleCancel} disabled={loading}>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={handleCancel}
+                            disabled={loading}
+                          >
                             إلغاء
                           </Button>
                         </div>

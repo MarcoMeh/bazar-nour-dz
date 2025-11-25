@@ -14,48 +14,71 @@ import Login from "./pages/Login";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import NotFound from "./pages/NotFound";
+import About from "./pages/About";
+import ProductStores from "./pages/productstores";
+
+// Admin Pages (Nested Structure)
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminProducts from "./pages/admin/Products";
 import AdminCategories from "./pages/admin/Categories";
 import AdminOrders from "./pages/admin/Orders";
 import AdminStores from "./pages/admin/Stores";
 import AdminControl from "./pages/admin/Control";
+
+// Store Owner Pages
 import StoreOwnerDashboard from "./pages/store/Dashboard";
 import StoreOwnerProfile from "./pages/store/Profile";
+
+// Contexts
+import { CartProvider } from "./contexts/CartContext";
+import { AdminProvider } from "./contexts/AdminContext";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route element={<Layout />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/products" element={<Products />} />
-            <Route path="/product/:id" element={<ProductDetail />} />
-            <Route path="/stores" element={<Stores />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/login" element={<Login />} />
-          </Route>
-          <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<AdminDashboard />} />
-            <Route path="products" element={<AdminProducts />} />
-            <Route path="categories" element={<AdminCategories />} />
-            <Route path="orders" element={<AdminOrders />} />
-            <Route path="stores" element={<AdminStores />} />
-            <Route path="control" element={<AdminControl />} />
-          </Route>
-          <Route path="/store-owner" element={<StoreOwnerLayout />}>
-            <Route index element={<StoreOwnerDashboard />} />
-            <Route path="profile" element={<StoreOwnerProfile />} />
-          </Route>
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <AdminProvider>
+        <CartProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              {/* Public Routes */}
+              <Route element={<Layout />}>
+                <Route path="/" element={<Home />} />
+                <Route path="/products" element={<Products />} />
+                <Route path="/product/:id" element={<ProductDetail />} />
+                <Route path="/stores" element={<Stores />} />
+                <Route path="/productstores" element={<ProductStores />} />
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/checkout" element={<Checkout />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/about" element={<About />} />
+              </Route>
+
+              {/* Admin Routes */}
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<AdminDashboard />} />
+                <Route path="products" element={<AdminProducts />} />
+                <Route path="categories" element={<AdminCategories />} />
+                <Route path="orders" element={<AdminOrders />} />
+                <Route path="stores" element={<AdminStores />} />
+                <Route path="control" element={<AdminControl />} />
+              </Route>
+
+              {/* Store Owner Routes */}
+              <Route path="/store-owner" element={<StoreOwnerLayout />}>
+                <Route index element={<StoreOwnerDashboard />} />
+                <Route path="profile" element={<StoreOwnerProfile />} />
+              </Route>
+
+              {/* 404 */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </CartProvider>
+      </AdminProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

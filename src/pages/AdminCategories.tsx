@@ -36,11 +36,33 @@ const AdminCategories = () => {
   }, [isAdmin, navigate]);
 
   const fetchCategories = async () => {
-    const { data } = await supabase
+    // Fetch categories
+    const { data: categoriesData, error: catError } = await supabase
       .from('categories')
       .select('*')
       .order('created_at', { ascending: false });
-    setCategories(data || []);
+
+    if (catError) {
+      console.error(catError);
+      return;
+    }
+
+    // Fetch store owner category IDs to filter them out
+    const { data: storeOwnersData, error: ownerError } = await supabase
+      .from('store_owners')
+      .select('category_id');
+
+    if (ownerError) {
+      console.error(ownerError);
+      return;
+    }
+
+    const storeCategoryIds = new Set(storeOwnersData?.map(o => o.category_id).filter(Boolean));
+
+    // Filter out categories that are actually stores
+    const filteredCategories = (categoriesData || []).filter(c => !storeCategoryIds.has(c.id));
+
+    setCategories(filteredCategories);
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,7 +94,7 @@ const AdminCategories = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const categoryData = {
       name: formData.name,
       name_ar: formData.name_ar,
@@ -267,9 +289,9 @@ const AdminCategories = () => {
                     </div>
                     {formData.image_url && (
                       <div className="mt-2">
-                        <img 
-                          src={formData.image_url} 
-                          alt="معاينة" 
+                        <img
+                          src={formData.image_url}
+                          alt="معاينة"
                           className="h-32 w-32 object-cover rounded"
                           onError={(e) => {
                             e.currentTarget.style.display = 'none';
@@ -309,7 +331,7 @@ const AdminCategories = () => {
                   </Button>
                 </div>
               </div>
-              
+
               {getSubCategories(mainCategory.id).length > 0 && (
                 <div className="mr-6 space-y-2">
                   <p className="text-sm font-semibold text-muted-foreground">التصنيفات الفرعية:</p>

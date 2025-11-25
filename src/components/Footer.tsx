@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 
 export const Footer = () => {
   return (
-    <footer className="bg-primary text-primary-foreground mt-auto">
+    <footer className="bg-green-600 text-white mt-auto">
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
@@ -11,7 +11,7 @@ export const Footer = () => {
               كل ما تحتاجه في مكان واحد. متجرك الإلكتروني الموثوق في الجزائر.
             </p>
           </div>
-          
+
           <div>
             <h3 className="font-bold text-lg mb-4">روابط سريعة</h3>
             <ul className="space-y-2 text-sm opacity-90">
@@ -19,7 +19,7 @@ export const Footer = () => {
               <li><a href="/cart" className="hover:opacity-100 transition-opacity">السلة</a></li>
             </ul>
           </div>
-          
+
           <div>
             <h3 className="font-bold text-lg mb-4">التواصل</h3>
             <p className="text-sm opacity-90">
@@ -28,8 +28,8 @@ export const Footer = () => {
             </p>
           </div>
         </div>
-        
-        <div className="border-t border-primary-foreground/20 mt-8 pt-6 text-center text-sm opacity-90">
+
+        <div className="border-t border-white/30 mt-8 pt-6 text-center text-sm opacity-90">
           <p>© 2025 بازارنا. جميع الحقوق محفوظة.</p>
           <Link to="/admin/login" className="inline-block mt-3 text-xs opacity-40 hover:opacity-100 transition-opacity">
             إدارة
@@ -37,5 +37,6 @@ export const Footer = () => {
         </div>
       </div>
     </footer>
+
   );
 };
