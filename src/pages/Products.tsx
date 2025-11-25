@@ -1,208 +1,67 @@
-import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
-import { ProductCard } from '@/components/ProductCard';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { useState } from "react";
+import { Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-interface Category {
-  id: string;
-  name_ar: string;
-  slug: string;
-  parent_id?: string | null;
-  image_url?: string | null;
-}
-
-interface Product {
-  id: string;
-  name_ar: string;
-  description_ar?: string;
-  price: number;
-  image_url?: string;
-  category_id?: string;
-}
-
-const Products = () => {
-  const [searchParams] = useSearchParams();
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [selectedMainCategory, setSelectedMainCategory] = useState<string | null>(null);
-  const [selectedSubCategory, setSelectedSubCategory] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchCategories();
-    
-    // Check if category param exists in URL
-    const categoryParam = searchParams.get('category');
-    if (categoryParam) {
-      setSelectedMainCategory(categoryParam);
-    } else {
-      fetchProducts();
-    }
-  }, [searchParams]);
-
-  const fetchCategories = async () => {
-    const { data, error } = await supabase
-      .from('categories')
-      .select('*')
-      .order('name_ar');
-
-    if (error) {
-      toast.error('حدث خطأ في تحميل الفئات');
-      return;
-    }
-
-    setCategories(data || []);
-  };
-
-  const fetchProducts = async () => {
-    setLoading(true);
-    let query = supabase.from('products').select('*');
-
-    if (selectedSubCategory) {
-      query = query.eq('category_id', selectedSubCategory);
-    }
-
-    const { data, error } = await query.order('created_at', { ascending: false });
-
-    if (error) {
-      toast.error('حدث خطأ في تحميل المنتجات');
-      setLoading(false);
-      return;
-    }
-
-    setProducts(data || []);
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchProducts();
-  }, [selectedSubCategory]);
-
-  const getMainCategories = () => categories.filter(cat => !cat.parent_id);
-  const getSubCategories = (parentId: string) => categories.filter(cat => cat.parent_id === parentId);
-
-  const handleMainCategoryClick = (categoryId: string) => {
-    setSelectedMainCategory(categoryId);
-    setSelectedSubCategory(null);
-    setProducts([]);
-  };
-
-  const handleBackToMain = () => {
-    setSelectedMainCategory(null);
-    setSelectedSubCategory(null);
-    setProducts([]);
-  };
+export default function Products() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
-      
-      <main className="flex-1 container mx-auto px-4 py-8">
-        <h1 className="text-3xl md:text-4xl font-bold mb-8">منتجاتنا</h1>
+    <div className="container py-8">
+      <h1 className="text-3xl md:text-4xl font-bold mb-8 text-primary">المنتجات</h1>
 
-        {/* Main Categories */}
-        {!selectedMainCategory && (
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">اختر التصنيف</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {getMainCategories().map((cat) => (
-                <Card
-                  key={cat.id}
-                  className="cursor-pointer hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col border-muted hover:border-accent/40 hover:scale-[1.02] group"
-                  onClick={() => handleMainCategoryClick(cat.id)}
-                >
-                  {cat.image_url && (
-                    <div className="h-32 w-full overflow-hidden shrink-0">
-                      <img 
-                        src={cat.image_url} 
-                        alt={cat.name_ar}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      />
-                    </div>
-                  )}
-                  <div className={`p-4 ${!cat.image_url ? 'h-24' : 'min-h-[4rem]'} flex items-center justify-center`}>
-                    <h3 className="font-semibold text-lg text-center">{cat.name_ar}</h3>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </div>
-        )}
+      {/* Search and Filter */}
+      <div className="flex flex-col md:flex-row gap-4 mb-8">
+        <div className="relative flex-1">
+          <Search className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="ابحث عن منتج..."
+            className="pr-10"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+          <SelectTrigger className="w-full md:w-[200px]">
+            <SelectValue placeholder="اختر الفئة" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">جميع الفئات</SelectItem>
+            <SelectItem value="clothes">ملابس</SelectItem>
+            <SelectItem value="electronics">إلكترونيات</SelectItem>
+            <SelectItem value="decor">ديكور</SelectItem>
+            <SelectItem value="beauty">مواد تجميل</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
-        {/* Subcategories */}
-        {selectedMainCategory && !selectedSubCategory && (
-          <div className="mb-8">
-            <Button variant="ghost" onClick={handleBackToMain} className="mb-4">
-              ← العودة للتصنيفات الرئيسية
-            </Button>
-            <h2 className="text-xl font-semibold mb-4">اختر التصنيف الفرعي</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {getSubCategories(selectedMainCategory).map((cat) => (
-                <Card
-                  key={cat.id}
-                  className="cursor-pointer hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col border-muted hover:border-accent/40 hover:scale-[1.02] group"
-                  onClick={() => setSelectedSubCategory(cat.id)}
-                >
-                  {cat.image_url && (
-                    <div className="h-32 w-full overflow-hidden shrink-0">
-                      <img 
-                        src={cat.image_url} 
-                        alt={cat.name_ar}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      />
-                    </div>
-                  )}
-                  <div className={`p-4 ${!cat.image_url ? 'h-24' : 'min-h-[4rem]'} flex items-center justify-center`}>
-                    <h3 className="font-semibold text-lg text-center">{cat.name_ar}</h3>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Products Grid */}
-        {selectedSubCategory && (
-          <>
-            <Button 
-              variant="ghost" 
-              onClick={() => setSelectedSubCategory(null)} 
-              className="mb-4"
-            >
-              ← العودة للتصنيفات الفرعية
-            </Button>
-            {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {[...Array(8)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-96 rounded-lg bg-muted animate-pulse"
-                  />
-                ))}
+      {/* Products Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Placeholder products - will be replaced with real data from Supabase */}
+        {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+          <Card key={i} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+            <div className="aspect-square bg-muted"></div>
+            <CardContent className="p-4">
+              <h3 className="font-semibold mb-2">منتج {i}</h3>
+              <p className="text-sm text-muted-foreground mb-2">وصف المنتج هنا</p>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-lg font-bold text-primary">1,500 دج</span>
               </div>
-            ) : products.length === 0 ? (
-              <div className="text-center py-16">
-                <p className="text-xl text-muted-foreground">لا توجد منتجات في هذا التصنيف</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {products.map((product) => (
-                  <ProductCard key={product.id} {...product} />
-                ))}
-              </div>
-            )}
-          </>
-        )}
-      </main>
-
-      <Footer />
+              <Button className="w-full">أضف للسلة</Button>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
-};
-
-export default Products;
+}

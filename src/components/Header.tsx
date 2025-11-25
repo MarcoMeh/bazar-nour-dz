@@ -12,6 +12,7 @@ export const Header = () => {
     <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-md border-b shadow-md">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 gap-4">
+          {/* Cart Button */}
           <Link to="/cart" className="relative">
             <Button variant="ghost" size="icon" className="relative">
               <ShoppingCart className="h-5 w-5" />
@@ -23,7 +24,13 @@ export const Header = () => {
             </Button>
           </Link>
 
-          <Link to="/products" className="flex-1 max-w-md">
+          {/* Products Button */}
+          <Link to="/products">
+            <Button variant="ghost">المنتجات</Button>
+          </Link>
+
+          {/* Search Bar */}
+          <div className="flex-1 max-w-md"> {/* Changed from Link to div as the Link is now the button */}
             <div className="relative">
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <input
@@ -32,8 +39,9 @@ export const Header = () => {
                 className="w-full h-10 pr-10 pl-4 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
-          </Link>
+          </div>
 
+          {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
             <img src={logo} alt="Bazzarna" className="h-10 w-auto" />
           </Link>
