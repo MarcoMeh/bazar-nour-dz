@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,26 +19,118 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Pencil, Trash2 } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
+import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+interface Product {
+    id: string;
+    name_ar: string;
+    description_ar?: string;
+    price: number;
+    image_url?: string;
+    category_id?: string;
+    store_id?: string;
+    is_active?: boolean;
+    // Add other fields as needed
+}
 
 export default function AdminProducts() {
+    const [products, setProducts] = useState<Product[]>([]);
+    const [loading, setLoading] = useState(true);
     const [open, setOpen] = useState(false);
+    const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+
+    // Form State
+    const [formData, setFormData] = useState<Partial<Product>>({});
+
+    useEffect(() => {
+        fetchProducts();
+    }, []);
+
+    const fetchProducts = async () => {
+        setLoading(true);
+        const { data, error } = await supabase
+            .from("products")
+            .select("*")
+            .order("created_at", { ascending: false });
+
+        if (error) {
+            toast.error("فشل في تحميل المنتجات");
+            console.error(error);
+        } else {
+            setProducts(data || []);
+        }
+        setLoading(false);
+    };
+
+    const handleDelete = async (id: string) => {
+        if (!confirm("هل أنت متأكد من حذف هذا المنتج؟")) return;
+
+        const { error } = await supabase.from("products").delete().eq("id", id);
+
+        if (error) {
+            toast.error("فشل في حذف المنتج");
+        } else {
+            toast.success("تم حذف المنتج بنجاح");
+            fetchProducts();
+        }
+    };
+
+    const handleEdit = (product: Product) => {
+        setEditingProduct(product);
+        setFormData(product);
+        setOpen(true);
+    };
+
+    const handleSave = async () => {
+        // Basic validation
+        if (!formData.name_ar || !formData.price) {
+            toast.error("يرجى ملء الحقول الأساسية");
+            return;
+        }
+
+        let error;
+        if (editingProduct) {
+            // Update
+            const { error: updateError } = await supabase
+                .from("products")
+                .update(formData)
+                .eq("id", editingProduct.id);
+            error = updateError;
+        } else {
+            // Create
+            const { error: insertError } = await supabase
+                .from("products")
+                .insert([formData]);
+            error = insertError;
+        }
+
+        if (error) {
+            toast.error("فشل في حفظ المنتج");
+            console.error(error);
+        } else {
+            toast.success(editingProduct ? "تم تحديث المنتج" : "تم إضافة المنتج");
+            setOpen(false);
+            setEditingProduct(null);
+            setFormData({});
+            fetchProducts();
+        }
+    };
 
     return (
         <div className="p-8">
             <div className="flex items-center justify-between mb-8">
                 <h1 className="text-3xl font-bold text-primary">إدارة المنتجات</h1>
-                <Dialog open={open} onOpenChange={setOpen}>
+                <Dialog open={open} onOpenChange={(val) => {
+                    setOpen(val);
+                    if (!val) {
+                        setEditingProduct(null);
+                        setFormData({});
+                    }
+                }}>
                     <DialogTrigger asChild>
                         <Button>
                             <Plus className="ml-2 h-4 w-4" />
@@ -47,83 +139,56 @@ export default function AdminProducts() {
                     </DialogTrigger>
                     <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
-                            <DialogTitle>إضافة منتج جديد</DialogTitle>
+                            <DialogTitle>{editingProduct ? "تعديل منتج" : "إضافة منتج جديد"}</DialogTitle>
                             <DialogDescription>
-                                أدخل تفاصيل المنتج الجديد
+                                أدخل تفاصيل المنتج
                             </DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="name">اسم المنتج</Label>
-                                <Input id="name" placeholder="أدخل اسم المنتج" />
+                                <Input
+                                    id="name"
+                                    value={formData.name_ar || ""}
+                                    onChange={(e) => setFormData({ ...formData, name_ar: e.target.value })}
+                                    placeholder="أدخل اسم المنتج"
+                                />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="description">الوصف</Label>
-                                <Textarea id="description" placeholder="أدخل وصف المنتج" />
+                                <Textarea
+                                    id="description"
+                                    value={formData.description_ar || ""}
+                                    onChange={(e) => setFormData({ ...formData, description_ar: e.target.value })}
+                                    placeholder="أدخل وصف المنتج"
+                                />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="grid gap-2">
                                     <Label htmlFor="price">السعر (دج)</Label>
-                                    <Input id="price" type="number" placeholder="0" />
+                                    <Input
+                                        id="price"
+                                        type="number"
+                                        value={formData.price || ""}
+                                        onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
+                                        placeholder="0"
+                                    />
                                 </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="category">الفئة الفرعية</Label>
-                                    <Select>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="اختر الفئة" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="1">ملابس رجالية</SelectItem>
-                                            <SelectItem value="2">ملابس نسائية</SelectItem>
-                                            <SelectItem value="3">هواتف</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+                                {/* Add Category Select here if needed, fetching categories first */}
                             </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="supplier">المورد (المحل)</Label>
-                                <Select>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="اختر المحل" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="none">بدون مورد</SelectItem>
-                                        <SelectItem value="1">محل 1</SelectItem>
-                                        <SelectItem value="2">محل 2</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
+
                             <div className="grid gap-2">
                                 <Label htmlFor="image">رابط الصورة</Label>
-                                <Input id="image" placeholder="https://..." />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="flex items-center justify-between">
-                                    <Label htmlFor="has-colors">تفعيل الألوان</Label>
-                                    <Switch id="has-colors" />
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <Label htmlFor="has-sizes">تفعيل المقاسات</Label>
-                                    <Switch id="has-sizes" />
-                                </div>
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="delivery">نوع التوصيل</Label>
-                                <Select>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="اختر نوع التوصيل" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="free">مجاني</SelectItem>
-                                        <SelectItem value="home">متاح للمنزل</SelectItem>
-                                        <SelectItem value="desktop">متاح للمكتب</SelectItem>
-                                        <SelectItem value="sold-out">نفذت الكمية</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                <Input
+                                    id="image"
+                                    value={formData.image_url || ""}
+                                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                                    placeholder="https://..."
+                                />
                             </div>
                         </div>
                         <DialogFooter>
-                            <Button type="submit">حفظ المنتج</Button>
+                            <Button onClick={handleSave}>{editingProduct ? "تحديث" : "حفظ"}</Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
@@ -139,40 +204,48 @@ export default function AdminProducts() {
                             <TableRow>
                                 <TableHead>الصورة</TableHead>
                                 <TableHead>الاسم</TableHead>
-                                <TableHead>الفئة</TableHead>
                                 <TableHead>السعر</TableHead>
-                                <TableHead>المحل</TableHead>
-                                <TableHead>الحالة</TableHead>
                                 <TableHead>الإجراءات</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {[1, 2, 3, 4, 5].map((i) => (
-                                <TableRow key={i}>
-                                    <TableCell>
-                                        <div className="w-12 h-12 bg-muted rounded"></div>
-                                    </TableCell>
-                                    <TableCell className="font-medium">منتج {i}</TableCell>
-                                    <TableCell>ملابس</TableCell>
-                                    <TableCell>{i * 1000} دج</TableCell>
-                                    <TableCell>محل {i}</TableCell>
-                                    <TableCell>
-                                        <span className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium bg-green-100 text-green-700">
-                                            نشط
-                                        </span>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex gap-2">
-                                            <Button variant="ghost" size="icon">
-                                                <Pencil className="h-4 w-4" />
-                                            </Button>
-                                            <Button variant="ghost" size="icon">
-                                                <Trash2 className="h-4 w-4 text-destructive" />
-                                            </Button>
-                                        </div>
+                            {loading ? (
+                                <TableRow>
+                                    <TableCell colSpan={4} className="text-center py-8">
+                                        <Loader2 className="h-8 w-8 animate-spin mx-auto" />
                                     </TableCell>
                                 </TableRow>
-                            ))}
+                            ) : products.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={4} className="text-center py-8">
+                                        لا توجد منتجات
+                                    </TableCell>
+                                </TableRow>
+                            ) : (
+                                products.map((product) => (
+                                    <TableRow key={product.id}>
+                                        <TableCell>
+                                            {product.image_url ? (
+                                                <img src={product.image_url} alt={product.name_ar} className="w-12 h-12 object-cover rounded" />
+                                            ) : (
+                                                <div className="w-12 h-12 bg-muted rounded flex items-center justify-center text-xs">لا صورة</div>
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="font-medium">{product.name_ar}</TableCell>
+                                        <TableCell>{product.price} دج</TableCell>
+                                        <TableCell>
+                                            <div className="flex gap-2">
+                                                <Button variant="ghost" size="icon" onClick={() => handleEdit(product)}>
+                                                    <Pencil className="h-4 w-4" />
+                                                </Button>
+                                                <Button variant="ghost" size="icon" onClick={() => handleDelete(product.id)}>
+                                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                                </Button>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
                         </TableBody>
                     </Table>
                 </CardContent>

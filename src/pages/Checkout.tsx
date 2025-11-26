@@ -113,9 +113,10 @@ const Checkout = () => {
       };
 
       // Insert order — use array form and cast to any to satisfy TS
+      // Insert order
       const { data: orderData, error: orderError } = await supabase
         .from("orders")
-        .insert([orderPayload] as any)
+        .insert([orderPayload])
         .select("id")
         .single();
 
@@ -210,7 +211,7 @@ const Checkout = () => {
             <Card className="p-6">
               <h2 className="text-xl font-semibold mb-4">طريقة التوصيل</h2>
 
-              <RadioGroup value={formData.deliveryType} onValueChange={(v) => setFormData({ ...formData, deliveryType: v as any })}>
+              <RadioGroup value={formData.deliveryType} onValueChange={(v) => setFormData({ ...formData, deliveryType: v as "home" | "office" })}>
                 <div className="flex items-center justify-between p-4 border rounded mb-3">
                   <div>
                     <RadioGroupItem value="home" id="home" />

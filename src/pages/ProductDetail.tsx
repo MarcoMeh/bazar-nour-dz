@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
+
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
@@ -112,7 +112,7 @@ const ProductDetail = () => {
             <div className="h-4 bg-muted rounded w-1/2 mb-8" />
           </div>
         </main>
-        <Footer />
+
       </div>
     );
   }
@@ -176,8 +176,8 @@ const ProductDetail = () => {
                   <Card
                     key={index}
                     className={`cursor-pointer overflow-hidden transition-all duration-300 ${selectedImage === index
-                        ? 'ring-2 ring-primary shadow-lg'
-                        : 'opacity-60 hover:opacity-100'
+                      ? 'ring-2 ring-primary shadow-lg'
+                      : 'opacity-60 hover:opacity-100'
                       }`}
                     onClick={() => setSelectedImage(index)}
                   >
@@ -267,7 +267,7 @@ const ProductDetail = () => {
           </div>
         </div>
       </main>
-      <Footer />
+
     </div>
   );
 };
