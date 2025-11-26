@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
+
 import { Button } from '@/components/ui/button';
 import aboutImage from '@/assets/about_backround.jpeg';
 
@@ -89,7 +89,7 @@ const About = () => {
           </div>
         </section>
       </main>
-      <Footer />
+
     </div>
   );
 };

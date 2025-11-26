@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
+
 import { ProductCard } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -210,7 +210,7 @@ const ProductStores = () => {
           <ArrowLeft size={16} /> الرجوع
         </Button>
       </main>
-      <Footer />
+
     </div>
   );
 };

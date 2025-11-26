@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
+
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, ShoppingBag, Truck, Shield } from "lucide-react";
+import { ArrowLeft, ArrowRight, ShoppingBag, Truck, Shield } from "lucide-react";
 
 // Assets
 import logo from "@/assets/bazzarna_logo_2.png";
@@ -176,6 +176,84 @@ const Home = () => {
                     </div>
                 </section>
 
+                {/* Best Product Section (Old Hero Style) */}
+                <section className="py-24 bg-gradient-to-r from-primary/5 to-secondary/5 relative overflow-hidden">
+                    <div className="container relative z-10 grid lg:grid-cols-2 gap-12 items-center">
+                        {/* Text Content */}
+                        <div className="text-right space-y-8 order-2 lg:order-1">
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/10 text-secondary border border-secondary/20 backdrop-blur-sm">
+                                <span className="relative flex h-3 w-3">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-secondary"></span>
+                                </span>
+                                <span className="font-medium text-sm">منتج مميز</span>
+                            </div>
+
+                            <h2 className="text-4xl lg:text-6xl font-black text-primary leading-tight tracking-tight">
+                                أفضل المنتجات <br />
+                                <span className="text-transparent bg-clip-text bg-gradient-to-l from-secondary to-primary">الأكثر مبيعاً</span>
+                            </h2>
+
+                            <p className="text-xl text-muted-foreground max-w-xl leading-relaxed">
+                                اكتشف مجموعتنا المختارة من المنتجات عالية الجودة التي نالت إعجاب عملائنا. جودة مضمونة وسعر منافس.
+                            </p>
+
+                            <div className="flex flex-wrap gap-4">
+                                <Button asChild size="lg" className="h-14 px-8 text-lg rounded-full shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all hover:-translate-y-1">
+                                    <Link to="/products">
+                                        تسوق الآن <ArrowRight className="mr-2 h-5 w-5" />
+                                    </Link>
+                                </Button>
+                            </div>
+
+                            <div className="flex items-center gap-8 pt-8">
+                                <div>
+                                    <h4 className="text-3xl font-bold text-primary">+1000</h4>
+                                    <p className="text-sm text-muted-foreground">عميل سعيد</p>
+                                </div>
+                                <div className="w-px h-12 bg-border"></div>
+                                <div>
+                                    <h4 className="text-3xl font-bold text-primary">4.9</h4>
+                                    <p className="text-sm text-muted-foreground">تقييم عام</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Floating Image */}
+                        <div className="relative hidden lg:block animate-float order-1 lg:order-2">
+                            <div className="relative z-10 bg-white/10 backdrop-blur-md rounded-3xl p-6 border border-white/20 shadow-2xl transform -rotate-3 hover:rotate-0 transition-all duration-500">
+                                <img
+                                    src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=2070&auto=format&fit=crop"
+                                    alt="Best Product"
+                                    className="rounded-2xl w-full object-cover h-[500px]"
+                                />
+
+                                {/* Floating Card 1 */}
+                                <div className="absolute -left-12 top-1/4 bg-white p-4 rounded-2xl shadow-xl flex items-center gap-4 animate-bounce delay-1000">
+                                    <div className="bg-green-100 p-3 rounded-full">
+                                        <Truck className="h-6 w-6 text-green-600" />
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-sm">توصيل سريع</p>
+                                        <p className="text-xs text-muted-foreground">لجميع الولايات</p>
+                                    </div>
+                                </div>
+
+                                {/* Floating Card 2 */}
+                                <div className="absolute -right-8 bottom-1/4 bg-white p-4 rounded-2xl shadow-xl flex items-center gap-4 animate-bounce delay-700">
+                                    <div className="bg-yellow-100 p-3 rounded-full">
+                                        <Shield className="h-6 w-6 text-yellow-600" />
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-sm">جودة عالية</p>
+                                        <p className="text-xs text-muted-foreground">ضمان الرضا</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
                 {/* Our Stores Section - Incoming Logic */}
                 {ourStoresCategory && (
                     <section className="py-20 bg-gray-50">
@@ -290,7 +368,7 @@ const Home = () => {
                 </section>
 
             </main>
-            <Footer />
+
         </div>
     );
 };
