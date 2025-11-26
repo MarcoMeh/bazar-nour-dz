@@ -1,236 +1,298 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { ShoppingBag, Truck, Shield, HeadphonesIcon, ArrowRight, Star } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { ArrowLeft, ShoppingBag, Truck, Shield } from "lucide-react";
 
-export default function Home() {
+// Assets
+import logo from "@/assets/bazzarna_logo_2.png";
+import heroBg from "@/assets/backround_5.jpeg"; // Using HEAD's preferred background
+
+interface Category {
+    id: string;
+    name_ar: string;
+    slug: string;
+    image_url?: string | null;
+    parent_id?: string | null;
+}
+
+interface Product {
+    id: string;
+    name_ar: string;
+    price: number;
+    image_url?: string | null;
+    category_name?: string;
+    sub_category_name?: string | null;
+}
+
+const Home = () => {
+    const [mainCategories, setMainCategories] = useState<Category[]>([]);
+    const [newestProducts, setNewestProducts] = useState<Product[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    // Our Stores
+    const [ourStoresCategory, setOurStoresCategory] = useState<Category | null>(null);
+    const [ourStoresSub, setOurStoresSub] = useState<Category[]>([]);
+
+    useEffect(() => {
+        const loadData = async () => {
+            setLoading(true);
+            await Promise.all([
+                fetchMainCategories(),
+                fetchOurStores(),
+                fetchNewestProducts(),
+            ]);
+            setLoading(false);
+        };
+        loadData();
+    }, []);
+
+    const fetchMainCategories = async () => {
+        const { data, error } = await supabase
+            .from("categories")
+            .select("*")
+            .is("parent_id", null)
+            .neq("slug", "ourstores")
+            .order("name_ar");
+
+        if (!error && data) setMainCategories(data);
+    };
+
+    const fetchOurStores = async () => {
+        const { data: mainCat } = await supabase
+            .from("categories")
+            .select("*")
+            .eq("slug", "ourstores")
+            .single();
+
+        if (mainCat) {
+            setOurStoresCategory(mainCat);
+            const { data: subCats } = await supabase
+                .from("categories")
+                .select("*")
+                .eq("parent_id", mainCat.id);
+            if (subCats) setOurStoresSub(subCats);
+        }
+    };
+
+    const fetchNewestProducts = async () => {
+        const { data, error } = await supabase
+            .from("products")
+            .select(`
+        id,
+        name_ar,
+        price,
+        image_url,
+        categories!inner(
+          name_ar,
+          parent:parent_id(name_ar)
+        )
+      `)
+            .order("created_at", { ascending: false })
+            .limit(20);
+
+        if (!error && data) {
+            setNewestProducts(
+                data.map((item: any) => ({
+                    ...item,
+                    category_name: item.categories?.name_ar || "غير مصنف",
+                    sub_category_name: item.categories?.parent?.name_ar || null,
+                }))
+            );
+        }
+    };
+
     return (
-        <div className="flex flex-col min-h-screen bg-gradient-to-b from-background to-accent/20">
-            {/* Hero Section */}
-            <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
-                {/* Background Elements */}
-                <div className="absolute inset-0 bg-primary/5 z-0"></div>
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-secondary/20 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 animate-pulse"></div>
-                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[100px] translate-y-1/3 -translate-x-1/3 animate-pulse delay-1000"></div>
+        <div className="min-h-screen flex flex-col bg-[#FFFDF9] text-gray-900">
+            <Header />
 
-                <div className="container relative z-10 grid lg:grid-cols-2 gap-12 items-center">
-                    <div className="text-right space-y-8">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/10 text-secondary border border-secondary/20 backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4 duration-1000">
-                            <span className="relative flex h-3 w-3">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-3 w-3 bg-secondary"></span>
-                            </span>
-                            <span className="font-medium text-sm">منصتك الأولى للتسوق في الجزائر</span>
-                        </div>
-
-                        <h1 className="text-5xl lg:text-7xl font-black text-primary leading-tight tracking-tight animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-200">
-                            اكتشف عالم <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-l from-secondary to-primary">التسوق العصري</span>
+            <main className="flex-1">
+                {/* Hero Section - HEAD Style */}
+                <section
+                    className="relative overflow-hidden"
+                    style={{
+                        backgroundImage: `url('${heroBg}')`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                    }}
+                >
+                    <div className="absolute inset-0 bg-black/25"></div>
+                    <div className="container mx-auto px-4 py-32 text-center relative z-10">
+                        <img
+                            src={logo}
+                            alt="Bazzarna"
+                            className="mx-auto h-32 md:h-40 w-auto mb-6 relative z-10 animate-fadeIn"
+                        />
+                        <h1 className="text-4xl md:text-6xl font-extrabold mb-4 leading-tight text-white animate-fadeIn delay-200">
+                            بازارنا... كل ما تحتاجه في مكان واحد
                         </h1>
-
-                        <p className="text-xl text-muted-foreground max-w-xl leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
-                            تجربة تسوق فريدة تجمع بين الجودة والسرعة. آلاف المنتجات من أفضل العلامات التجارية تصلك أينما كنت في الجزائر.
+                        <p className="text-lg md:text-2xl mb-10 opacity-90 text-white animate-fadeIn delay-400">
+                            متجرك الإلكتروني الموثوق في الجزائر
                         </p>
-
-                        <div className="flex flex-wrap gap-4 animate-in fade-in slide-in-from-bottom-10 duration-1000 delay-500">
-                            <Button asChild size="lg" className="h-14 px-8 text-lg rounded-full shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all hover:-translate-y-1">
-                                <Link to="/products">
-                                    ابدأ التسوق <ArrowRight className="mr-2 h-5 w-5" />
-                                </Link>
+                        <Link to="/products">
+                            <Button className="bg-[#FFD700] text-white font-bold px-10 py-5 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 animate-fadeIn delay-600">
+                                تسوق الآن
                             </Button>
-                            <Button asChild size="lg" variant="outline" className="h-14 px-8 text-lg rounded-full border-2 hover:bg-accent transition-all">
-                                <Link to="/stores">تصفح المحلات</Link>
-                            </Button>
-                        </div>
-
-                        <div className="flex items-center gap-8 pt-8 animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-700">
-                            <div>
-                                <h4 className="text-3xl font-bold text-primary">+5000</h4>
-                                <p className="text-sm text-muted-foreground">منتج متنوع</p>
-                            </div>
-                            <div className="w-px h-12 bg-border"></div>
-                            <div>
-                                <h4 className="text-3xl font-bold text-primary">+58</h4>
-                                <p className="text-sm text-muted-foreground">ولاية مغطاة</p>
-                            </div>
-                            <div className="w-px h-12 bg-border"></div>
-                            <div>
-                                <h4 className="text-3xl font-bold text-primary">+100</h4>
-                                <p className="text-sm text-muted-foreground">محل شريك</p>
-                            </div>
-                        </div>
+                        </Link>
                     </div>
 
-                    <div className="relative hidden lg:block animate-float">
-                        <div className="relative z-10 bg-white/10 backdrop-blur-md rounded-3xl p-6 border border-white/20 shadow-2xl transform rotate-3 hover:rotate-0 transition-all duration-500">
-                            <img
-                                src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=2070&auto=format&fit=crop"
-                                alt="Shopping Experience"
-                                className="rounded-2xl w-full object-cover h-[500px]"
-                            />
+                    {/* Abstract shapes from HEAD */}
+                    <div className="absolute inset-0 pointer-events-none">
+                        <div className="absolute top-[-100px] left-[-100px] w-96 h-96 bg-yellow-300/30 rounded-full filter blur-3xl animate-pulse-slow"></div>
+                        <div className="absolute bottom-[-120px] right-[-80px] w-80 h-80 bg-yellow-400/20 rounded-full filter blur-2xl animate-pulse-slow"></div>
+                    </div>
+                </section>
 
-                            {/* Floating Card 1 */}
-                            <div className="absolute -left-12 top-1/4 bg-white p-4 rounded-2xl shadow-xl flex items-center gap-4 animate-bounce delay-1000">
-                                <div className="bg-green-100 p-3 rounded-full">
-                                    <Truck className="h-6 w-6 text-green-600" />
+                {/* Features Section - Incoming Content (Preserved) */}
+                <section className="py-12 bg-white">
+                    <div className="container mx-auto px-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            <div className="p-8 rounded-2xl bg-green-50 border border-green-100 text-center hover:shadow-lg transition-all">
+                                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4 text-green-600">
+                                    <ShoppingBag className="h-8 w-8" />
                                 </div>
-                                <div>
-                                    <p className="font-bold text-sm">توصيل سريع</p>
-                                    <p className="text-xs text-muted-foreground">لجميع الولايات</p>
-                                </div>
+                                <h3 className="font-bold text-xl mb-2 text-green-800">منتجات متنوعة</h3>
+                                <p className="text-gray-600">ملابس، إلكترونيات، ديكور ومواد تجميل</p>
                             </div>
 
-                            {/* Floating Card 2 */}
-                            <div className="absolute -right-8 bottom-1/4 bg-white p-4 rounded-2xl shadow-xl flex items-center gap-4 animate-bounce delay-700">
-                                <div className="bg-yellow-100 p-3 rounded-full">
-                                    <Star className="h-6 w-6 text-yellow-600 fill-yellow-600" />
+                            <div className="p-8 rounded-2xl bg-blue-50 border border-blue-100 text-center hover:shadow-lg transition-all">
+                                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 mb-4 text-blue-600">
+                                    <Truck className="h-8 w-8" />
                                 </div>
-                                <div>
-                                    <p className="font-bold text-sm">جودة عالية</p>
-                                    <p className="text-xs text-muted-foreground">منتجات أصلية</p>
+                                <h3 className="font-bold text-xl mb-2 text-blue-800">توصيل سريع</h3>
+                                <p className="text-gray-600">توصيل لجميع ولايات الوطن</p>
+                            </div>
+
+                            <div className="p-8 rounded-2xl bg-yellow-50 border border-yellow-100 text-center hover:shadow-lg transition-all">
+                                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-yellow-100 mb-4 text-yellow-600">
+                                    <Shield className="h-8 w-8" />
                                 </div>
+                                <h3 className="font-bold text-xl mb-2 text-yellow-800">الدفع عند الاستلام</h3>
+                                <p className="text-gray-600">ادفع عند استلام طلبك بكل أمان</p>
                             </div>
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>
 
-            {/* Features Section */}
-            <section className="py-24 bg-white relative overflow-hidden">
-                <div className="container relative z-10">
-                    <div className="text-center max-w-2xl mx-auto mb-16">
-                        <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">لماذا تختار بازارنا؟</h2>
-                        <p className="text-muted-foreground text-lg">نقدم لك تجربة تسوق متكاملة تجمع بين الراحة والأمان</p>
-                    </div>
+                {/* Our Stores Section - Incoming Logic */}
+                {ourStoresCategory && (
+                    <section className="py-20 bg-gray-50">
+                        <div className="container mx-auto px-4 text-center">
+                            <h2 className="text-3xl md:text-5xl font-bold mb-4 text-gray-800">
+                                {ourStoresCategory.name_ar}
+                            </h2>
+                            <p className="text-gray-500 text-lg mb-12">كل محلاتنا في مكان واحد</p>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                        {[
-                            { icon: ShoppingBag, title: "تشكيلة واسعة", desc: "آلاف المنتجات من مختلف الفئات", color: "text-blue-500", bg: "bg-blue-50" },
-                            { icon: Truck, title: "توصيل سريع", desc: "نوصل لجميع ولايات الجزائر", color: "text-green-500", bg: "bg-green-50" },
-                            { icon: Shield, title: "دفع آمن", desc: "الدفع عند الاستلام لضمان حقك", color: "text-purple-500", bg: "bg-purple-50" },
-                            { icon: HeadphonesIcon, title: "دعم متواصل", desc: "فريقنا في خدمتك 7/7", color: "text-orange-500", bg: "bg-orange-50" },
-                        ].map((feature, i) => (
-                            <Card key={i} className="group border-none shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 bg-white">
-                                <CardContent className="pt-8 text-center">
-                                    <div className={`w-20 h-20 mx-auto mb-6 rounded-2xl ${feature.bg} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
-                                        <feature.icon className={`h-10 w-10 ${feature.color}`} />
-                                    </div>
-                                    <h3 className="text-xl font-bold mb-3 text-primary">{feature.title}</h3>
-                                    <p className="text-muted-foreground leading-relaxed">{feature.desc}</p>
-                                </CardContent>
-                            </Card>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* Categories Section */}
-            <section className="py-24 bg-accent/30">
-                <div className="container">
-                    <div className="flex items-center justify-between mb-12">
-                        <div>
-                            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-2">تصفح حسب الفئة</h2>
-                            <p className="text-muted-foreground">اكتشف منتجاتنا حسب التصنيف الذي يناسبك</p>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                                {ourStoresSub.map((sub) => (
+                                    <Link
+                                        key={sub.id}
+                                        to={`/productstores?supplier=${sub.id}`}
+                                        className="group relative aspect-square rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500"
+                                    >
+                                        <img
+                                            src={sub.image_url || ""}
+                                            alt={sub.name_ar}
+                                            className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                        />
+                                        <div className="absolute inset-0 bg-black/40 group-hover:bg-black/60 transition-all"></div>
+                                        <h3 className="absolute inset-0 flex items-center justify-center text-white text-xl md:text-2xl font-bold z-10">
+                                            {sub.name_ar}
+                                        </h3>
+                                    </Link>
+                                ))}
+                            </div>
                         </div>
-                        <Button asChild variant="ghost" className="hidden md:flex group">
-                            <Link to="/products">
-                                عرض كل الفئات <ArrowRight className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-                            </Link>
-                        </Button>
-                    </div>
+                    </section>
+                )}
 
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-                        {[
-                            { name: "ملابس", icon: "👕", color: "bg-pink-100" },
-                            { name: "إلكترونيات", icon: "📱", color: "bg-blue-100" },
-                            { name: "ديكور", icon: "🏠", color: "bg-yellow-100" },
-                            { name: "تجميل", icon: "💄", color: "bg-red-100" },
-                            { name: "رياضة", icon: "⚽", color: "bg-green-100" },
-                            { name: "ألعاب", icon: "🎮", color: "bg-purple-100" },
-                        ].map((category) => (
-                            <Link key={category.name} to={`/products?category=${category.name}`} className="group">
-                                <div className="bg-white rounded-3xl p-6 text-center shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border border-transparent hover:border-primary/10">
-                                    <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl ${category.color} flex items-center justify-center text-3xl group-hover:scale-110 transition-transform duration-300`}>
-                                        {category.icon}
-                                    </div>
-                                    <h3 className="font-bold text-primary group-hover:text-secondary transition-colors">{category.name}</h3>
-                                </div>
-                            </Link>
-                        ))}
+                {/* Main Categories Section - HEAD Style applied to Incoming Logic */}
+                <section className="py-20 bg-[#FFFDF9]">
+                    <div className="container mx-auto px-4">
+                        <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center">
+                            تصفح حسب الفئة
+                        </h2>
+                        {loading ? (
+                            <p className="text-center">جاري التحميل...</p>
+                        ) : (
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                                {mainCategories.map((category) => (
+                                    <Link
+                                        key={category.id}
+                                        to={`/products?category=${category.id}`}
+                                        className="group relative rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-transform duration-500 hover:-translate-y-2"
+                                    >
+                                        {category.image_url ? (
+                                            <img
+                                                src={category.image_url}
+                                                alt={category.name_ar}
+                                                className="w-full h-48 md:h-56 object-cover group-hover:scale-105 transition-transform duration-500"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-48 md:h-56 bg-white flex items-center justify-center text-black font-semibold text-xl border-b-4 border-green-400">
+                                                {category.name_ar}
+                                            </div>
+                                        )}
+                                        {/* Overlay for text if image exists */}
+                                        {category.image_url && (
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end justify-center pb-4">
+                                                <span className="text-white font-bold text-xl">{category.name_ar}</span>
+                                            </div>
+                                        )}
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
                     </div>
-                </div>
-            </section>
+                </section>
 
-            {/* Best Products Section */}
-            <section className="py-24">
-                <div className="container">
-                    <div className="text-center max-w-2xl mx-auto mb-16">
-                        <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">وصل حديثاً</h2>
-                        <p className="text-muted-foreground text-lg">أحدث المنتجات المضافة إلى متجرنا</p>
-                    </div>
+                {/* Newest Products Section - Incoming Logic */}
+                <section className="py-20 bg-white">
+                    <div className="container mx-auto px-4">
+                        <h2 className="text-3xl md:text-5xl font-bold text-center mb-12">
+                            أحدث المنتجات
+                        </h2>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                        {[1, 2, 3, 4].map((i) => (
-                            <Card key={i} className="group overflow-hidden border-none shadow-lg hover:shadow-2xl transition-all duration-300">
-                                <div className="relative aspect-[4/5] bg-muted overflow-hidden">
-                                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 flex items-center justify-center gap-2">
-                                        <Button size="icon" className="rounded-full bg-white text-primary hover:bg-secondary hover:text-white translate-y-4 group-hover:translate-y-0 transition-all duration-300">
-                                            <ShoppingBag className="h-5 w-5" />
-                                        </Button>
-                                        <Button size="icon" className="rounded-full bg-white text-primary hover:bg-secondary hover:text-white translate-y-4 group-hover:translate-y-0 transition-all duration-300 delay-75">
-                                            <ArrowRight className="h-5 w-5" />
-                                        </Button>
-                                    </div>
-                                    <img
-                                        src={`https://source.unsplash.com/random/400x500?product=${i}`}
-                                        alt="Product"
-                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                    />
-                                    <div className="absolute top-4 right-4 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full z-20">
-                                        جديد
-                                    </div>
-                                </div>
-                                <CardContent className="p-6">
-                                    <div className="text-sm text-muted-foreground mb-2">تصنيف المنتج</div>
-                                    <h3 className="font-bold text-lg mb-2 group-hover:text-secondary transition-colors">اسم المنتج الرائع {i}</h3>
-                                    <div className="flex items-center justify-between mt-4">
-                                        <span className="text-xl font-black text-primary">2,500 دج</span>
-                                        <div className="flex items-center gap-1 text-yellow-500">
-                                            <Star className="h-4 w-4 fill-current" />
-                                            <span className="text-sm font-medium text-muted-foreground">4.5</span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                            {newestProducts.map((product) => (
+                                <Link to={`/product/${product.id}`} key={product.id} className="group">
+                                    <div className="rounded-2xl bg-white border border-gray-100 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
+                                        <div className="relative h-64 overflow-hidden">
+                                            <img
+                                                src={product.image_url || ""}
+                                                alt={product.name_ar}
+                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                            />
+                                        </div>
+                                        <div className="p-5 text-right">
+                                            <h3 className="font-bold text-lg mb-2 text-gray-800 group-hover:text-green-700 transition-colors">
+                                                {product.name_ar}
+                                            </h3>
+                                            <p className="text-sm text-gray-500 mb-3">
+                                                {product.category_name}
+                                            </p>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-xl font-bold text-green-700">
+                                                    {product.price} دج
+                                                </span>
+                                                <Button size="sm" variant="outline" className="rounded-full">
+                                                    عرض
+                                                </Button>
+                                            </div>
                                         </div>
                                     </div>
-                                </CardContent>
-                            </Card>
-                        ))}
+                                </Link>
+                            ))}
+                        </div>
                     </div>
+                </section>
 
-                    <div className="text-center mt-12">
-                        <Button asChild size="lg" className="rounded-full px-8">
-                            <Link to="/products">عرض كل المنتجات</Link>
-                        </Button>
-                    </div>
-                </div>
-            </section>
-
-            {/* Newsletter Section */}
-            <section className="py-24 bg-primary text-white relative overflow-hidden">
-                <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
-                <div className="container relative z-10 text-center max-w-2xl mx-auto">
-                    <h2 className="text-3xl md:text-4xl font-bold mb-6">اشترك في نشرتنا البريدية</h2>
-                    <p className="text-white/80 mb-8 text-lg">احصل على آخر العروض والخصومات مباشرة في بريدك الإلكتروني</p>
-                    <div className="flex gap-4 max-w-md mx-auto">
-                        <input
-                            type="email"
-                            placeholder="أدخل بريدك الإلكتروني"
-                            className="flex-1 px-6 py-3 rounded-full bg-white/10 border border-white/20 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-secondary"
-                        />
-                        <Button size="lg" className="rounded-full bg-secondary text-primary hover:bg-secondary/90 font-bold px-8">
-                            اشترك
-                        </Button>
-                    </div>
-                </div>
-            </section>
+            </main>
+            <Footer />
         </div>
     );
-}
+};
+
+export default Home;
