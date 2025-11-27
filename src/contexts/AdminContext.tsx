@@ -6,6 +6,8 @@ interface AdminContextType {
   user: User | null;
   session: Session | null;
   isAdmin: boolean;
+  isStoreOwner: boolean;
+  storeId: string | null;
   login: (email: string, password: string) => Promise<{ error: any }>;
   logout: () => Promise<void>;
 }
@@ -16,11 +18,15 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isStoreOwner, setIsStoreOwner] = useState(false);
+  const [storeId, setStoreId] = useState<string | null>(null);
 
-  // Check if the user exists in the admins table OR is a store owner
-  const checkIfAdmin = async (authUserId: string | undefined) => {
+  // Check user role and store association
+  const checkUserRole = async (authUserId: string | undefined) => {
     if (!authUserId) {
       setIsAdmin(false);
+      setIsStoreOwner(false);
+      setStoreId(null);
       return;
     }
 
@@ -33,22 +39,36 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     if (adminData && !adminError) {
       setIsAdmin(true);
+      // Admins might not have a store_id, or could manage all.
+      // For now, keep storeId null for admins unless they also own a store?
+      // Usually admins see everything.
       return;
     }
 
-    // 2. Check Store Owners table
-    const { data: ownerData, error: ownerError } = await supabase
-      .from("store_owners")
-      .select("id")
-      .eq("user_id", authUserId)
+    // 2. Check Profiles table for role
+    const { data: profileData, error: profileError } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", authUserId)
       .single();
 
-    if (ownerData && !ownerError) {
-      setIsAdmin(true);
-      return;
-    }
+    if (profileData && !profileError) {
+      if (profileData.role === 'store_owner') {
+        setIsStoreOwner(true);
+        // Fetch store ID
+        const { data: storeData } = await supabase
+          .from("stores")
+          .select("id")
+          .eq("owner_id", authUserId)
+          .single();
 
-    setIsAdmin(false);
+        if (storeData) {
+          setStoreId(storeData.id);
+        }
+      } else if (profileData.role === 'admin') {
+        setIsAdmin(true);
+      }
+    }
   };
 
   useEffect(() => {
@@ -56,14 +76,14 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setSession(session);
       const currentUser = session?.user ?? null;
       setUser(currentUser);
-      checkIfAdmin(currentUser?.id);
+      checkUserRole(currentUser?.id);
     });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       const currentUser = session?.user ?? null;
       setUser(currentUser);
-      checkIfAdmin(currentUser?.id);
+      checkUserRole(currentUser?.id);
     });
   }, []);
 
@@ -79,6 +99,8 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const logout = async () => {
     await supabase.auth.signOut();
     setIsAdmin(false);
+    setIsStoreOwner(false);
+    setStoreId(null);
   };
 
   return (
@@ -87,6 +109,8 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         user,
         session,
         isAdmin,
+        isStoreOwner,
+        storeId,
         login,
         logout,
       }}

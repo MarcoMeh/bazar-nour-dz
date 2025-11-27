@@ -70,7 +70,7 @@ const AdminProducts = () => {
   const fetchProducts = async () => {
     const { data, error } = await supabase
       .from('products')
-      .select('*, store_owners(owner_name, username)')
+      .select('*, stores(name)')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -91,8 +91,8 @@ const AdminProducts = () => {
   };
 
   const fetchStores = async () => {
-    // store_owners table contains owners; supplier_name usually matches username
-    const { data, error } = await supabase.from('store_owners').select('id, username, owner_name');
+    // stores table contains stores
+    const { data, error } = await supabase.from('stores').select('id, name');
     if (!error) setStores(data || []);
   };
 
@@ -135,7 +135,7 @@ const AdminProducts = () => {
       price: product.price?.toString() || '',
       category_id: product.category_id?.toString() || '',
       image_url: product.image_url || '',
-      supplier_name: product.supplier_name || (product.store_owners?.username ?? ''),
+      supplier_name: product.supplier_name || (product.stores?.name ?? ''),
       is_delivery_home_available: product.is_delivery_home_available ?? true,
       is_delivery_desk_available: product.is_delivery_desk_available ?? true,
       is_sold_out: product.is_sold_out ?? false,
@@ -368,7 +368,7 @@ const AdminProducts = () => {
                       <SelectContent>
                         <SelectItem value="none">بدون مورد</SelectItem>
                         {stores.map(s => (
-                          s.username ? <SelectItem key={s.id} value={s.username}>{s.owner_name} ({s.username})</SelectItem> : null
+                          s.name ? <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem> : null
                         ))}
                       </SelectContent>
                     </Select>
@@ -571,7 +571,7 @@ const AdminProducts = () => {
                 )}
 
                 <div className="mt-2 text-xs text-muted-foreground">
-                  مورد: {product.supplier_name || product.store_owners?.username || 'غير محدد'}
+                  مورد: {product.supplier_name || product.stores?.name || 'غير محدد'}
                 </div>
               </div>
 

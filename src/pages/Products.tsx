@@ -102,7 +102,7 @@ const Products = () => {
       toast.error("حدث خطأ في تحميل الفئات: " + (error.message || ""));
       return;
     }
-    setCategories(data || []);
+    setCategories((data || []) as any);
   };
 
   const fetchGlobalMinMaxPrices = async () => {
@@ -146,7 +146,7 @@ const Products = () => {
     sizeFilter: string = ""
   ) => {
     setLoading(true);
-    let query = supabase.from("products").select("*");
+    let query: any = supabase.from("products").select("*");
 
     if (selectedSubCategory) {
       query = query.eq("category_id", selectedSubCategory);

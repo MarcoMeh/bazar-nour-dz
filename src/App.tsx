@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { StoreOwnerLayout } from "@/components/store/StoreOwnerLayout";
 import Home from "./pages/Home";
 import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
@@ -16,6 +15,7 @@ import Checkout from "./pages/Checkout";
 import NotFound from "./pages/NotFound";
 import About from "./pages/About";
 import ProductStores from "./pages/productstores";
+import AdminLogin from "./pages/AdminLogin";
 
 // Admin Pages (Nested Structure)
 import AdminDashboard from "./pages/admin/Dashboard";
@@ -23,11 +23,8 @@ import AdminProducts from "./pages/admin/Products";
 import AdminCategories from "./pages/admin/Categories";
 import AdminOrders from "./pages/admin/Orders";
 import AdminStores from "./pages/admin/Stores";
+import AdminDelivery from "./pages/admin/Delivery";
 import AdminControl from "./pages/admin/Control";
-
-// Store Owner Pages
-import StoreOwnerDashboard from "./pages/store/Dashboard";
-import StoreOwnerProfile from "./pages/store/Profile";
 
 // Contexts
 import { CartProvider } from "./contexts/CartContext";
@@ -57,6 +54,9 @@ const App = () => (
                 <Route path="/about" element={<About />} />
               </Route>
 
+              {/* Admin Auth */}
+              <Route path="/admin/login" element={<AdminLogin />} />
+
               {/* Admin Routes */}
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<AdminDashboard />} />
@@ -64,13 +64,8 @@ const App = () => (
                 <Route path="categories" element={<AdminCategories />} />
                 <Route path="orders" element={<AdminOrders />} />
                 <Route path="stores" element={<AdminStores />} />
+                <Route path="delivery" element={<AdminDelivery />} />
                 <Route path="control" element={<AdminControl />} />
-              </Route>
-
-              {/* Store Owner Routes */}
-              <Route path="/store-owner" element={<StoreOwnerLayout />}>
-                <Route index element={<StoreOwnerDashboard />} />
-                <Route path="profile" element={<StoreOwnerProfile />} />
               </Route>
 
               {/* 404 */}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,6 +27,7 @@ import { Plus, Pencil, Trash2, Loader2, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useAdmin } from "@/contexts/AdminContext";
 
 interface Product {
     id: string;
@@ -33,28 +35,37 @@ interface Product {
     description?: string;
     price: number;
     image_url?: string;
+    additional_images?: string[];
     has_colors: boolean;
     colors?: string[];
     has_sizes: boolean;
     sizes?: string[];
-    delivery_type: 'free' | 'home' | 'desktop' | 'sold-out';
+    delivery_type: string;
+    is_active?: boolean;
     category_id?: string;
     subcategory_id?: string;
     store_id?: string;
-    categories?: { name: string };
-    subcategories?: { name: string };
-    stores?: { name: string };
+    created_at?: string;
+    categories?: any;
+    subcategories?: any;
+    stores?: any;
 }
 
 interface Category {
     id: string;
     name: string;
+    slug?: string;
+    image_url?: string;
+    created_at?: string;
 }
 
 interface Subcategory {
     id: string;
     name: string;
     category_id: string;
+    slug?: string;
+    image_url?: string;
+    created_at?: string;
 }
 
 interface Store {
@@ -63,6 +74,9 @@ interface Store {
 }
 
 export default function AdminProducts() {
+    const { isAdmin, isStoreOwner, storeId } = useAdmin();
+    const navigate = useNavigate();
+
     const [products, setProducts] = useState<Product[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
@@ -89,28 +103,50 @@ export default function AdminProducts() {
     });
 
     useEffect(() => {
+        // Redirect if not authorized
+        if (!isAdmin && !isStoreOwner) {
+            // Wait for auth check to complete? 
+            // Ideally AdminLayout handles this, but good to have here.
+            // For now, we assume AdminLayout protects the route, 
+            // but we need to wait for context to populate.
+        }
+
         fetchData();
-    }, []);
+    }, [isAdmin, isStoreOwner, storeId]);
 
     const fetchData = async () => {
         setLoading(true);
-        const { data: prods, error: prodError } = await supabase
+
+        let query = supabase
             .from("products")
             .select("*, categories(name), subcategories(name), stores(name)")
             .order("created_at", { ascending: false });
 
+        // Filter for store owner
+        if (isStoreOwner && storeId) {
+            query = query.eq('store_id', storeId);
+        }
+
+        const { data: prods, error: prodError } = await query;
+
         const { data: cats } = await supabase.from("categories").select("*").order("name");
         const { data: subcats } = await supabase.from("subcategories").select("*").order("name");
-        const { data: strs } = await supabase.from("stores").select("id, name").order("name");
+
+        // Only fetch stores if admin (to populate dropdown)
+        let strs: any[] = [];
+        if (isAdmin) {
+            const { data } = await supabase.from("stores").select("id, name").order("name");
+            strs = data || [];
+        }
 
         if (prodError) {
             toast.error("فشل في تحميل المنتجات");
             console.error(prodError);
         } else {
-            setProducts(prods || []);
-            setCategories(cats || []);
-            setSubcategories(subcats || []);
-            setStores(strs || []);
+            setProducts((prods || []) as any);
+            setCategories((cats || []) as any);
+            setSubcategories((subcats || []) as any);
+            setStores((strs || []) as any);
         }
         setLoading(false);
     };
@@ -157,6 +193,14 @@ export default function AdminProducts() {
             delivery_type = 'free';
         }
 
+        // Determine store_id
+        let finalStoreId = null;
+        if (isStoreOwner && storeId) {
+            finalStoreId = storeId;
+        } else if (isAdmin) {
+            finalStoreId = formData.store_id === "none" ? null : formData.store_id;
+        }
+
         const payload: any = {
             name: formData.name,
             description: formData.description,
@@ -164,7 +208,7 @@ export default function AdminProducts() {
             image_url: formData.image_url,
             category_id: formData.category_id,
             subcategory_id: formData.subcategory_id === "none" ? null : formData.subcategory_id,
-            store_id: formData.store_id === "none" ? null : formData.store_id,
+            store_id: finalStoreId,
             has_colors: formData.has_colors,
             colors: formData.has_colors ? formData.colors.split(',').map(c => c.trim()).filter(Boolean) : [],
             has_sizes: formData.has_sizes,
@@ -336,23 +380,25 @@ export default function AdminProducts() {
                                 </div>
                             </div>
 
-                            <div className="grid gap-2">
-                                <Label>المتجر (المورد)</Label>
-                                <Select
-                                    value={formData.store_id}
-                                    onValueChange={(val) => setFormData({ ...formData, store_id: val })}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="اختر المتجر" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="none">بدون متجر (منتج عام)</SelectItem>
-                                        {stores.map(s => (
-                                            <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                            {isAdmin && (
+                                <div className="grid gap-2">
+                                    <Label>المتجر (المورد)</Label>
+                                    <Select
+                                        value={formData.store_id}
+                                        onValueChange={(val) => setFormData({ ...formData, store_id: val })}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="اختر المتجر" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="none">بدون متجر (منتج عام)</SelectItem>
+                                            {stores.map(s => (
+                                                <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            )}
 
                             <div className="flex flex-col gap-4 border p-4 rounded-lg">
                                 <div className="flex items-center justify-between">

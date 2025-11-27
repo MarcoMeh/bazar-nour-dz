@@ -20,6 +20,7 @@ import { Eye, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { useAdmin } from "@/contexts/AdminContext";
 
 interface Order {
     id: string;
@@ -37,20 +38,27 @@ interface Order {
 }
 
 export default function AdminOrders() {
+    const { isAdmin, isStoreOwner, storeId } = useAdmin();
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         fetchOrders();
-    }, []);
+    }, [isAdmin, isStoreOwner, storeId]);
 
     const fetchOrders = async () => {
         setLoading(true);
         // Updated query to use owner_id for the join and include stores(name)
-        const { data, error } = await supabase
+        let query = supabase
             .from("orders")
             .select("*, profiles:owner_id(full_name, username), stores(name)")
             .order("created_at", { ascending: false });
+
+        if (isStoreOwner && storeId) {
+            query = query.eq('store_id', storeId);
+        }
+
+        const { data, error } = await query;
 
         if (error) {
             toast.error("فشل في تحميل الطلبات");

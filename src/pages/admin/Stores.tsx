@@ -24,6 +24,7 @@ import { Plus, Pencil, Trash2, Loader2, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { createClient } from "@supabase/supabase-js";
+import { useAdmin } from "@/contexts/AdminContext";
 
 // Define interfaces based on the actual SQL schema
 interface Profile {
@@ -60,6 +61,7 @@ interface StoreFormData {
 }
 
 export default function AdminStores() {
+    const { isAdmin, isStoreOwner, storeId } = useAdmin();
     const [stores, setStores] = useState<Store[]>([]);
     const [loading, setLoading] = useState(true);
     const [open, setOpen] = useState(false);
@@ -77,15 +79,21 @@ export default function AdminStores() {
 
     useEffect(() => {
         fetchStores();
-    }, []);
+    }, [isAdmin, isStoreOwner, storeId]);
 
     const fetchStores = async () => {
         setLoading(true);
         // Join stores with profiles to get owner details
-        const { data, error } = await supabase
+        let query = supabase
             .from("stores")
             .select("*, profiles:owner_id(*)")
             .order("created_at", { ascending: false });
+
+        if (isStoreOwner && storeId) {
+            query = query.eq('id', storeId);
+        }
+
+        const { data, error } = await query;
 
         if (error) {
             toast.error("فشل في تحميل المحلات");
@@ -230,6 +238,7 @@ export default function AdminStores() {
                             full_name: formData.owner_name,
                             role: 'store_owner', // Important: Set role metadata
                         },
+                        emailRedirectTo: window.location.origin,
                     },
                 });
 
@@ -316,12 +325,14 @@ export default function AdminStores() {
                         });
                     }
                 }}>
-                    <DialogTrigger asChild>
-                        <Button>
-                            <Plus className="ml-2 h-4 w-4" />
-                            إضافة محل
-                        </Button>
-                    </DialogTrigger>
+                    {isAdmin && (
+                        <DialogTrigger asChild>
+                            <Button>
+                                <Plus className="ml-2 h-4 w-4" />
+                                إضافة محل
+                            </Button>
+                        </DialogTrigger>
+                    )}
                     <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
                             <DialogTitle>{editingStore ? "تعديل محل" : "إضافة محل جديد"}</DialogTitle>

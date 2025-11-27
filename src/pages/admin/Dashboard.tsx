@@ -3,8 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Package, ShoppingCart, Store, DollarSign, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { useAdmin } from "@/contexts/AdminContext";
 
 export default function AdminDashboard() {
+  const { isAdmin, isStoreOwner, storeId } = useAdmin();
   const [stats, setStats] = useState({
     products: 0,
     orders: 0,
@@ -23,21 +25,38 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [isAdmin, isStoreOwner, storeId]);
 
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
       // Fetch counts
-      const { count: productsCount } = await supabase.from("products").select("*", { count: "exact", head: true });
-      const { count: ordersCount } = await supabase.from("orders").select("*", { count: "exact", head: true });
-      const { count: storesCount } = await supabase.from("store_owners").select("*", { count: "exact", head: true });
+      let productsQuery = supabase.from("products").select("*", { count: "exact", head: true });
+      let ordersQuery = supabase.from("orders").select("*", { count: "exact", head: true });
+      let storesQuery = supabase.from("stores").select("*", { count: "exact", head: true });
+
+      if (isStoreOwner && storeId) {
+        productsQuery = productsQuery.eq('store_id', storeId);
+        ordersQuery = ordersQuery.eq('store_id', storeId);
+        // For stores count, store owner sees 1 (their own)
+        storesQuery = storesQuery.eq('id', storeId);
+      }
+
+      const { count: productsCount } = await productsQuery;
+      const { count: ordersCount } = await ordersQuery;
+      const { count: storesCount } = await storesQuery;
 
       // Fetch revenue (sum of total_price for non-cancelled orders)
-      const { data: ordersData } = await supabase
+      let revenueQuery = supabase
         .from("orders")
         .select("total_price")
         .neq("status", "cancelled");
+
+      if (isStoreOwner && storeId) {
+        revenueQuery = revenueQuery.eq('store_id', storeId);
+      }
+
+      const { data: ordersData } = await revenueQuery;
 
       const revenue = ordersData?.reduce((sum, order) => sum + (order.total_price || 0), 0) || 0;
 
@@ -49,11 +68,17 @@ export default function AdminDashboard() {
       });
 
       // Fetch recent orders
-      const { data: recentOrdersData } = await supabase
+      let recentOrdersQuery = supabase
         .from("orders")
         .select("*, profiles:owner_id(full_name)")
         .order("created_at", { ascending: false })
         .limit(5);
+
+      if (isStoreOwner && storeId) {
+        recentOrdersQuery = recentOrdersQuery.eq('store_id', storeId);
+      }
+
+      const { data: recentOrdersData } = await recentOrdersQuery;
 
       if (recentOrdersData) {
         // Map to ensure type safety if needed, or just cast if shape is correct
