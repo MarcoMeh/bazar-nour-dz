@@ -31,7 +31,9 @@ interface Order {
         full_name?: string;
         username?: string;
     };
-    // Add other fields if needed
+    stores?: {
+        name: string;
+    };
 }
 
 export default function AdminOrders() {
@@ -44,10 +46,10 @@ export default function AdminOrders() {
 
     const fetchOrders = async () => {
         setLoading(true);
-        // Updated query to use owner_id for the join
+        // Updated query to use owner_id for the join and include stores(name)
         const { data, error } = await supabase
             .from("orders")
-            .select("*, profiles:owner_id(full_name, username)")
+            .select("*, profiles:owner_id(full_name, username), stores(name)")
             .order("created_at", { ascending: false });
 
         if (error) {
@@ -57,7 +59,8 @@ export default function AdminOrders() {
             // Ensure data matches Order interface
             const formattedData = (data || []).map((item: any) => ({
                 ...item,
-                profiles: Array.isArray(item.profiles) ? item.profiles[0] : item.profiles
+                profiles: Array.isArray(item.profiles) ? item.profiles[0] : item.profiles,
+                stores: Array.isArray(item.stores) ? item.stores[0] : item.stores
             }));
             setOrders(formattedData as Order[]);
         }
@@ -92,6 +95,7 @@ export default function AdminOrders() {
                             <TableRow>
                                 <TableHead>رقم الطلب</TableHead>
                                 <TableHead>العميل</TableHead>
+                                <TableHead>المتجر (المورد)</TableHead>
                                 <TableHead>المبلغ</TableHead>
                                 <TableHead>الحالة</TableHead>
                                 <TableHead>التاريخ</TableHead>
@@ -101,13 +105,13 @@ export default function AdminOrders() {
                         <TableBody>
                             {loading ? (
                                 <TableRow>
-                                    <TableCell colSpan={6} className="text-center py-8">
+                                    <TableCell colSpan={7} className="text-center py-8">
                                         <Loader2 className="h-8 w-8 animate-spin mx-auto" />
                                     </TableCell>
                                 </TableRow>
                             ) : orders.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={6} className="text-center py-8">
+                                    <TableCell colSpan={7} className="text-center py-8">
                                         لا توجد طلبات
                                     </TableCell>
                                 </TableRow>
@@ -117,6 +121,9 @@ export default function AdminOrders() {
                                         <TableCell className="font-medium">#{order.id.slice(0, 8)}</TableCell>
                                         <TableCell>
                                             {order.profiles?.full_name || order.profiles?.username || "غير معروف"}
+                                        </TableCell>
+                                        <TableCell>
+                                            {order.stores?.name || "عام"}
                                         </TableCell>
                                         <TableCell>{order.total_price} دج</TableCell>
                                         <TableCell>

@@ -40,8 +40,10 @@ interface Product {
     delivery_type: 'free' | 'home' | 'desktop' | 'sold-out';
     category_id?: string;
     subcategory_id?: string;
+    store_id?: string;
     categories?: { name: string };
     subcategories?: { name: string };
+    stores?: { name: string };
 }
 
 interface Category {
@@ -55,10 +57,16 @@ interface Subcategory {
     category_id: string;
 }
 
+interface Store {
+    id: string;
+    name: string;
+}
+
 export default function AdminProducts() {
     const [products, setProducts] = useState<Product[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
+    const [stores, setStores] = useState<Store[]>([]);
     const [loading, setLoading] = useState(true);
     const [open, setOpen] = useState(false);
     const [uploading, setUploading] = useState(false);
@@ -71,6 +79,7 @@ export default function AdminProducts() {
         image_url: "",
         category_id: "",
         subcategory_id: "none",
+        store_id: "none",
         has_colors: false,
         colors: "",
         has_sizes: false,
@@ -87,11 +96,12 @@ export default function AdminProducts() {
         setLoading(true);
         const { data: prods, error: prodError } = await supabase
             .from("products")
-            .select("*, categories(name), subcategories(name)")
+            .select("*, categories(name), subcategories(name), stores(name)")
             .order("created_at", { ascending: false });
 
         const { data: cats } = await supabase.from("categories").select("*").order("name");
         const { data: subcats } = await supabase.from("subcategories").select("*").order("name");
+        const { data: strs } = await supabase.from("stores").select("id, name").order("name");
 
         if (prodError) {
             toast.error("فشل في تحميل المنتجات");
@@ -100,6 +110,7 @@ export default function AdminProducts() {
             setProducts(prods || []);
             setCategories(cats || []);
             setSubcategories(subcats || []);
+            setStores(strs || []);
         }
         setLoading(false);
     };
@@ -153,12 +164,12 @@ export default function AdminProducts() {
             image_url: formData.image_url,
             category_id: formData.category_id,
             subcategory_id: formData.subcategory_id === "none" ? null : formData.subcategory_id,
+            store_id: formData.store_id === "none" ? null : formData.store_id,
             has_colors: formData.has_colors,
             colors: formData.has_colors ? formData.colors.split(',').map(c => c.trim()).filter(Boolean) : [],
             has_sizes: formData.has_sizes,
             sizes: formData.has_sizes ? formData.sizes.split(',').map(s => s.trim()).filter(Boolean) : [],
             delivery_type: delivery_type,
-            // is_sold_out and free_delivery are mapped to delivery_type
         };
 
         let error;
@@ -206,6 +217,7 @@ export default function AdminProducts() {
             image_url: product.image_url || "",
             category_id: product.category_id || "",
             subcategory_id: product.subcategory_id || "none",
+            store_id: product.store_id || "none",
             has_colors: product.has_colors,
             colors: product.colors ? product.colors.join(", ") : "",
             has_sizes: product.has_sizes,
@@ -225,6 +237,7 @@ export default function AdminProducts() {
             image_url: "",
             category_id: "",
             subcategory_id: "none",
+            store_id: "none",
             has_colors: false,
             colors: "",
             has_sizes: false,
@@ -321,6 +334,24 @@ export default function AdminProducts() {
                                         </SelectContent>
                                     </Select>
                                 </div>
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label>المتجر (المورد)</Label>
+                                <Select
+                                    value={formData.store_id}
+                                    onValueChange={(val) => setFormData({ ...formData, store_id: val })}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="اختر المتجر" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">بدون متجر (منتج عام)</SelectItem>
+                                        {stores.map(s => (
+                                            <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
 
                             <div className="flex flex-col gap-4 border p-4 rounded-lg">
@@ -430,6 +461,7 @@ export default function AdminProducts() {
                                 <TableHead>الاسم</TableHead>
                                 <TableHead>السعر</TableHead>
                                 <TableHead>التصنيف</TableHead>
+                                <TableHead>المتجر</TableHead>
                                 <TableHead>الحالة</TableHead>
                                 <TableHead>الإجراءات</TableHead>
                             </TableRow>
@@ -437,13 +469,13 @@ export default function AdminProducts() {
                         <TableBody>
                             {loading ? (
                                 <TableRow>
-                                    <TableCell colSpan={6} className="text-center py-4">
+                                    <TableCell colSpan={7} className="text-center py-4">
                                         <Loader2 className="h-6 w-6 animate-spin mx-auto" />
                                     </TableCell>
                                 </TableRow>
                             ) : products.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={6} className="text-center py-4">لا توجد منتجات</TableCell>
+                                    <TableCell colSpan={7} className="text-center py-4">لا توجد منتجات</TableCell>
                                 </TableRow>
                             ) : (
                                 products.map((product) => (
@@ -460,6 +492,9 @@ export default function AdminProducts() {
                                         <TableCell>
                                             {product.categories?.name}
                                             {product.subcategories?.name && ` > ${product.subcategories.name}`}
+                                        </TableCell>
+                                        <TableCell>
+                                            {product.stores?.name || "عام"}
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex flex-col gap-1">
