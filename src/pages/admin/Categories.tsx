@@ -20,104 +20,205 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+// Interfaces matching the DB schema (plus slug)
 interface Category {
     id: string;
-    name_ar: string;
-    slug: string;
+    name: string;
+    slug?: string;
     image_url?: string;
-    parent_id?: string | null;
+    created_at?: string;
+}
+
+interface Subcategory {
+    id: string;
+    category_id: string;
+    name: string;
+    slug?: string;
+    image_url?: string;
+    created_at?: string;
+    // Joined category data
+    categories?: Category;
+}
+
+interface FormData {
+    name: string;
+    slug: string;
+    image_url: string;
+    category_id: string; // For subcategories
 }
 
 export default function AdminCategories() {
     const [categories, setCategories] = useState<Category[]>([]);
+    const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
     const [loading, setLoading] = useState(true);
     const [open, setOpen] = useState(false);
-    const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-    const [formData, setFormData] = useState<Partial<Category>>({});
+
+    // We need to know if we are editing a category or subcategory
+    const [editingType, setEditingType] = useState<'category' | 'subcategory'>('category');
+    const [editingId, setEditingId] = useState<string | null>(null);
+
+    const [formData, setFormData] = useState<FormData>({
+        name: "",
+        slug: "",
+        image_url: "",
+        category_id: "none", // "none" means it's a main category
+    });
+    const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
-        fetchCategories();
+        fetchData();
     }, []);
 
-    const fetchCategories = async () => {
+    const fetchData = async () => {
         setLoading(true);
-        const { data, error } = await supabase
+        const { data: cats, error: catError } = await supabase
             .from("categories")
             .select("*")
-            .order("name_ar");
+            .order("name");
 
-        if (error) {
-            toast.error("فشل في تحميل التصنيفات");
-            console.error(error);
+        const { data: subcats, error: subError } = await supabase
+            .from("subcategories")
+            .select("*, categories(*)")
+            .order("name");
+
+        if (catError || subError) {
+            toast.error("فشل في تحميل البيانات");
+            console.error(catError || subError);
         } else {
-            setCategories(data || []);
+            setCategories(cats || []);
+            setSubcategories(subcats || []);
         }
         setLoading(false);
     };
 
-    const mainCategories = categories.filter(c => !c.parent_id);
-    const subCategories = categories.filter(c => c.parent_id);
+    const handleDelete = async (id: string, type: 'category' | 'subcategory') => {
+        if (!confirm("هل أنت متأكد من الحذف؟")) return;
 
-    const handleDelete = async (id: string) => {
-        if (!confirm("هل أنت متأكد من حذف هذا التصنيف؟")) return;
-
-        const { error } = await supabase.from("categories").delete().eq("id", id);
+        const table = (type === 'category' ? 'categories' : 'subcategories') as "categories" | "subcategories";
+        const { error } = await supabase.from(table).delete().eq("id", id);
 
         if (error) {
-            toast.error("فشل في حذف التصنيف");
+            toast.error("فشل في الحذف");
         } else {
-            toast.success("تم حذف التصنيف بنجاح");
-            fetchCategories();
+            toast.success("تم الحذف بنجاح");
+            fetchData();
         }
     };
 
-    const handleEdit = (category: Category) => {
-        setEditingCategory(category);
-        setFormData(category);
+    const handleEdit = (item: Category | Subcategory, type: 'category' | 'subcategory') => {
+        setEditingType(type);
+        setEditingId(item.id);
+
+        if (type === 'category') {
+            const cat = item as Category;
+            setFormData({
+                name: cat.name,
+                slug: cat.slug || "",
+                image_url: cat.image_url || "",
+                category_id: "none"
+            });
+        } else {
+            const sub = item as Subcategory;
+            setFormData({
+                name: sub.name,
+                slug: sub.slug || "",
+                image_url: sub.image_url || "",
+                category_id: sub.category_id
+            });
+        }
         setOpen(true);
     };
 
+    const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        try {
+            if (!event.target.files || event.target.files.length === 0) {
+                return;
+            }
+            setUploading(true);
+            const file = event.target.files[0];
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Math.random()}.${fileExt}`;
+            const filePath = `${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('category-images')
+                .upload(filePath, file);
+
+            if (uploadError) {
+                throw uploadError;
+            }
+
+            const { data } = supabase.storage
+                .from('category-images')
+                .getPublicUrl(filePath);
+
+            setFormData({ ...formData, image_url: data.publicUrl });
+            toast.success("تم رفع الصورة بنجاح");
+        } catch (error: any) {
+            toast.error("فشل في رفع الصورة: " + error.message);
+        } finally {
+            setUploading(false);
+        }
+    };
+
     const handleSave = async () => {
-        if (!formData.name_ar || !formData.slug) {
-            toast.error("يرجى ملء الحقول الأساسية");
+        if (!formData.name) {
+            toast.error("الاسم مطلوب");
             return;
         }
 
+        const isSubcategory = formData.category_id !== "none";
+
+        // Determine target table and payload
+        let table = (isSubcategory ? 'subcategories' : 'categories') as "categories" | "subcategories";
+        let payload: any = {
+            name: formData.name,
+            slug: formData.slug || formData.name.toLowerCase().replace(/\s+/g, '-'), // Auto-generate slug if empty
+            image_url: formData.image_url
+        };
+
+        if (isSubcategory) {
+            payload.category_id = formData.category_id;
+        }
+
         let error;
-        if (editingCategory) {
+        if (editingId) {
+            // Update
+            if (editingType === 'category' && isSubcategory) {
+                toast.error("لا يمكن تحويل تصنيف رئيسي إلى فرعي مباشرة");
+                return;
+            } else if (editingType === 'subcategory' && !isSubcategory) {
+                toast.error("لا يمكن تحويل تصنيف فرعي إلى رئيسي مباشرة");
+                return;
+            }
+
             const { error: updateError } = await supabase
-                .from("categories")
-                .update(formData)
-                .eq("id", editingCategory.id);
+                .from(table)
+                .update(payload)
+                .eq("id", editingId);
             error = updateError;
         } else {
-            // Ensure required fields are present for insert
-            const insertData = {
-                name_ar: formData.name_ar,
-                slug: formData.slug,
-                name: formData.slug, // Use slug as name if name is not provided
-                image_url: formData.image_url || null,
-                parent_id: formData.parent_id || null
-            };
+            // Insert
             const { error: insertError } = await supabase
-                .from("categories")
-                .insert([insertData]);
+                .from(table)
+                .insert([payload]);
             error = insertError;
         }
 
         if (error) {
-            toast.error("فشل في حفظ التصنيف");
-            console.error(error);
+            console.error("Save error:", error);
+            toast.error(`فشل في الحفظ: ${error.message || "خطأ غير معروف"}`);
         } else {
-            toast.success(editingCategory ? "تم تحديث التصنيف" : "تم إضافة التصنيف");
+            toast.success(editingId ? "تم التحديث" : "تم الإضافة");
             setOpen(false);
-            setEditingCategory(null);
-            setFormData({});
-            fetchCategories();
+            setEditingId(null);
+            setFormData({ name: "", slug: "", image_url: "", category_id: "none" });
+            fetchData();
         }
     };
 
@@ -128,54 +229,105 @@ export default function AdminCategories() {
                 <Dialog open={open} onOpenChange={(val) => {
                     setOpen(val);
                     if (!val) {
-                        setEditingCategory(null);
-                        setFormData({});
+                        setEditingId(null);
+                        setFormData({ name: "", slug: "", image_url: "", category_id: "none" });
+                        setEditingType('category');
                     }
                 }}>
                     <DialogTrigger asChild>
-                        <Button>
+                        <Button onClick={() => {
+                            setEditingType('category');
+                            setFormData({ name: "", slug: "", image_url: "", category_id: "none" });
+                        }}>
                             <Plus className="ml-2 h-4 w-4" />
                             إضافة تصنيف
                         </Button>
                     </DialogTrigger>
                     <DialogContent>
                         <DialogHeader>
-                            <DialogTitle>{editingCategory ? "تعديل تصنيف" : "إضافة تصنيف جديد"}</DialogTitle>
+                            <DialogTitle>{editingId ? "تعديل" : "إضافة جديد"}</DialogTitle>
                             <DialogDescription>
-                                أدخل تفاصيل التصنيف
+                                أدخل التفاصيل
                             </DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
                             <div className="grid gap-2">
-                                <Label htmlFor="cat-name">الاسم بالعربية</Label>
+                                <Label htmlFor="type">نوع التصنيف</Label>
+                                <Select
+                                    value={formData.category_id}
+                                    onValueChange={(val) => setFormData({ ...formData, category_id: val })}
+                                    disabled={!!editingId} // Disable changing type during edit for simplicity
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="اختر النوع" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">تصنيف رئيسي</SelectItem>
+                                        {categories.map(c => (
+                                            <SelectItem key={c.id} value={c.id}>فرعي من: {c.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="flex flex-col items-center gap-4">
+                                <div className="relative w-32 h-32 border-2 border-dashed rounded-lg flex items-center justify-center overflow-hidden bg-muted">
+                                    {formData.image_url ? (
+                                        <img src={formData.image_url} alt="Category" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="text-center text-muted-foreground p-2">
+                                            <Upload className="mx-auto h-8 w-8 mb-1" />
+                                            <span className="text-xs">صورة التصنيف</span>
+                                        </div>
+                                    )}
+                                    {uploading && (
+                                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                            <Loader2 className="h-6 w-6 animate-spin text-white" />
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Input
+                                        id="image-upload"
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={handleImageUpload}
+                                    />
+                                    <Label
+                                        htmlFor="image-upload"
+                                        className="cursor-pointer bg-secondary text-secondary-foreground hover:bg-secondary/90 h-9 px-4 py-2 rounded-md text-sm font-medium flex items-center"
+                                    >
+                                        <Upload className="w-4 h-4 ml-2" />
+                                        رفع صورة
+                                    </Label>
+                                </div>
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="name">الاسم</Label>
                                 <Input
-                                    id="cat-name"
-                                    value={formData.name_ar || ""}
-                                    onChange={(e) => setFormData({ ...formData, name_ar: e.target.value })}
-                                    placeholder="مثال: ملابس"
+                                    id="name"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    placeholder="اسم التصنيف"
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label htmlFor="cat-slug">الاسم اللطيف (Slug)</Label>
+                                <Label htmlFor="slug">الاسم اللطيف (Slug)</Label>
                                 <Input
-                                    id="cat-slug"
-                                    value={formData.slug || ""}
+                                    id="slug"
+                                    value={formData.slug}
                                     onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                                    placeholder="example: clothes"
-                                />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="cat-image">رابط الصورة</Label>
-                                <Input
-                                    id="cat-image"
-                                    value={formData.image_url || ""}
-                                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                                    placeholder="https://..."
+                                    placeholder="example-slug"
                                 />
                             </div>
                         </div>
                         <DialogFooter>
-                            <Button onClick={handleSave}>{editingCategory ? "تحديث" : "حفظ"}</Button>
+                            <Button onClick={handleSave} disabled={uploading}>
+                                {uploading ? <Loader2 className="h-4 w-4 animate-spin ml-2" /> : null}
+                                {editingId ? "تحديث" : "حفظ"}
+                            </Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
@@ -191,6 +343,7 @@ export default function AdminCategories() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
+                                    <TableHead>الصورة</TableHead>
                                     <TableHead>الاسم</TableHead>
                                     <TableHead>الاسم اللطيف</TableHead>
                                     <TableHead>الإجراءات</TableHead>
@@ -199,25 +352,32 @@ export default function AdminCategories() {
                             <TableBody>
                                 {loading ? (
                                     <TableRow>
-                                        <TableCell colSpan={3} className="text-center py-4">
+                                        <TableCell colSpan={4} className="text-center py-4">
                                             <Loader2 className="h-6 w-6 animate-spin mx-auto" />
                                         </TableCell>
                                     </TableRow>
-                                ) : mainCategories.length === 0 ? (
+                                ) : categories.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={3} className="text-center py-4">لا توجد تصنيفات رئيسية</TableCell>
+                                        <TableCell colSpan={4} className="text-center py-4">لا توجد تصنيفات رئيسية</TableCell>
                                     </TableRow>
                                 ) : (
-                                    mainCategories.map((cat) => (
+                                    categories.map((cat) => (
                                         <TableRow key={cat.id}>
-                                            <TableCell className="font-medium">{cat.name_ar}</TableCell>
-                                            <TableCell>{cat.slug}</TableCell>
+                                            <TableCell>
+                                                {cat.image_url ? (
+                                                    <img src={cat.image_url} alt={cat.name} className="w-10 h-10 object-cover rounded" />
+                                                ) : (
+                                                    <div className="w-10 h-10 bg-muted rounded flex items-center justify-center text-xs">لا صورة</div>
+                                                )}
+                                            </TableCell>
+                                            <TableCell className="font-medium">{cat.name}</TableCell>
+                                            <TableCell>{cat.slug || "-"}</TableCell>
                                             <TableCell>
                                                 <div className="flex gap-2">
-                                                    <Button variant="ghost" size="icon" onClick={() => handleEdit(cat)}>
+                                                    <Button variant="ghost" size="icon" onClick={() => handleEdit(cat, 'category')}>
                                                         <Pencil className="h-4 w-4" />
                                                     </Button>
-                                                    <Button variant="ghost" size="icon" onClick={() => handleDelete(cat.id)}>
+                                                    <Button variant="ghost" size="icon" onClick={() => handleDelete(cat.id, 'category')}>
                                                         <Trash2 className="h-4 w-4 text-destructive" />
                                                     </Button>
                                                 </div>
@@ -241,7 +401,9 @@ export default function AdminCategories() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
+                                    <TableHead>الصورة</TableHead>
                                     <TableHead>الاسم</TableHead>
+                                    <TableHead>الاسم اللطيف</TableHead>
                                     <TableHead>التصنيف الرئيسي</TableHead>
                                     <TableHead>الإجراءات</TableHead>
                                 </TableRow>
@@ -249,34 +411,39 @@ export default function AdminCategories() {
                             <TableBody>
                                 {loading ? (
                                     <TableRow>
-                                        <TableCell colSpan={3} className="text-center py-4">
+                                        <TableCell colSpan={5} className="text-center py-4">
                                             <Loader2 className="h-6 w-6 animate-spin mx-auto" />
                                         </TableCell>
                                     </TableRow>
-                                ) : subCategories.length === 0 ? (
+                                ) : subcategories.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={3} className="text-center py-4">لا توجد فئات فرعية</TableCell>
+                                        <TableCell colSpan={5} className="text-center py-4">لا توجد فئات فرعية</TableCell>
                                     </TableRow>
                                 ) : (
-                                    subCategories.map((sub) => {
-                                        const parent = mainCategories.find(m => m.id === sub.parent_id);
-                                        return (
-                                            <TableRow key={sub.id}>
-                                                <TableCell className="font-medium">{sub.name_ar}</TableCell>
-                                                <TableCell>{parent?.name_ar || "غير معروف"}</TableCell>
-                                                <TableCell>
-                                                    <div className="flex gap-2">
-                                                        <Button variant="ghost" size="icon" onClick={() => handleEdit(sub)}>
-                                                            <Pencil className="h-4 w-4" />
-                                                        </Button>
-                                                        <Button variant="ghost" size="icon" onClick={() => handleDelete(sub.id)}>
-                                                            <Trash2 className="h-4 w-4 text-destructive" />
-                                                        </Button>
-                                                    </div>
-                                                </TableCell>
-                                            </TableRow>
-                                        );
-                                    })
+                                    subcategories.map((sub) => (
+                                        <TableRow key={sub.id}>
+                                            <TableCell>
+                                                {sub.image_url ? (
+                                                    <img src={sub.image_url} alt={sub.name} className="w-10 h-10 object-cover rounded" />
+                                                ) : (
+                                                    <div className="w-10 h-10 bg-muted rounded flex items-center justify-center text-xs">لا صورة</div>
+                                                )}
+                                            </TableCell>
+                                            <TableCell className="font-medium">{sub.name}</TableCell>
+                                            <TableCell>{sub.slug || "-"}</TableCell>
+                                            <TableCell>{sub.categories?.name || "غير معروف"}</TableCell>
+                                            <TableCell>
+                                                <div className="flex gap-2">
+                                                    <Button variant="ghost" size="icon" onClick={() => handleEdit(sub, 'subcategory')}>
+                                                        <Pencil className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button variant="ghost" size="icon" onClick={() => handleDelete(sub.id, 'subcategory')}>
+                                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                                    </Button>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
                                 )}
                             </TableBody>
                         </Table>

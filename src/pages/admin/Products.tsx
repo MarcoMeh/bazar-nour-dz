@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import {
     Table,
     TableBody,
@@ -20,105 +22,220 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
-import { Textarea } from "@/components/ui/textarea";
+import { Plus, Pencil, Trash2, Loader2, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Product {
     id: string;
-    name_ar: string;
-    description_ar?: string;
+    name: string;
+    description?: string;
     price: number;
     image_url?: string;
+    has_colors: boolean;
+    colors?: string[];
+    has_sizes: boolean;
+    sizes?: string[];
+    delivery_type: 'free' | 'home' | 'desktop' | 'sold-out';
     category_id?: string;
-    store_id?: string;
-    is_active?: boolean;
-    // Add other fields as needed
+    subcategory_id?: string;
+    categories?: { name: string };
+    subcategories?: { name: string };
+}
+
+interface Category {
+    id: string;
+    name: string;
+}
+
+interface Subcategory {
+    id: string;
+    name: string;
+    category_id: string;
 }
 
 export default function AdminProducts() {
     const [products, setProducts] = useState<Product[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
     const [loading, setLoading] = useState(true);
     const [open, setOpen] = useState(false);
-    const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+    const [uploading, setUploading] = useState(false);
+    const [editingId, setEditingId] = useState<string | null>(null);
 
-    // Form State
-    const [formData, setFormData] = useState<Partial<Product>>({});
+    const [formData, setFormData] = useState({
+        name: "",
+        description: "",
+        price: "",
+        image_url: "",
+        category_id: "",
+        subcategory_id: "none",
+        has_colors: false,
+        colors: "",
+        has_sizes: false,
+        sizes: "",
+        free_delivery: false,
+        is_sold_out: false,
+    });
 
     useEffect(() => {
-        fetchProducts();
+        fetchData();
     }, []);
 
-    const fetchProducts = async () => {
+    const fetchData = async () => {
         setLoading(true);
-        const { data, error } = await supabase
+        const { data: prods, error: prodError } = await supabase
             .from("products")
-            .select("*")
+            .select("*, categories(name), subcategories(name)")
             .order("created_at", { ascending: false });
 
-        if (error) {
+        const { data: cats } = await supabase.from("categories").select("*").order("name");
+        const { data: subcats } = await supabase.from("subcategories").select("*").order("name");
+
+        if (prodError) {
             toast.error("فشل في تحميل المنتجات");
-            console.error(error);
+            console.error(prodError);
         } else {
-            setProducts(data || []);
+            setProducts(prods || []);
+            setCategories(cats || []);
+            setSubcategories(subcats || []);
         }
         setLoading(false);
     };
 
-    const handleDelete = async (id: string) => {
-        if (!confirm("هل أنت متأكد من حذف هذا المنتج؟")) return;
+    const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        try {
+            if (!event.target.files || event.target.files.length === 0) return;
+            setUploading(true);
+            const file = event.target.files[0];
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Math.random()}.${fileExt}`;
+            const filePath = `${fileName}`;
 
-        const { error } = await supabase.from("products").delete().eq("id", id);
+            const { error: uploadError } = await supabase.storage
+                .from('product-images')
+                .upload(filePath, file);
 
-        if (error) {
-            toast.error("فشل في حذف المنتج");
-        } else {
-            toast.success("تم حذف المنتج بنجاح");
-            fetchProducts();
+            if (uploadError) throw uploadError;
+
+            const { data } = supabase.storage
+                .from('product-images')
+                .getPublicUrl(filePath);
+
+            setFormData({ ...formData, image_url: data.publicUrl });
+            toast.success("تم رفع الصورة بنجاح");
+        } catch (error: any) {
+            toast.error("فشل في رفع الصورة: " + error.message);
+        } finally {
+            setUploading(false);
         }
-    };
-
-    const handleEdit = (product: Product) => {
-        setEditingProduct(product);
-        setFormData(product);
-        setOpen(true);
     };
 
     const handleSave = async () => {
-        // Basic validation
-        if (!formData.name_ar || !formData.price) {
-            toast.error("يرجى ملء الحقول الأساسية");
+        if (!formData.name || !formData.price || !formData.category_id) {
+            toast.error("الرجاء ملء الحقول المطلوبة (الاسم، السعر، التصنيف)");
             return;
         }
 
+        // Map toggles to delivery_type
+        let delivery_type = 'home';
+        if (formData.is_sold_out) {
+            delivery_type = 'sold-out';
+        } else if (formData.free_delivery) {
+            delivery_type = 'free';
+        }
+
+        const payload: any = {
+            name: formData.name,
+            description: formData.description,
+            price: parseFloat(formData.price),
+            image_url: formData.image_url,
+            category_id: formData.category_id,
+            subcategory_id: formData.subcategory_id === "none" ? null : formData.subcategory_id,
+            has_colors: formData.has_colors,
+            colors: formData.has_colors ? formData.colors.split(',').map(c => c.trim()).filter(Boolean) : [],
+            has_sizes: formData.has_sizes,
+            sizes: formData.has_sizes ? formData.sizes.split(',').map(s => s.trim()).filter(Boolean) : [],
+            delivery_type: delivery_type,
+            // is_sold_out and free_delivery are mapped to delivery_type
+        };
+
         let error;
-        if (editingProduct) {
-            // Update
+        if (editingId) {
             const { error: updateError } = await supabase
                 .from("products")
-                .update(formData)
-                .eq("id", editingProduct.id);
+                .update(payload)
+                .eq("id", editingId);
             error = updateError;
         } else {
-            // Create
             const { error: insertError } = await supabase
                 .from("products")
-                .insert([formData]);
+                .insert([payload]);
             error = insertError;
         }
 
         if (error) {
-            toast.error("فشل في حفظ المنتج");
-            console.error(error);
+            console.error("Save error:", error);
+            toast.error("فشل في الحفظ");
         } else {
-            toast.success(editingProduct ? "تم تحديث المنتج" : "تم إضافة المنتج");
+            toast.success(editingId ? "تم التحديث" : "تم الإضافة");
             setOpen(false);
-            setEditingProduct(null);
-            setFormData({});
-            fetchProducts();
+            resetForm();
+            fetchData();
         }
     };
+
+    const handleDelete = async (id: string) => {
+        if (!confirm("هل أنت متأكد من حذف هذا المنتج؟")) return;
+        const { error } = await supabase.from("products").delete().eq("id", id);
+        if (error) {
+            toast.error("فشل في الحذف");
+        } else {
+            toast.success("تم الحذف");
+            fetchData();
+        }
+    };
+
+    const handleEdit = (product: Product) => {
+        setEditingId(product.id);
+        setFormData({
+            name: product.name,
+            description: product.description || "",
+            price: product.price.toString(),
+            image_url: product.image_url || "",
+            category_id: product.category_id || "",
+            subcategory_id: product.subcategory_id || "none",
+            has_colors: product.has_colors,
+            colors: product.colors ? product.colors.join(", ") : "",
+            has_sizes: product.has_sizes,
+            sizes: product.sizes ? product.sizes.join(", ") : "",
+            free_delivery: product.delivery_type === 'free',
+            is_sold_out: product.delivery_type === 'sold-out',
+        });
+        setOpen(true);
+    };
+
+    const resetForm = () => {
+        setEditingId(null);
+        setFormData({
+            name: "",
+            description: "",
+            price: "",
+            image_url: "",
+            category_id: "",
+            subcategory_id: "none",
+            has_colors: false,
+            colors: "",
+            has_sizes: false,
+            sizes: "",
+            free_delivery: false,
+            is_sold_out: false,
+        });
+    };
+
+    // Filter subcategories based on selected category
+    const filteredSubcategories = subcategories.filter(sub => sub.category_id === formData.category_id);
 
     return (
         <div className="p-8">
@@ -126,10 +243,7 @@ export default function AdminProducts() {
                 <h1 className="text-3xl font-bold text-primary">إدارة المنتجات</h1>
                 <Dialog open={open} onOpenChange={(val) => {
                     setOpen(val);
-                    if (!val) {
-                        setEditingProduct(null);
-                        setFormData({});
-                    }
+                    if (!val) resetForm();
                 }}>
                     <DialogTrigger asChild>
                         <Button>
@@ -139,56 +253,166 @@ export default function AdminProducts() {
                     </DialogTrigger>
                     <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
-                            <DialogTitle>{editingProduct ? "تعديل منتج" : "إضافة منتج جديد"}</DialogTitle>
-                            <DialogDescription>
-                                أدخل تفاصيل المنتج
-                            </DialogDescription>
+                            <DialogTitle>{editingId ? "تعديل منتج" : "إضافة منتج جديد"}</DialogTitle>
+                            <DialogDescription>أدخل تفاصيل المنتج</DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="name">اسم المنتج</Label>
-                                <Input
-                                    id="name"
-                                    value={formData.name_ar || ""}
-                                    onChange={(e) => setFormData({ ...formData, name_ar: e.target.value })}
-                                    placeholder="أدخل اسم المنتج"
-                                />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="description">الوصف</Label>
-                                <Textarea
-                                    id="description"
-                                    value={formData.description_ar || ""}
-                                    onChange={(e) => setFormData({ ...formData, description_ar: e.target.value })}
-                                    placeholder="أدخل وصف المنتج"
-                                />
-                            </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="grid gap-2">
-                                    <Label htmlFor="price">السعر (دج)</Label>
+                                    <Label>الاسم</Label>
                                     <Input
-                                        id="price"
-                                        type="number"
-                                        value={formData.price || ""}
-                                        onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
-                                        placeholder="0"
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                        placeholder="اسم المنتج"
                                     />
                                 </div>
-                                {/* Add Category Select here if needed, fetching categories first */}
+                                <div className="grid gap-2">
+                                    <Label>السعر (د.ج)</Label>
+                                    <Input
+                                        type="number"
+                                        value={formData.price}
+                                        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                                        placeholder="0.00"
+                                    />
+                                </div>
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="image">رابط الصورة</Label>
-                                <Input
-                                    id="image"
-                                    value={formData.image_url || ""}
-                                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                                    placeholder="https://..."
+                                <Label>الوصف</Label>
+                                <Textarea
+                                    value={formData.description}
+                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                    placeholder="وصف المنتج..."
                                 />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="grid gap-2">
+                                    <Label>التصنيف الرئيسي</Label>
+                                    <Select
+                                        value={formData.category_id}
+                                        onValueChange={(val) => setFormData({ ...formData, category_id: val, subcategory_id: "none" })}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="اختر التصنيف" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {categories.map(c => (
+                                                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label>التصنيف الفرعي (اختياري)</Label>
+                                    <Select
+                                        value={formData.subcategory_id}
+                                        onValueChange={(val) => setFormData({ ...formData, subcategory_id: val })}
+                                        disabled={!formData.category_id}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="اختر التصنيف الفرعي" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="none">بدون تصنيف فرعي</SelectItem>
+                                            {filteredSubcategories.map(s => (
+                                                <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col gap-4 border p-4 rounded-lg">
+                                <div className="flex items-center justify-between">
+                                    <Label>صورة المنتج</Label>
+                                    <div className="flex items-center gap-2">
+                                        <Input
+                                            id="prod-image"
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={handleImageUpload}
+                                        />
+                                        <Label
+                                            htmlFor="prod-image"
+                                            className="cursor-pointer bg-secondary text-secondary-foreground hover:bg-secondary/90 h-9 px-4 py-2 rounded-md text-sm font-medium flex items-center"
+                                        >
+                                            <Upload className="w-4 h-4 ml-2" />
+                                            رفع صورة
+                                        </Label>
+                                    </div>
+                                </div>
+                                {formData.image_url && (
+                                    <div className="relative w-full h-40 bg-muted rounded-md overflow-hidden">
+                                        <img src={formData.image_url} alt="Preview" className="w-full h-full object-contain" />
+                                        {uploading && (
+                                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                                <Loader2 className="h-6 w-6 animate-spin text-white" />
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="border p-4 rounded-lg space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <Label>الألوان</Label>
+                                        <Switch
+                                            checked={formData.has_colors}
+                                            onCheckedChange={(checked) => setFormData({ ...formData, has_colors: checked })}
+                                        />
+                                    </div>
+                                    {formData.has_colors && (
+                                        <Input
+                                            value={formData.colors}
+                                            onChange={(e) => setFormData({ ...formData, colors: e.target.value })}
+                                            placeholder="أحمر, أزرق, أخضر..."
+                                        />
+                                    )}
+                                </div>
+
+                                <div className="border p-4 rounded-lg space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <Label>المقاسات</Label>
+                                        <Switch
+                                            checked={formData.has_sizes}
+                                            onCheckedChange={(checked) => setFormData({ ...formData, has_sizes: checked })}
+                                        />
+                                    </div>
+                                    {formData.has_sizes && (
+                                        <Input
+                                            value={formData.sizes}
+                                            onChange={(e) => setFormData({ ...formData, sizes: e.target.value })}
+                                            placeholder="S, M, L, XL..."
+                                        />
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="flex items-center justify-between border p-4 rounded-lg">
+                                    <Label>توصيل مجاني</Label>
+                                    <Switch
+                                        checked={formData.free_delivery}
+                                        onCheckedChange={(checked) => setFormData({ ...formData, free_delivery: checked })}
+                                    />
+                                </div>
+                                <div className="flex items-center justify-between border p-4 rounded-lg">
+                                    <Label>نفذت الكمية</Label>
+                                    <Switch
+                                        checked={formData.is_sold_out}
+                                        onCheckedChange={(checked) => setFormData({ ...formData, is_sold_out: checked })}
+                                    />
+                                </div>
                             </div>
                         </div>
                         <DialogFooter>
-                            <Button onClick={handleSave}>{editingProduct ? "تحديث" : "حفظ"}</Button>
+                            <Button onClick={handleSave} disabled={uploading}>
+                                {uploading ? <Loader2 className="h-4 w-4 animate-spin ml-2" /> : null}
+                                {editingId ? "تحديث المنتج" : "حفظ المنتج"}
+                            </Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
@@ -205,34 +429,44 @@ export default function AdminProducts() {
                                 <TableHead>الصورة</TableHead>
                                 <TableHead>الاسم</TableHead>
                                 <TableHead>السعر</TableHead>
+                                <TableHead>التصنيف</TableHead>
+                                <TableHead>الحالة</TableHead>
                                 <TableHead>الإجراءات</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {loading ? (
                                 <TableRow>
-                                    <TableCell colSpan={4} className="text-center py-8">
-                                        <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+                                    <TableCell colSpan={6} className="text-center py-4">
+                                        <Loader2 className="h-6 w-6 animate-spin mx-auto" />
                                     </TableCell>
                                 </TableRow>
                             ) : products.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={4} className="text-center py-8">
-                                        لا توجد منتجات
-                                    </TableCell>
+                                    <TableCell colSpan={6} className="text-center py-4">لا توجد منتجات</TableCell>
                                 </TableRow>
                             ) : (
                                 products.map((product) => (
                                     <TableRow key={product.id}>
                                         <TableCell>
                                             {product.image_url ? (
-                                                <img src={product.image_url} alt={product.name_ar} className="w-12 h-12 object-cover rounded" />
+                                                <img src={product.image_url} alt={product.name} className="w-10 h-10 object-cover rounded" />
                                             ) : (
-                                                <div className="w-12 h-12 bg-muted rounded flex items-center justify-center text-xs">لا صورة</div>
+                                                <div className="w-10 h-10 bg-muted rounded flex items-center justify-center text-xs">لا صورة</div>
                                             )}
                                         </TableCell>
-                                        <TableCell className="font-medium">{product.name_ar}</TableCell>
-                                        <TableCell>{product.price} دج</TableCell>
+                                        <TableCell className="font-medium">{product.name}</TableCell>
+                                        <TableCell>{product.price} د.ج</TableCell>
+                                        <TableCell>
+                                            {product.categories?.name}
+                                            {product.subcategories?.name && ` > ${product.subcategories.name}`}
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex flex-col gap-1">
+                                                {product.delivery_type === 'sold-out' && <span className="text-xs text-destructive font-bold">نفذت الكمية</span>}
+                                                {product.delivery_type === 'free' && <span className="text-xs text-green-600">توصيل مجاني</span>}
+                                            </div>
+                                        </TableCell>
                                         <TableCell>
                                             <div className="flex gap-2">
                                                 <Button variant="ghost" size="icon" onClick={() => handleEdit(product)}>

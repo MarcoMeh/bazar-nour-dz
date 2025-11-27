@@ -22,12 +22,13 @@ const AdminLogin = () => {
   useEffect(() => {
     const testConnection = async () => {
       console.log("Testing DB connection...");
-      const { data, error } = await supabase.from("admins").select("count", { count: 'exact', head: true });
+      // Check profiles instead of admins since admins table doesn't exist
+      const { data, error } = await supabase.from("profiles").select("count", { count: 'exact', head: true });
       if (error) {
         console.error("DB Connection Test Failed:", error);
         toast.error("⚠️ خطأ في الاتصال بقاعدة البيانات: " + error.message);
       } else {
-        console.log("DB Connection Test Passed. Admins count:", data);
+        console.log("DB Connection Test Passed. Profiles count:", data);
       }
     };
     testConnection();
@@ -50,30 +51,13 @@ const AdminLogin = () => {
 
     // If the user typed a username (not an email)
     if (!isEmail(email)) {
-      console.log("Input is not an email, checking store_owners for username:", email);
-      // find email by username
-      const { data: userRes, error: userError } = await supabase
-        .from("store_owners")
-        .select("email")
-        .eq("username", email)
-        .maybeSingle(); // Use maybeSingle to avoid error if not found
-
-      if (userError) {
-        console.error("Error querying store_owners:", userError);
-        toast.error("خطأ في البحث عن اسم المستخدم: " + userError.message);
-        setLoading(false);
-        return;
-      }
-
-      if (!userRes) {
-        console.warn("Username not found in store_owners");
-        toast.error("❌ اسم المستخدم غير موجود. (المشرفون يجب أن يستخدموا البريد الإلكتروني)");
-        setLoading(false);
-        return;
-      }
-
-      loginEmail = userRes.email;
-      console.log("Found email for username:", loginEmail);
+      // Username login is not supported in the current schema (profiles table only has email)
+      // We could check if we want to support it, but for now let's enforce email or warn.
+      // The previous code checked store_owners.username.
+      // Since we are migrating to profiles, and profiles doesn't have username, we should probably just tell them to use email.
+      toast.error("يرجى استخدام البريد الإلكتروني لتسجيل الدخول");
+      setLoading(false);
+      return;
     }
 
     // Now login using EMAIL
@@ -107,27 +91,20 @@ const AdminLogin = () => {
 
     console.log("Auth user ID:", authUser.id);
 
-    // Check Admin
-    const { data: adminData, error: adminError } = await supabase
-      .from("admins")
-      .select("id")
-      .eq("auth_user_id", authUser.id)
+    // Check Profile Role
+    const { data: profileData, error: profileError } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", authUser.id)
       .maybeSingle();
 
-    if (adminError) console.error("Error checking admin role:", adminError);
-    const isAdminUser = !!adminData;
-    console.log("Is Admin?", isAdminUser);
+    if (profileError) console.error("Error checking profile role:", profileError);
 
-    // Check Store Owner
-    const { data: ownerData, error: ownerError } = await supabase
-      .from("store_owners")
-      .select("id, username")
-      .eq("user_id", authUser.id)
-      .maybeSingle();
+    const role = profileData?.role;
+    console.log("User Role:", role);
 
-    if (ownerError) console.error("Error checking store owner role:", ownerError);
-    const isStoreOwner = !!ownerData;
-    console.log("Is Store Owner?", isStoreOwner);
+    const isAdminUser = role === 'admin';
+    const isStoreOwner = role === 'store_owner';
 
     if (!isAdminUser && !isStoreOwner) {
       console.warn("User is neither Admin nor Store Owner");
