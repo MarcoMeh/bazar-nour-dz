@@ -11,10 +11,11 @@ interface ProductCardProps {
   description_ar?: string;
   price: number;
   image_url?: string;
-  is_delivery_home_available: boolean; // New
-  is_delivery_desktop_available: boolean; // New
-  is_sold_out: boolean; // New
-  is_free_delivery: boolean; // New
+  is_delivery_home_available: boolean;
+  is_delivery_desktop_available: boolean;
+  is_sold_out: boolean;
+  is_free_delivery: boolean;
+  store_id: string; // New prop
 }
 
 export const ProductCard = ({
@@ -23,17 +24,25 @@ export const ProductCard = ({
   description_ar,
   price,
   image_url,
-  is_delivery_home_available, // Destructure new props
+  is_delivery_home_available,
   is_delivery_desktop_available,
   is_sold_out,
   is_free_delivery,
+  store_id, // Destructure new prop
 }: ProductCardProps) => {
   const { addItem } = useCart();
 
   const handleAddToCart = () => {
     // Only allow adding to cart if not sold out
     if (!is_sold_out) {
-      addItem({ id, name_ar, price, image_url });
+      console.log("Adding from card with store_id:", store_id);
+      addItem({
+        id,
+        name_ar,
+        price,
+        image_url,
+        ownerId: store_id // Pass store_id as ownerId
+      });
     }
   };
 
@@ -54,7 +63,7 @@ export const ProductCard = ({
           )}
         </div>
       </Link>
-      
+
       {/* Badges for status and delivery */}
       <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
         {is_free_delivery && (
@@ -93,7 +102,7 @@ export const ProductCard = ({
           {price.toFixed(2)} <span className="text-sm">دج</span>
         </p>
       </CardContent>
-      
+
       <CardFooter className="p-4 pt-0">
         {is_sold_out ? (
           <Button

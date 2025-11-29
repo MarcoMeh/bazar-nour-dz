@@ -1,7 +1,6 @@
 // src/pages/Checkout.tsx
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Header } from "@/components/Header";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -90,62 +89,47 @@ const Checkout = () => {
     setLoading(true);
 
     try {
-      // prepare order payload
+      // Get the store ID from the first item (assuming single store order for now)
+      // In a real multi-store app, you'd split orders or have a cart per store.
+      // We'll try to find a store_id from the items if available, or use a default/null.
+      // Since CartItem doesn't strictly have store_id, we might need to fetch it or rely on ownerId if that maps to store.
+      // But orders table expects store_id.
+      // Let's assume for now we can't easily get store_id without fetching, so we'll leave it null 
+      // OR better, we should have store_id in CartItem.
+      // For this fix, I'll use null for store_id to prevent the error, as owner_id column doesn't exist in orders table.
+
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+
+      console.log("Checkout ownerId:", ownerId);
+
       const orderPayload = {
-        owner_id: ownerId || null, // nullable
-        customer_name: formData.name,
-        customer_phone: formData.phone,
-        wilaya_id: selectedWilaya.id, // number
+        store_id: ownerId,
+        user_id: user?.id || null,
+        wilaya_id: selectedWilaya.id,
+        full_name: formData.name,
+        phone: formData.phone,
         address: formData.address,
-        delivery_type: formData.deliveryType,
-        delivery_price: deliveryPrice,
+        delivery_option: formData.deliveryType,
         total_price: finalTotal,
-        items: items.map((it) => ({
-          id: it.id,
-          name_ar: it.name_ar,
-          price: it.price,
-          quantity: it.quantity,
-          color: it.color ?? null,
-          size: it.size ?? null,
-          image_url: it.image_url ?? null,
-          ownerId: it.ownerId ?? null
-        })) // snapshot
       };
 
-      // Insert order — use array form and cast to any to satisfy TS
-      // Insert order
-      const { data: orderData, error: orderError } = await supabase
-        .from("orders")
-        .insert([orderPayload])
-        .select("id")
-        .single();
-
-      if (orderError || !orderData) {
-        console.error("order insert error:", orderError);
-        toast.error("فشل إنشاء الطلب");
-        setLoading(false);
-        return;
-      }
-
-      const orderId = orderData.id;
-
-      // Prepare order_items payload
-      const orderItemsPayload = items.map((it) => ({
-        order_id: orderId,
+      const itemsPayload = items.map((it) => ({
         product_id: it.id,
         quantity: it.quantity,
-        unit_price: it.price,
-        color: it.color ?? null,
-        size: it.size ?? null
+        price: it.price,
+        selected_color: it.color ?? null,
+        selected_size: it.size ?? null
       }));
 
-      const { error: itemsError } = await supabase
-        .from("order_items")
-        .insert(orderItemsPayload);
+      const { error } = await supabase.rpc('create_order', {
+        order_payload: orderPayload,
+        items_payload: itemsPayload
+      });
 
-      if (itemsError) {
-        console.error("order_items insert error:", itemsError);
-        toast.error("فشل حفظ عناصر الطلب");
+      if (error) {
+        console.error("Order creation error:", error);
+        toast.error("فشل إنشاء الطلب: " + error.message);
         setLoading(false);
         return;
       }
@@ -163,8 +147,6 @@ const Checkout = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
-
       <main className="flex-1 container mx-auto py-8 px-4">
         <h1 className="text-3xl font-bold mb-6">إتمام الطلب</h1>
 

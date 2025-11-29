@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Header } from '@/components/Header';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -14,23 +13,25 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
-import { ArrowRight, ShoppingCart, Truck, Shield, Home, Package } from 'lucide-react'; // Added Home and Package for delivery icons
-import { PostgrestError } from '@supabase/supabase-js'; // Make sure this import is present
+import { ArrowRight, ShoppingCart, Truck, Shield, Home, Package } from 'lucide-react';
+import { PostgrestError } from '@supabase/supabase-js';
 
-// Updated Product interface to include new fields
 interface Product {
   id: string;
-  name_ar: string;
-  description_ar?: string;
+  name: string; // Changed from name_ar
+  description?: string; // Changed from description_ar (assuming DB uses description based on AdminProducts)
   price: number;
   image_url?: string;
   images?: string[];
   category_id?: string;
 
   is_delivery_home_available: boolean;
-  is_delivery_desk_available: boolean; // <-- الصحيح
+  is_delivery_desk_available: boolean;
   is_sold_out: boolean;
   is_free_delivery: boolean;
+  store_id: string;
+  colors?: string[];
+  sizes?: string[];
 }
 
 
@@ -41,6 +42,8 @@ const ProductDetail = () => {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
@@ -50,17 +53,15 @@ const ProductDetail = () => {
 
   const fetchProduct = async () => {
     setLoading(true);
-    // Updated select statement to include all new columns
-    // --- CRITICAL CHANGE HERE ---
+    // Explicitly select fields to be safe, including store_id
     const { data, error } = (await supabase
       .from('products')
-      .select('*, is_delivery_home_available, is_delivery_desk_available, is_sold_out, is_free_delivery')
+      .select('*, store_id, is_delivery_home_available, is_delivery_desk_available, is_sold_out, is_free_delivery, colors, sizes')
       .eq('id', id)
-      .maybeSingle()) as { data: Product | null; error: PostgrestError | null }; // Notice Product | null for maybeSingle()
-    // --- END CRITICAL CHANGE ---
+      .maybeSingle()) as { data: Product | null; error: PostgrestError | null };
 
     if (error) {
-      toast.error('حدث خطأ في تحميل المنتج: ' + error.message); // Added error.message for better debugging
+      toast.error('حدث خطأ في تحميل المنتج: ' + error.message);
       setLoading(false);
       return;
     }
@@ -71,21 +72,39 @@ const ProductDetail = () => {
       return;
     }
 
+    console.log("Fetched Product (Raw):", JSON.stringify(data, null, 2));
+    console.log("Product Store ID:", data.store_id);
     setProduct(data);
     setLoading(false);
   };
 
   const handleAddToCart = () => {
-    if (product && !product.is_sold_out) { // Prevent adding to cart if sold out
+    if (product && !product.is_sold_out) {
+      // Validate Color Selection
+      if (product.colors && product.colors.length > 0 && !selectedColor) {
+        toast.error('الرجاء اختيار اللون');
+        return;
+      }
+
+      // Validate Size Selection
+      if (product.sizes && product.sizes.length > 0 && !selectedSize) {
+        toast.error('الرجاء اختيار المقاس');
+        return;
+      }
+
+      console.log("Adding to cart with store_id:", product.store_id);
       addItem({
         id: product.id,
-        name_ar: product.name_ar,
+        name_ar: product.name, // Map name to name_ar for CartContext
         price: product.price,
         image_url: product.image_url,
+        ownerId: product.store_id,
+        color: selectedColor,
+        size: selectedSize,
       });
-      toast.success('تمت إضافة المنتج إلى السلة!'); // Optional: Add a success toast
+      toast.success('تمت إضافة المنتج إلى السلة!');
     } else if (product?.is_sold_out) {
-      toast.error('عذراً، هذا المنتج نفد من المخزون.'); // Optional: Inform user if trying to add sold-out item
+      toast.error('عذراً، هذا المنتج نفد من المخزون.');
     }
   };
 
@@ -104,7 +123,6 @@ const ProductDetail = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col">
-        <Header />
         <main className="flex-1 container mx-auto px-4 py-8">
           <div className="animate-pulse">
             <div className="h-96 bg-muted rounded-lg mb-8" />
@@ -121,7 +139,6 @@ const ProductDetail = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
 
       <main className="flex-1 container mx-auto px-4 py-8">
         <Button
@@ -135,8 +152,8 @@ const ProductDetail = () => {
 
         <div className="grid md:grid-cols-2 gap-8 mb-12">
           {/* Images Section */}
-          <div className="space-y-4 relative"> {/* Added relative for "Sold Out" badge */}
-            {product.is_sold_out && ( // <-- FIXED
+          <div className="space-y-4 relative">
+            {product.is_sold_out && (
               <div className="absolute top-4 left-4 bg-red-600 text-white text-lg px-4 py-2 rounded-full shadow-xl z-10 font-bold">
                 نفد
               </div>
@@ -149,7 +166,7 @@ const ProductDetail = () => {
                       <Card className="overflow-hidden border-muted">
                         <img
                           src={image}
-                          alt={`${product.name_ar} - ${index + 1}`}
+                          alt={`${product.name} - ${index + 1}`}
                           className="w-full h-96 object-cover"
                         />
                       </Card>
@@ -163,7 +180,7 @@ const ProductDetail = () => {
               <Card className="overflow-hidden border-muted">
                 <img
                   src={product.image_url || '/placeholder.svg'}
-                  alt={product.name_ar}
+                  alt={product.name}
                   className="w-full h-96 object-cover"
                 />
               </Card>
@@ -183,7 +200,7 @@ const ProductDetail = () => {
                   >
                     <img
                       src={image}
-                      alt={`${product.name_ar} thumbnail ${index + 1}`}
+                      alt={`${product.name} thumbnail ${index + 1}`}
                       className="w-full h-20 object-cover"
                     />
                   </Card>
@@ -196,7 +213,7 @@ const ProductDetail = () => {
           <div className="space-y-6">
             <div>
               <h1 className="text-3xl md:text-4xl font-bold mb-4">
-                {product.name_ar}
+                {product.name}
               </h1>
               <div className="text-3xl font-bold text-primary mb-6">
                 {product.price.toFixed(2)} دج
@@ -212,21 +229,64 @@ const ProductDetail = () => {
               )}
               {product.is_delivery_home_available && (
                 <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 text-sm px-3 py-1.5 rounded-full font-medium">
-                  <Home className="h-4 w-4" /> توصيل للمنزل
+                  <Truck className="h-4 w-4" /> توصيل للمنزل
                 </span>
               )}
               {product.is_delivery_desk_available && (
                 <span className="inline-flex items-center gap-1 bg-purple-100 text-purple-700 text-sm px-3 py-1.5 rounded-full font-medium">
-                  <Package className="h-4 w-4" /> استلام من المكتب
+                  <Home className="h-4 w-4" /> استلام من المكتب
                 </span>
               )}
             </div>
 
-            {product.description_ar && (
+            {/* Color Selection */}
+            {product.colors && product.colors.length > 0 && (
+              <div className="mb-6">
+                <h3 className="font-semibold mb-3">اللون:</h3>
+                <div className="flex flex-wrap gap-3">
+                  {product.colors.map((color) => (
+                    <button
+                      key={color}
+                      onClick={() => setSelectedColor(color)}
+                      className={`w-8 h-8 rounded-full border-2 transition-all ${selectedColor === color
+                        ? 'border-primary ring-2 ring-primary ring-offset-2'
+                        : 'border-gray-300 hover:border-gray-400'
+                        }`}
+                      style={{ backgroundColor: color }}
+                      title={color}
+                    />
+                  ))}
+                </div>
+                {selectedColor && <p className="text-sm text-muted-foreground mt-1">تم اختيار: {selectedColor}</p>}
+              </div>
+            )}
+
+            {/* Size Selection */}
+            {product.sizes && product.sizes.length > 0 && (
+              <div className="mb-6">
+                <h3 className="font-semibold mb-3">المقاس:</h3>
+                <div className="flex flex-wrap gap-3">
+                  {product.sizes.map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => setSelectedSize(size)}
+                      className={`min-w-[3rem] h-10 px-3 rounded-lg border-2 font-medium transition-all ${selectedSize === size
+                        ? 'border-primary bg-primary/5 text-primary'
+                        : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {product.description && (
               <Card className="p-6 bg-muted/50 border-muted">
                 <h2 className="text-xl font-semibold mb-3">وصف المنتج</h2>
                 <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
-                  {product.description_ar}
+                  {product.description}
                 </p>
               </Card>
             )}

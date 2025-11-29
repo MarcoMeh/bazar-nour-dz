@@ -23,10 +23,11 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Pencil, Trash2, Loader2, Upload } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Upload, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { useAdmin } from "@/contexts/AdminContext";
 
 interface Product {
@@ -86,6 +87,10 @@ export default function AdminProducts() {
     const [uploading, setUploading] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
 
+    // Tag Input State
+    const [inputColor, setInputColor] = useState("");
+    const [inputSize, setInputSize] = useState("");
+
     const [formData, setFormData] = useState({
         name: "",
         description: "",
@@ -95,9 +100,9 @@ export default function AdminProducts() {
         subcategory_id: "none",
         store_id: "none",
         has_colors: false,
-        colors: "",
+        colors: [] as string[],
         has_sizes: false,
-        sizes: "",
+        sizes: [] as string[],
         free_delivery: false,
         is_sold_out: false,
     });
@@ -149,6 +154,28 @@ export default function AdminProducts() {
             setStores((strs || []) as any);
         }
         setLoading(false);
+    };
+
+    const handleAddColor = () => {
+        if (inputColor.trim() && !formData.colors.includes(inputColor.trim())) {
+            setFormData({ ...formData, colors: [...formData.colors, inputColor.trim()] });
+            setInputColor("");
+        }
+    };
+
+    const handleRemoveColor = (colorToRemove: string) => {
+        setFormData({ ...formData, colors: formData.colors.filter(c => c !== colorToRemove) });
+    };
+
+    const handleAddSize = () => {
+        if (inputSize.trim() && !formData.sizes.includes(inputSize.trim())) {
+            setFormData({ ...formData, sizes: [...formData.sizes, inputSize.trim()] });
+            setInputSize("");
+        }
+    };
+
+    const handleRemoveSize = (sizeToRemove: string) => {
+        setFormData({ ...formData, sizes: formData.sizes.filter(s => s !== sizeToRemove) });
     };
 
     const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -210,11 +237,17 @@ export default function AdminProducts() {
             subcategory_id: formData.subcategory_id === "none" ? null : formData.subcategory_id,
             store_id: finalStoreId,
             has_colors: formData.has_colors,
-            colors: formData.has_colors ? formData.colors.split(',').map(c => c.trim()).filter(Boolean) : [],
+            colors: formData.has_colors ? formData.colors : [],
             has_sizes: formData.has_sizes,
-            sizes: formData.has_sizes ? formData.sizes.split(',').map(s => s.trim()).filter(Boolean) : [],
+            sizes: formData.has_sizes ? formData.sizes : [],
             delivery_type: delivery_type,
         };
+
+        console.log("Saving Product Payload:", payload);
+        console.log("Is Admin:", isAdmin);
+        console.log("Is Store Owner:", isStoreOwner);
+        console.log("Store ID from Context:", storeId);
+        console.log("Form Data Store ID:", formData.store_id);
 
         let error;
         if (editingId) {
@@ -263,9 +296,9 @@ export default function AdminProducts() {
             subcategory_id: product.subcategory_id || "none",
             store_id: product.store_id || "none",
             has_colors: product.has_colors,
-            colors: product.colors ? product.colors.join(", ") : "",
+            colors: product.colors || [],
             has_sizes: product.has_sizes,
-            sizes: product.sizes ? product.sizes.join(", ") : "",
+            sizes: product.sizes || [],
             free_delivery: product.delivery_type === 'free',
             is_sold_out: product.delivery_type === 'sold-out',
         });
@@ -283,9 +316,9 @@ export default function AdminProducts() {
             subcategory_id: "none",
             store_id: "none",
             has_colors: false,
-            colors: "",
+            colors: [],
             has_sizes: false,
-            sizes: "",
+            sizes: [],
             free_delivery: false,
             is_sold_out: false,
         });
@@ -442,11 +475,36 @@ export default function AdminProducts() {
                                         />
                                     </div>
                                     {formData.has_colors && (
-                                        <Input
-                                            value={formData.colors}
-                                            onChange={(e) => setFormData({ ...formData, colors: e.target.value })}
-                                            placeholder="أحمر, أزرق, أخضر..."
-                                        />
+                                        <div className="space-y-3">
+                                            <div className="flex gap-2">
+                                                <Input
+                                                    value={inputColor}
+                                                    onChange={(e) => setInputColor(e.target.value)}
+                                                    placeholder="أضف لون..."
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') {
+                                                            e.preventDefault();
+                                                            handleAddColor();
+                                                        }
+                                                    }}
+                                                />
+                                                <Button type="button" onClick={handleAddColor} size="icon">
+                                                    <Plus className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2">
+                                                {formData.colors.map((color, index) => (
+                                                    <Badge key={index} variant="secondary" className="px-2 py-1 flex items-center gap-1">
+                                                        <div className="w-3 h-3 rounded-full border" style={{ backgroundColor: color }}></div>
+                                                        {color}
+                                                        <X
+                                                            className="h-3 w-3 cursor-pointer hover:text-destructive"
+                                                            onClick={() => handleRemoveColor(color)}
+                                                        />
+                                                    </Badge>
+                                                ))}
+                                            </div>
+                                        </div>
                                     )}
                                 </div>
 
@@ -459,11 +517,35 @@ export default function AdminProducts() {
                                         />
                                     </div>
                                     {formData.has_sizes && (
-                                        <Input
-                                            value={formData.sizes}
-                                            onChange={(e) => setFormData({ ...formData, sizes: e.target.value })}
-                                            placeholder="S, M, L, XL..."
-                                        />
+                                        <div className="space-y-3">
+                                            <div className="flex gap-2">
+                                                <Input
+                                                    value={inputSize}
+                                                    onChange={(e) => setInputSize(e.target.value)}
+                                                    placeholder="أضف مقاس..."
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') {
+                                                            e.preventDefault();
+                                                            handleAddSize();
+                                                        }
+                                                    }}
+                                                />
+                                                <Button type="button" onClick={handleAddSize} size="icon">
+                                                    <Plus className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2">
+                                                {formData.sizes.map((size, index) => (
+                                                    <Badge key={index} variant="outline" className="px-2 py-1 flex items-center gap-1">
+                                                        {size}
+                                                        <X
+                                                            className="h-3 w-3 cursor-pointer hover:text-destructive"
+                                                            onClick={() => handleRemoveSize(size)}
+                                                        />
+                                                    </Badge>
+                                                ))}
+                                            </div>
+                                        </div>
                                     )}
                                 </div>
                             </div>

@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Header } from "@/components/Header";
 
 import { ProductCard } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
@@ -24,7 +23,7 @@ import {
 
 interface Category {
   id: string;
-  name_ar: string;
+  name: string;
   slug: string;
   parent_id?: string | null;
   image_url?: string | null;
@@ -43,6 +42,7 @@ interface Product {
   is_delivery_desktop_available: boolean;
   is_sold_out: boolean;
   is_free_delivery: boolean;
+  store_id: string; // NEW
   created_at?: string; // needed for date sorting
 }
 
@@ -53,7 +53,7 @@ const Products = () => {
   const [selectedMainCategory, setSelectedMainCategory] = useState<string | null>(null);
   const [selectedSubCategory, setSelectedSubCategory] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [sortField, setSortField] = useState<"name_ar" | "price" | "created_at">("created_at");
+  const [sortField, setSortField] = useState<"name" | "price" | "created_at">("created_at");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -61,11 +61,11 @@ const Products = () => {
   const [maxPriceInput, setMaxPriceInput] = useState<string>("");
   const [globalMinMaxPrice, setGlobalMinMaxPrice] = useState<[number, number]>([0, 1000]);
 
-  // NEW: color / size filters
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [availableColors, setAvailableColors] = useState<string[]>([]);
   const [availableSizes, setAvailableSizes] = useState<string[]>([]);
+  const [selectedStore, setSelectedStore] = useState<string | null>(null);
 
   const debouncedSetSearchTerm = useRef(debounce((value: string) => setSearchTerm(value), 500)).current;
   const debouncedSetMinPrice = useRef(debounce((value: string) => setMinPriceInput(value), 500)).current;
@@ -77,9 +77,15 @@ const Products = () => {
     fetchAvailableColorsAndSizes();
 
     const categoryParam = searchParams.get("category");
+    const storeParam = searchParams.get("store");
+
     if (categoryParam) {
       setSelectedMainCategory(categoryParam);
-    } else {
+    }
+    if (storeParam) {
+      setSelectedStore(storeParam);
+    }
+    if (!categoryParam && !storeParam) {
       fetchProducts("", "", "");
     }
 
@@ -94,10 +100,10 @@ const Products = () => {
   useEffect(() => {
     fetchProducts(searchTerm, minPriceInput, maxPriceInput, selectedColor, selectedSize);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedSubCategory, selectedMainCategory, searchTerm, minPriceInput, maxPriceInput, selectedColor, selectedSize]);
+  }, [selectedSubCategory, selectedMainCategory, selectedStore, searchTerm, minPriceInput, maxPriceInput, selectedColor, selectedSize]);
 
   const fetchCategories = async () => {
-    const { data, error } = await supabase.from("categories").select("*").order("name_ar");
+    const { data, error } = await supabase.from("categories").select("*").order("name");
     if (error) {
       toast.error("حدث خطأ في تحميل الفئات: " + (error.message || ""));
       return;
@@ -148,6 +154,11 @@ const Products = () => {
     setLoading(true);
     let query: any = supabase.from("products").select("*");
 
+    // Store filter
+    if (selectedStore) {
+      query = query.eq("store_id", selectedStore);
+    }
+
     if (selectedSubCategory) {
       query = query.eq("category_id", selectedSubCategory);
     } else if (selectedMainCategory) {
@@ -155,7 +166,7 @@ const Products = () => {
       if (subCategoryIds.length > 0) query = query.in("category_id", subCategoryIds);
     }
 
-    if (currentSearchTerm) query = query.ilike("name_ar", `%${currentSearchTerm}%`);
+    if (currentSearchTerm) query = query.ilike("name", `%${currentSearchTerm}%`);
 
     const parsedMin = parseFloat(currentMinPriceInput);
     const parsedMax = parseFloat(currentMaxPriceInput);
@@ -215,7 +226,7 @@ const Products = () => {
       fieldA = Number(fieldA);
       fieldB = Number(fieldB);
     }
-    if (sortField === "name_ar") {
+    if (sortField === "name") {
       fieldA = String(fieldA);
       fieldB = String(fieldB);
     }
@@ -228,7 +239,6 @@ const Products = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
       <main className="flex-1 container mx-auto px-4 py-8">
         {/* HERO */}
         <div className="text-center mb-10 py-10 bg-gradient-to-r from-blue-600 to-purple-700 text-white rounded-xl shadow-lg">
@@ -284,7 +294,7 @@ const Products = () => {
           {/* Sorting */}
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mt-4 justify-center">
             <select value={sortField} onChange={(e) => setSortField(e.target.value as any)} className="border p-2 rounded-lg">
-              <option value="name_ar">الاسم</option>
+              <option value="name">الاسم</option>
               <option value="price">السعر</option>
               <option value="created_at">التاريخ</option>
             </select>
@@ -308,7 +318,7 @@ const Products = () => {
                   <div className="h-24 sm:h-28 overflow-hidden rounded-md">
                     <img src={cat.image_url || ""} className="w-full h-full object-cover" />
                   </div>
-                  <p className="text-center mt-2 font-semibold text-sm sm:text-base">{cat.name_ar}</p>
+                  <p className="text-center mt-2 font-semibold text-sm sm:text-base">{cat.name}</p>
                 </Card>
               ))}
             </div>
@@ -332,7 +342,7 @@ const Products = () => {
                   <div className="h-24 sm:h-28 overflow-hidden rounded-md">
                     <img src={cat.image_url || ""} className="w-full h-full object-cover" />
                   </div>
-                  <p className="text-center mt-2 font-semibold text-sm sm:text-base">{cat.name_ar}</p>
+                  <p className="text-center mt-2 font-semibold text-sm sm:text-base">{cat.name}</p>
                 </Card>
               ))}
             </div>

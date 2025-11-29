@@ -1,14 +1,10 @@
 import { Link } from 'react-router-dom';
-import { Header } from '@/components/Header';
-
 import { Button } from '@/components/ui/button';
 import aboutImage from '@/assets/about_backround.jpeg';
 
 const About = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-background via-background to-muted/20">
-      <Header />
-
       <main className="flex-1">
         {/* Hero Section */}
         <section className="relative bg-green-600 text-white">

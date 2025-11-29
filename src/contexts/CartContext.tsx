@@ -83,7 +83,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     // If cart ownerId is not set and item has ownerId, set it (helps multi-store)
+    console.log("addItem payload:", payload);
+    console.log("Current ownerId:", ownerId);
     if (!ownerId && (payload as any).ownerId) {
+      console.log("Setting ownerId to:", (payload as any).ownerId);
       setOwnerId((payload as any).ownerId);
     }
   };

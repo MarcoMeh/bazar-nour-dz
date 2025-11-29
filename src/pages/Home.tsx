@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Header } from "@/components/Header";
 
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,7 +11,8 @@ import heroBg from "@/assets/backround_5.jpeg"; // Using HEAD's preferred backgr
 
 interface Category {
     id: string;
-    name_ar: string;
+    name?: string;
+    name_ar?: string;
     slug: string;
     image_url?: string | null;
     parent_id?: string | null;
@@ -27,21 +27,25 @@ interface Product {
     sub_category_name?: string | null;
 }
 
+interface Store {
+    id: string;
+    name: string;
+    image_url?: string | null;
+    description?: string | null;
+}
+
 const Home = () => {
     const [mainCategories, setMainCategories] = useState<Category[]>([]);
     const [newestProducts, setNewestProducts] = useState<Product[]>([]);
+    const [stores, setStores] = useState<Store[]>([]);
     const [loading, setLoading] = useState(true);
-
-    // Our Stores
-    const [ourStoresCategory, setOurStoresCategory] = useState<Category | null>(null);
-    const [ourStoresSub, setOurStoresSub] = useState<Category[]>([]);
 
     useEffect(() => {
         const loadData = async () => {
             setLoading(true);
             await Promise.all([
                 fetchMainCategories(),
-                fetchOurStores(),
+                fetchStores(),
                 fetchNewestProducts(),
             ]);
             setLoading(false);
@@ -53,28 +57,18 @@ const Home = () => {
         const { data, error } = await supabase
             .from("categories")
             .select("*")
-            .is("parent_id", null)
-            .neq("slug", "ourstores")
-            .order("name_ar");
+            .order("name");
 
         if (!error && data) setMainCategories(data);
     };
 
-    const fetchOurStores = async () => {
-        const { data: mainCat } = await supabase
-            .from("categories")
-            .select("*")
-            .eq("slug", "ourstores")
-            .single();
+    const fetchStores = async () => {
+        const { data, error } = await supabase
+            .from("stores")
+            .select("id, name, image_url, description")
+            .order("name");
 
-        if (mainCat) {
-            setOurStoresCategory(mainCat);
-            const { data: subCats } = await supabase
-                .from("categories")
-                .select("*")
-                .eq("parent_id", mainCat.id);
-            if (subCats) setOurStoresSub(subCats);
-        }
+        if (!error && data) setStores(data);
     };
 
     const fetchNewestProducts = async () => {
@@ -86,8 +80,8 @@ const Home = () => {
         price,
         image_url,
         categories!inner(
-          name_ar,
-          parent:parent_id(name_ar)
+          name,
+          parent:parent_id(name)
         )
       `)
             .order("created_at", { ascending: false })
@@ -97,8 +91,8 @@ const Home = () => {
             setNewestProducts(
                 data.map((item: any) => ({
                     ...item,
-                    category_name: item.categories?.name_ar || "غير مصنف",
-                    sub_category_name: item.categories?.parent?.name_ar || null,
+                    category_name: item.categories?.name || "غير مصنف",
+                    sub_category_name: item.categories?.parent?.name || null,
                 }))
             );
         }
@@ -106,7 +100,7 @@ const Home = () => {
 
     return (
         <div className="min-h-screen flex flex-col bg-[#FFFDF9] text-gray-900">
-            <Header />
+
 
             <main className="flex-1">
                 {/* Hero Section - HEAD Style */}
@@ -254,30 +248,36 @@ const Home = () => {
                     </div>
                 </section>
 
-                {/* Our Stores Section - Incoming Logic */}
-                {ourStoresCategory && (
+                {/* Our Stores Section */}
+                {stores.length > 0 && (
                     <section className="py-20 bg-gray-50">
                         <div className="container mx-auto px-4 text-center">
                             <h2 className="text-3xl md:text-5xl font-bold mb-4 text-gray-800">
-                                {ourStoresCategory.name_ar}
+                                محلاتنا
                             </h2>
-                            <p className="text-gray-500 text-lg mb-12">كل محلاتنا في مكان واحد</p>
+                            <p className="text-gray-500 text-lg mb-12">تسوق من محلاتنا المميزة</p>
 
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                                {ourStoresSub.map((sub) => (
+                                {stores.map((store) => (
                                     <Link
-                                        key={sub.id}
-                                        to={`/productstores?supplier=${sub.id}`}
+                                        key={store.id}
+                                        to={`/products?store=${store.id}`}
                                         className="group relative aspect-square rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500"
                                     >
-                                        <img
-                                            src={sub.image_url || ""}
-                                            alt={sub.name_ar}
-                                            className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                                        />
+                                        {store.image_url ? (
+                                            <img
+                                                src={store.image_url}
+                                                alt={store.name}
+                                                className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                            />
+                                        ) : (
+                                            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+                                                <span className="text-6xl font-bold text-primary/30">{store.name.charAt(0)}</span>
+                                            </div>
+                                        )}
                                         <div className="absolute inset-0 bg-black/40 group-hover:bg-black/60 transition-all"></div>
-                                        <h3 className="absolute inset-0 flex items-center justify-center text-white text-xl md:text-2xl font-bold z-10">
-                                            {sub.name_ar}
+                                        <h3 className="absolute inset-0 flex items-center justify-center text-white text-xl md:text-2xl font-bold z-10 px-4">
+                                            {store.name}
                                         </h3>
                                     </Link>
                                 ))}
@@ -305,18 +305,18 @@ const Home = () => {
                                         {category.image_url ? (
                                             <img
                                                 src={category.image_url}
-                                                alt={category.name_ar}
+                                                alt={category.name_ar || category.name || ""}
                                                 className="w-full h-48 md:h-56 object-cover group-hover:scale-105 transition-transform duration-500"
                                             />
                                         ) : (
                                             <div className="w-full h-48 md:h-56 bg-white flex items-center justify-center text-black font-semibold text-xl border-b-4 border-green-400">
-                                                {category.name_ar}
+                                                {category.name_ar || category.name}
                                             </div>
                                         )}
                                         {/* Overlay for text if image exists */}
                                         {category.image_url && (
                                             <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end justify-center pb-4">
-                                                <span className="text-white font-bold text-xl">{category.name_ar}</span>
+                                                <span className="text-white font-bold text-xl">{category.name_ar || category.name}</span>
                                             </div>
                                         )}
                                     </Link>

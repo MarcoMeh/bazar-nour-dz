@@ -1,9 +1,5 @@
-// src/pages/productstores.tsx
-
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Header } from "@/components/Header";
-
 import { ProductCard } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -12,7 +8,7 @@ import { toast } from "sonner";
 import { PostgrestError } from "@supabase/supabase-js";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { debounce } from "lodash";
+import debounce from "lodash/debounce";
 import { ArrowLeft, Inbox } from "lucide-react";
 
 interface Category {
@@ -29,7 +25,6 @@ interface Product {
   description_ar?: string;
   price: number;
   image_url?: string;
-  // removed supplier_name: string;
   colors?: string[];
   sizes?: string[];
   is_delivery_home_available: boolean;
@@ -37,7 +32,7 @@ interface Product {
   is_sold_out: boolean;
   is_free_delivery: boolean;
   created_at?: string;
-  owner_id?: string;
+  store_id: string; // Made required to match ProductCard
 }
 
 const ProductStores = () => {
@@ -69,18 +64,19 @@ const ProductStores = () => {
   }, [supplierCategory, searchTerm, minPriceInput, maxPriceInput, selectedColor, selectedSize]);
 
   const fetchSupplierCategory = async (id: string) => {
-    const { data, error } = await supabase.from("store_owners").select("*").eq("id", id).single();
+    // Corrected: Query 'stores' table, not 'store_owners'
+    const { data, error } = await supabase.from("stores").select("*").eq("id", id).single();
 
     if (error || !data) {
-      toast.error("المورد غير موجود");
+      toast.error("المتجر غير موجود");
       return;
     }
 
     setSupplierCategory({
       id: data.id,
-      name_ar: data.owner_name ?? data.username,
-      slug: data.username,
-      image_url: data.store_image_url ?? null
+      name_ar: data.name, // 'stores' table has 'name'
+      slug: data.name, // Using name as slug for now
+      image_url: data.image_url ?? null
     });
   };
 
@@ -88,10 +84,10 @@ const ProductStores = () => {
     setLoading(true);
 
     try {
-      // query by owner_id instead of supplier_name
-      let query = supabase.from("products").select("*").eq("owner_id", supplierCategory?.id || "");
+      // Corrected: Query by 'store_id'
+      let query = supabase.from("products").select("*").eq("store_id", supplierCategory?.id || "");
 
-      if (searchTerm) query = query.ilike("name_ar", `%${searchTerm}%`);
+      if (searchTerm) query = query.ilike("name", `%${searchTerm}%`); // 'products' has 'name'
 
       const parsedMin = parseFloat(minPriceInput);
       const parsedMax = parseFloat(maxPriceInput);
@@ -103,7 +99,7 @@ const ProductStores = () => {
       if (selectedSize) query = query.contains("sizes", [selectedSize]);
 
       const { data, error } = (await query.order("created_at", { ascending: false })) as {
-        data: Product[] | null;
+        data: any[] | null; // Use any[] initially to map
         error: PostgrestError | null;
       };
 
@@ -111,7 +107,24 @@ const ProductStores = () => {
         throw error;
       }
 
-      setProducts(data || []);
+      // Map DB columns to Product interface
+      const mappedProducts: Product[] = (data || []).map((p) => ({
+        id: p.id,
+        name_ar: p.name,
+        description_ar: p.description,
+        price: p.price,
+        image_url: p.image_url,
+        colors: p.colors,
+        sizes: p.sizes,
+        is_delivery_home_available: p.is_delivery_home_available ?? true,
+        is_delivery_desktop_available: p.is_delivery_desk_available ?? true, // Note: desk vs desktop naming
+        is_sold_out: p.is_sold_out ?? false,
+        is_free_delivery: p.is_free_delivery ?? false,
+        created_at: p.created_at,
+        store_id: p.store_id
+      }));
+
+      setProducts(mappedProducts);
     } catch (err) {
       console.error(err);
       toast.error("خطأ في تحميل المنتجات");
@@ -125,7 +138,6 @@ const ProductStores = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
       <main className="flex-1 container mx-auto px-4 py-8">
 
         <div className="text-center mb-8">
@@ -135,7 +147,7 @@ const ProductStores = () => {
             ) : null}
             <div>
               <h1 className="text-3xl md:text-4xl font-bold mb-2">منتجات {supplierCategory?.name_ar}</h1>
-              <p className="text-muted-foreground text-lg">جميع منتجات هذا المورد</p>
+              <p className="text-muted-foreground text-lg">جميع منتجات هذا المتجر</p>
             </div>
           </div>
         </div>

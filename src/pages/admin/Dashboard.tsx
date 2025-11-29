@@ -70,7 +70,7 @@ export default function AdminDashboard() {
       // Fetch recent orders
       let recentOrdersQuery = supabase
         .from("orders")
-        .select("*, profiles:owner_id(full_name)")
+        .select("*, profiles:user_id(full_name)")
         .order("created_at", { ascending: false })
         .limit(5);
 
