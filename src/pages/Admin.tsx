@@ -12,13 +12,13 @@ const Admin = () => {
 
   useEffect(() => {
     if (!isAdmin) {
-      navigate('/login');
+      navigate('/admin/login');
     }
   }, [isAdmin, navigate]);
 
   const handleLogout = async () => {
     await logout();
-    navigate('/login');
+    navigate('/admin/login');
   };
 
   if (!isAdmin) return null;

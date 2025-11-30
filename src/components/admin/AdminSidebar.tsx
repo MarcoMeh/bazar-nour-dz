@@ -20,7 +20,7 @@ export const AdminSidebar = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    window.location.href = "/admin/login";
+    window.location.href = "/";
   };
 
   const navItems = [

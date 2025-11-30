@@ -115,29 +115,6 @@ export const Navbar = () => {
                             <span className="sr-only">السلة</span>
                         </Button>
                     </Link>
-
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                                <User className="h-5 w-5" />
-                                <span className="sr-only">حسابي</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>حسابي</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem>
-                                <Link to="/my-orders" className="w-full">طلباتي</Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem>
-                                <Link to="/login" className="w-full">تسجيل الدخول</Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                                <Link to="/register" className="w-full">إنشاء حساب</Link>
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
                 </div>
             </div>
         </nav>
