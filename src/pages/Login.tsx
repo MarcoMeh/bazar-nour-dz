@@ -127,13 +127,6 @@ export default function Login() {
                             )}
                         </Button>
                     </form>
-
-                    <div className="text-center text-sm text-muted-foreground">
-                        ليس لديك حساب؟{" "}
-                        <Button variant="link" className="px-0 font-semibold text-primary hover:text-primary/80" onClick={() => navigate("/register")}>
-                            إنشاء حساب جديد
-                        </Button>
-                    </div>
                 </div>
             </div>
 

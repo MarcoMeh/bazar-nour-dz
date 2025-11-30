@@ -15,7 +15,9 @@ import Checkout from "./pages/Checkout";
 import NotFound from "./pages/NotFound";
 import About from "./pages/About";
 import ProductStores from "./pages/productstores";
+import MyOrders from "./pages/MyOrders";
 import AdminLogin from "./pages/AdminLogin";
+import ScrollToTop from "@/components/ScrollToTop";
 
 // Admin Pages (Nested Structure)
 import AdminDashboard from "./pages/admin/Dashboard";
@@ -31,8 +33,6 @@ import { CartProvider } from "./contexts/CartContext";
 import { AdminProvider } from "./contexts/AdminContext";
 
 const queryClient = new QueryClient();
-
-import ScrollToTop from "@/components/ScrollToTop";
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -53,6 +53,7 @@ const App = () => (
                 <Route path="/productstores" element={<ProductStores />} />
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/checkout" element={<Checkout />} />
+                <Route path="/my-orders" element={<MyOrders />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/about" element={<About />} />
               </Route>

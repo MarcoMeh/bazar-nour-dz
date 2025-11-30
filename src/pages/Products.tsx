@@ -78,6 +78,7 @@ const Products = () => {
 
     const categoryParam = searchParams.get("category");
     const storeParam = searchParams.get("store");
+    const searchParam = searchParams.get("search");
 
     if (categoryParam) {
       setSelectedMainCategory(categoryParam);
@@ -85,7 +86,11 @@ const Products = () => {
     if (storeParam) {
       setSelectedStore(storeParam);
     }
-    if (!categoryParam && !storeParam) {
+    if (searchParam) {
+      setSearchTerm(searchParam);
+    }
+
+    if (!categoryParam && !storeParam && !searchParam) {
       fetchProducts("", "", "");
     }
 
