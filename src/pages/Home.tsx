@@ -127,13 +127,13 @@ const Home = () => {
                     }}
                 >
                     <div className="absolute inset-0 bg-black/25"></div>
-                    <div className="container mx-auto px-4 py-32 text-center relative z-10">
+                    <div className="container mx-auto px-4 py-16 md:py-32 text-center relative z-10">
                         <img
                             src={logo}
                             alt="Bazzarna"
-                            className="mx-auto h-32 md:h-40 w-auto mb-6 relative z-10 animate-fadeIn"
+                            className="mx-auto h-24 md:h-40 w-auto mb-6 relative z-10 animate-fadeIn"
                         />
-                        <h1 className="text-4xl md:text-6xl font-extrabold mb-4 leading-tight text-white animate-fadeIn delay-200">
+                        <h1 className="text-3xl md:text-6xl font-extrabold mb-4 leading-tight text-white animate-fadeIn delay-200">
                             بازارنا... كل ما تحتاجه في مكان واحد
                         </h1>
                         <p className="text-lg md:text-2xl mb-10 opacity-90 text-white animate-fadeIn delay-400">
@@ -228,8 +228,8 @@ const Home = () => {
                         </div>
 
                         {/* Floating Image */}
-                        <div className="relative hidden lg:block animate-float order-1 lg:order-2">
-                            <div className="relative z-10 bg-white/10 backdrop-blur-md rounded-3xl p-6 border border-white/20 shadow-2xl transform -rotate-3 hover:rotate-0 transition-all duration-500">
+                        <div className="relative animate-float order-1 lg:order-2 mb-12 lg:mb-0">
+                            <div className="relative z-10 bg-white/10 backdrop-blur-md rounded-3xl p-4 md:p-6 border border-white/20 shadow-2xl transform -rotate-3 hover:rotate-0 transition-all duration-500">
                                 <img
                                     src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=2070&auto=format&fit=crop"
                                     alt="Best Product"

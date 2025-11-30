@@ -32,6 +32,8 @@ import { AdminProvider } from "./contexts/AdminContext";
 
 const queryClient = new QueryClient();
 
+import ScrollToTop from "@/components/ScrollToTop";
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -40,6 +42,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <ScrollToTop />
             <Routes>
               {/* Public Routes */}
               <Route element={<Layout />}>
