@@ -47,21 +47,31 @@ interface Order {
     created_at: string;
     total_price: number;
     status: string;
-    user_id: string;
+    user_id: string | null;
+    store_id: string | null;
+    store_ids: string[] | null;
+    group_id: string | null;
     full_name: string;
     phone: string;
     address: string;
-    wilaya_id: number;
+    wilaya_id: number | null;
     delivery_option: string;
     profiles?: {
-        full_name?: string;
-    };
+        full_name?: string | null;
+    } | null;
     stores?: {
-        name: string;
-    };
+        name: string | null;
+    } | null;
     wilayas?: {
-        name: string;
-    };
+        name: string | null;
+    } | null;
+    order_items?: {
+        products?: {
+            stores?: {
+                name: string | null;
+            } | null;
+        } | null;
+    }[];
 }
 
 export default function AdminOrders() {
@@ -75,62 +85,74 @@ export default function AdminOrders() {
     const [loadingItems, setLoadingItems] = useState(false);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+    const fetchOrders = async () => {
+        setLoading(true);
+        try {
+            let orderIds: string[] | null = null;
+
+            if (isStoreOwner && storeId) {
+                const { data: storeOrders, error: storeError } = await supabase
+                    .rpc('get_store_orders', { p_store_id: storeId });
+
+                if (storeError) throw storeError;
+                orderIds = storeOrders.map((o: any) => o.id);
+            }
+
+            let query = supabase
+                .from("orders")
+                .select("*, profiles:user_id(full_name), stores(name), wilayas(name), order_items(products(stores(name)))")
+                .order("created_at", { ascending: false });
+
+            if (orderIds) {
+                query = query.in('id', orderIds);
+            }
+
+            const { data, error } = await query;
+
+            if (error) throw error;
+            // Cast to unknown first to bypass Supabase complex type inference issues
+            setOrders((data as unknown as Order[]) || []);
+        } catch (error: any) {
+            console.error("Error fetching orders FULL DETAILS:", error);
+            toast.error(`فشل في تحميل الطلبات: ${error.message || 'خطأ غير معروف'}`);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchOrders();
+    }, [isStoreOwner, storeId]);
+
     const handleViewOrder = async (order: Order) => {
         setSelectedOrder(order);
         setIsDialogOpen(true);
         setLoadingItems(true);
 
-        const { data, error } = await supabase
+        let query = supabase
             .from("order_items")
-            .select("*, products(name, image_url)")
+            .select("*, products(name, image_url, store_id)")
             .eq("order_id", order.id);
+
+        const { data, error } = await query;
 
         if (error) {
             console.error("Error fetching items:", error);
             toast.error("فشل في تحميل تفاصيل الطلب");
         } else {
-            // Map data to handle array response from join if necessary
-            const formattedItems = (data || []).map((item: any) => ({
+            // Filter items for Store Owner
+            let items = data || [];
+            if (isStoreOwner && storeId) {
+                items = items.filter((item: any) => item.products?.store_id === storeId);
+            }
+
+            const formattedItems = items.map((item: any) => ({
                 ...item,
                 products: Array.isArray(item.products) ? item.products[0] : item.products
             }));
             setOrderItems(formattedItems);
         }
         setLoadingItems(false);
-    };
-
-    useEffect(() => {
-        fetchOrders();
-    }, [isAdmin, isStoreOwner, storeId]);
-
-    const fetchOrders = async () => {
-        setLoading(true);
-        // Updated query to use user_id for the join and include stores(name) and wilayas(name)
-        let query = supabase
-            .from("orders")
-            .select("*, profiles:user_id(full_name), stores(name), wilayas(name)")
-            .order("created_at", { ascending: false });
-
-        if (isStoreOwner && storeId) {
-            query = query.eq('store_id', storeId);
-        }
-
-        const { data, error } = await query;
-
-        if (error) {
-            toast.error("فشل في تحميل الطلبات");
-            console.error(error);
-        } else {
-            // Ensure data matches Order interface
-            const formattedData = (data || []).map((item: any) => ({
-                ...item,
-                profiles: Array.isArray(item.profiles) ? item.profiles[0] : item.profiles,
-                stores: Array.isArray(item.stores) ? item.stores[0] : item.stores,
-                wilayas: Array.isArray(item.wilayas) ? item.wilayas[0] : item.wilayas
-            }));
-            setOrders(formattedData as Order[]);
-        }
-        setLoading(false);
     };
 
     const handleStatusChange = async (orderId: string, newStatus: string) => {
@@ -184,12 +206,23 @@ export default function AdminOrders() {
                             ) : (
                                 orders.map((order) => (
                                     <TableRow key={order.id}>
-                                        <TableCell className="font-medium">#{order.id.slice(0, 8)}</TableCell>
+                                        <TableCell className="font-medium">
+                                            #{order.id.slice(0, 8)}
+                                            {order.group_id && (
+                                                <div className="text-xs text-muted-foreground">
+                                                    Ref: {order.group_id.slice(0, 8)}
+                                                </div>
+                                            )}
+                                        </TableCell>
                                         <TableCell>
                                             {order.full_name || order.profiles?.full_name || "غير معروف"}
                                         </TableCell>
                                         <TableCell>
-                                            {order.stores?.name || "عام"}
+                                            {order.stores?.name || (
+                                                order.order_items && order.order_items.length > 0
+                                                    ? Array.from(new Set(order.order_items.map(item => item.products?.stores?.name).filter((name): name is string => !!name))).join(", ")
+                                                    : "عام"
+                                            )}
                                         </TableCell>
                                         <TableCell>{order.total_price} دج</TableCell>
                                         <TableCell>
@@ -239,7 +272,13 @@ export default function AdminOrders() {
                                 </div>
                                 <div>
                                     <p className="text-sm text-muted-foreground">المتجر</p>
-                                    <p className="font-medium">{selectedOrder.stores?.name || "عام"}</p>
+                                    <p className="font-medium">
+                                        {selectedOrder.stores?.name || (
+                                            selectedOrder.order_items && selectedOrder.order_items.length > 0
+                                                ? Array.from(new Set(selectedOrder.order_items.map(item => item.products?.stores?.name).filter((name): name is string => !!name))).join(", ")
+                                                : "عام"
+                                        )}
+                                    </p>
                                 </div>
                                 <div>
                                     <p className="text-sm text-muted-foreground">رقم الهاتف</p>
@@ -321,6 +360,6 @@ export default function AdminOrders() {
                     )}
                 </DialogContent>
             </Dialog>
-        </div >
+        </div>
     );
 }

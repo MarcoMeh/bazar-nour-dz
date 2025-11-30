@@ -101,10 +101,19 @@ const Checkout = () => {
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
 
-      console.log("Checkout ownerId:", ownerId);
+      // Calculate unique store IDs from items
+      // We need to ensure CartItem has ownerId (which is store_id)
+      const uniqueStoreIds = Array.from(new Set(items.map(item => item.ownerId).filter((id): id is string => !!id)));
+
+      // If single store, use that ID. If multiple or none, use null.
+      const orderStoreId = uniqueStoreIds.length === 1 ? uniqueStoreIds[0] : null;
+
+      console.log("Checkout uniqueStoreIds:", uniqueStoreIds);
+      console.log("Final Order Store ID:", orderStoreId);
 
       const orderPayload = {
-        store_id: ownerId,
+        store_id: orderStoreId,
+        store_ids: uniqueStoreIds, // Send the array of store IDs
         user_id: user?.id || null,
         wilaya_id: selectedWilaya.id,
         full_name: formData.name,
@@ -119,7 +128,8 @@ const Checkout = () => {
         quantity: it.quantity,
         price: it.price,
         selected_color: it.color ?? null,
-        selected_size: it.size ?? null
+        selected_size: it.size ?? null,
+        store_id: it.ownerId // Required for splitting orders by store
       }));
 
       const { error } = await supabase.rpc('create_order', {

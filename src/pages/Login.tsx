@@ -27,11 +27,17 @@ export default function Login() {
             if (error) throw error;
 
             // Get user profile to check role
-            const { data: profile } = await supabase
+            const { data: profile, error: profileError } = await supabase
                 .from("profiles")
                 .select("role")
                 .eq("id", data.user.id)
                 .single();
+
+            if (profileError) {
+                console.error("Error fetching profile:", profileError);
+            }
+
+            console.log("User role:", profile?.role);
 
             toast({
                 title: "تم تسجيل الدخول بنجاح",
@@ -39,14 +45,19 @@ export default function Login() {
             });
 
             // Redirect based on role
-            if (profile?.role === "admin") {
+            if (profile?.role === "admin" || profile?.role === "store_owner") {
                 navigate("/admin");
-            } else if (profile?.role === "store_owner") {
-                navigate("/store-owner");
             } else {
+                console.log("Redirecting to home. Profile:", profile);
                 navigate("/");
+                toast({
+                    title: "تم التوجيه للرئيسية",
+                    description: `الدور الحالي: ${profile?.role || 'غير موجود'} (خطأ: ${profileError?.message || 'لا يوجد'})`,
+                    variant: "destructive",
+                });
             }
         } catch (error: any) {
+            console.error("Login error:", error);
             toast({
                 title: "خطأ في تسجيل الدخول",
                 description: error.message,
