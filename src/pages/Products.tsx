@@ -193,7 +193,12 @@ const Products = () => {
       return;
     }
 
-    setProducts(data || []);
+    const mappedProducts = (data || []).map((p: any) => ({
+      ...p,
+      colors: p.colors || [],
+      sizes: p.sizes || []
+    }));
+    setProducts(mappedProducts);
     setLoading(false);
   };
 

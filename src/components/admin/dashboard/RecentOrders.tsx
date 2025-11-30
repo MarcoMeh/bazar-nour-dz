@@ -10,7 +10,7 @@ interface RecentOrder {
     created_at: string;
     total_price: number;
     status: string;
-    full_name: string;
+    full_name?: string;
     profiles?: { full_name: string } | null;
 }
 

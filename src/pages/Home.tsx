@@ -25,6 +25,13 @@ interface Product {
     image_url?: string | null;
     category_name?: string;
     sub_category_name?: string | null;
+    colors?: string[];
+    sizes?: string[];
+    is_delivery_home_available?: boolean;
+    is_delivery_desktop_available?: boolean;
+    is_sold_out?: boolean;
+    is_free_delivery?: boolean;
+    store_id?: string;
 }
 
 interface Store {
@@ -79,6 +86,13 @@ const Home = () => {
         name_ar,
         price,
         image_url,
+        colors,
+        sizes,
+        is_delivery_home_available,
+        is_delivery_desktop_available,
+        is_sold_out,
+        is_free_delivery,
+        store_id,
         categories!inner(
           name,
           parent:parent_id(name)

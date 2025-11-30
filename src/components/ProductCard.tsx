@@ -1,10 +1,9 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { useCart } from '@/contexts/CartContext';
 import { ShoppingCart } from 'lucide-react';
 
-// Updated ProductCardProps to include new fields
 interface ProductCardProps {
   id: string;
   name_ar: string;
@@ -15,7 +14,9 @@ interface ProductCardProps {
   is_delivery_desktop_available: boolean;
   is_sold_out: boolean;
   is_free_delivery: boolean;
-  store_id: string; // New prop
+  store_id: string;
+  colors?: string[];
+  sizes?: string[];
 }
 
 export const ProductCard = ({
@@ -28,11 +29,23 @@ export const ProductCard = ({
   is_delivery_desktop_available,
   is_sold_out,
   is_free_delivery,
-  store_id, // Destructure new prop
+  store_id,
+  colors,
+  sizes,
 }: ProductCardProps) => {
   const { addItem } = useCart();
+  const navigate = useNavigate();
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // If product has options, redirect to detail page
+    if ((colors && colors.length > 0) || (sizes && sizes.length > 0)) {
+      navigate(`/product/${id}`);
+      return;
+    }
+
     // Only allow adding to cart if not sold out
     if (!is_sold_out) {
       console.log("Adding from card with store_id:", store_id);
@@ -41,13 +54,13 @@ export const ProductCard = ({
         name_ar,
         price,
         image_url,
-        ownerId: store_id // Pass store_id as ownerId
+        ownerId: store_id
       });
     }
   };
 
   return (
-    <Card className="card-3d overflow-hidden hover:shadow-xl transition-all duration-300 group border-muted hover:border-accent/30 relative"> {/* Added 'relative' for badge positioning */}
+    <Card className="card-3d overflow-hidden hover:shadow-xl transition-all duration-300 group border-muted hover:border-accent/30 relative">
       <Link to={`/product/${id}`}>
         <div className="aspect-square overflow-hidden bg-gradient-to-br from-muted to-muted/50">
           {image_url ? (

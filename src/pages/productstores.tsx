@@ -114,8 +114,8 @@ const ProductStores = () => {
         description_ar: p.description,
         price: p.price,
         image_url: p.image_url,
-        colors: p.colors,
-        sizes: p.sizes,
+        colors: p.colors || [],
+        sizes: p.sizes || [],
         is_delivery_home_available: p.is_delivery_home_available ?? true,
         is_delivery_desktop_available: p.is_delivery_desk_available ?? true, // Note: desk vs desktop naming
         is_sold_out: p.is_sold_out ?? false,
