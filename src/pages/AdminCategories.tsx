@@ -47,22 +47,7 @@ const AdminCategories = () => {
       return;
     }
 
-    // Fetch store owner category IDs to filter them out
-    const { data: storeOwnersData, error: ownerError } = await supabase
-      .from('store_owners')
-      .select('category_id');
-
-    if (ownerError) {
-      console.error(ownerError);
-      return;
-    }
-
-    const storeCategoryIds = new Set(storeOwnersData?.map(o => o.category_id).filter(Boolean));
-
-    // Filter out categories that are actually stores
-    const filteredCategories = (categoriesData || []).filter(c => !storeCategoryIds.has(c.id));
-
-    setCategories(filteredCategories);
+    setCategories(categoriesData || []);
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {

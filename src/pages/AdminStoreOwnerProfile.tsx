@@ -6,9 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Save, Loader2 } from 'lucide-react';
+import { Save, Loader2, Upload } from 'lucide-react';
 
-const BUCKET = 'store-owner-images';
+const BUCKET = 'store-images';
 
 const AdminStoreOwnerProfile = () => {
   const [loading, setLoading] = useState(false);
@@ -16,18 +16,17 @@ const AdminStoreOwnerProfile = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  // default fields empty
   const [formData, setFormData] = useState({
+    store_name: '',
     owner_name: '',
     phone: '',
-    store_number: '',
     email: '',
     address: '',
-    whatsapp_number: '',
-    instagram_link: '',
-    facebook_link: '',
-    tiktok_link: ''
+    description: '',
+    // Removed unsupported fields for now: store_number, whatsapp_number, socials
   });
+
+  const [storeId, setStoreId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchOwnerData();
@@ -38,29 +37,41 @@ const AdminStoreOwnerProfile = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // IMPORTANT: store_owners.user_id links to auth.users.id
-      const { data, error } = await supabase
-        .from('store_owners')
+      // 1. Fetch Profile Data
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('id', user.id)
         .single();
 
-      if (error) throw error;
+      if (profileError) throw profileError;
 
-      if (data) {
-        setFormData({
-          owner_name: data.owner_name || '',
-          phone: data.phone || '',
-          store_number: data.store_number || '',
-          email: user.email || '',
-          address: data.address || '',
-          whatsapp_number: data.whatsapp_number || '',
-          instagram_link: data.instagram_link || '',
-          facebook_link: data.facebook_link || '',
-          tiktok_link: data.tiktok_link || ''
-        });
-        setPreviewUrl(data.store_image_url ?? null);
+      // 2. Fetch Store Data
+      const { data: store, error: storeError } = await supabase
+        .from('stores')
+        .select('*')
+        .eq('owner_id', user.id)
+        .single();
+
+      // Store might not exist yet or error if not found (though it should exist for store owner)
+      if (storeError && storeError.code !== 'PGRST116') {
+        console.error("Error fetching store:", storeError);
       }
+
+      setFormData({
+        store_name: store?.name || '',
+        owner_name: profile?.full_name || '',
+        phone: profile?.phone || '',
+        email: user.email || '',
+        address: profile?.address || '',
+        description: store?.description || '',
+      });
+
+      if (store) {
+        setStoreId(store.id);
+        setPreviewUrl(store.image_url ?? null);
+      }
+
     } catch (error) {
       console.error(error);
       toast.error('فشل في جلب البيانات');
@@ -70,17 +81,20 @@ const AdminStoreOwnerProfile = () => {
   };
 
   // helper: upload image and return public url (or null)
-  const uploadImageAndGetUrl = async (file: File | null, keyPrefix = 'stores') => {
+  const uploadImageAndGetUrl = async (file: File | null) => {
     if (!file) return null;
     try {
-      const filePath = `${keyPrefix}/${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
       const { error: uploadError } = await supabase.storage.from(BUCKET).upload(filePath, file, {
         cacheControl: '3600',
         upsert: false
       });
       if (uploadError) throw uploadError;
+
       const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(filePath);
-      // @ts-ignore
       return urlData?.publicUrl ?? null;
     } catch (err) {
       console.error('Upload error', err);
@@ -97,27 +111,38 @@ const AdminStoreOwnerProfile = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not found");
 
-      const uploadedUrl = await uploadImageAndGetUrl(imageFile, user.id ?? 'stores');
+      const uploadedUrl = await uploadImageAndGetUrl(imageFile);
 
-      const updatePayload: any = {
-        owner_name: formData.owner_name,
-        phone: formData.phone,
-        store_number: formData.store_number,
-        address: formData.address,
-        whatsapp_number: formData.whatsapp_number,
-        instagram_link: formData.instagram_link,
-        facebook_link: formData.facebook_link,
-        tiktok_link: formData.tiktok_link
-      };
+      // 1. Update Profile
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          full_name: formData.owner_name,
+          phone: formData.phone,
+          address: formData.address
+        })
+        .eq('id', user.id);
 
-      if (uploadedUrl) updatePayload.store_image_url = uploadedUrl;
+      if (profileError) throw profileError;
 
-      const { error } = await supabase
-        .from('store_owners')
-        .update(updatePayload)
-        .eq('user_id', user.id);
+      // 2. Update Store
+      if (storeId) {
+        const storeUpdatePayload: any = {
+          name: formData.store_name,
+          description: formData.description
+        };
+        if (uploadedUrl) storeUpdatePayload.image_url = uploadedUrl;
 
-      if (error) throw error;
+        const { error: storeError } = await supabase
+          .from('stores')
+          .update(storeUpdatePayload)
+          .eq('id', storeId);
+
+        if (storeError) throw storeError;
+      } else {
+        // Create store if it doesn't exist (unlikely for store owner role but possible)
+        // For now assume it exists or we skip
+      }
 
       toast.success('تم تحديث المعلومات بنجاح');
       if (uploadedUrl) setPreviewUrl(uploadedUrl);
@@ -152,7 +177,17 @@ const AdminStoreOwnerProfile = () => {
             {/* Basic Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="owner_name">اسم المالك / المتجر</Label>
+                <Label htmlFor="store_name">اسم المتجر</Label>
+                <Input
+                  id="store_name"
+                  value={formData.store_name}
+                  onChange={(e) => setFormData({ ...formData, store_name: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="owner_name">اسم المالك</Label>
                 <Input
                   id="owner_name"
                   value={formData.owner_name}
@@ -160,10 +195,22 @@ const AdminStoreOwnerProfile = () => {
                   required
                 />
               </div>
+            </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="email">البريد الإلكتروني</Label>
-                <Input id="email" value={formData.email} disabled className="bg-muted" />
+                <Input id="email" value={formData.email} disabled className="bg-muted" dir="ltr" />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone">رقم الهاتف</Label>
+                <Input
+                  id="phone"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  dir="ltr"
+                />
               </div>
             </div>
 
@@ -178,89 +225,49 @@ const AdminStoreOwnerProfile = () => {
               />
             </div>
 
-            {/* Contact */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="phone">رقم الهاتف</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="store_number">رقم المتجر</Label>
-                <Input
-                  id="store_number"
-                  value={formData.store_number}
-                  onChange={(e) => setFormData({ ...formData, store_number: e.target.value })}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="whatsapp">رقم الواتساب</Label>
-                <Input
-                  id="whatsapp"
-                  value={formData.whatsapp_number}
-                  onChange={(e) => setFormData({ ...formData, whatsapp_number: e.target.value })}
-                  placeholder="مثال: 2136..."
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">وصف المتجر</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="وصف مختصر للمتجر..."
+              />
             </div>
 
             {/* Store image */}
             <div className="space-y-2">
               <Label>صورة المتجر</Label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const f = e.target.files?.[0] ?? null;
-                  setImageFile(f);
-                  if (f) {
-                    const url = URL.createObjectURL(f);
-                    setPreviewUrl(url);
-                  }
-                }}
-              />
-              {previewUrl && (
-                <img src={previewUrl} alt="preview" className="mt-2 w-48 h-32 object-cover rounded" />
-              )}
-            </div>
+              <div className="flex flex-col items-center gap-4 border-2 border-dashed rounded-lg p-4">
+                {previewUrl ? (
+                  <img src={previewUrl} alt="preview" className="w-48 h-32 object-cover rounded" />
+                ) : (
+                  <div className="text-muted-foreground">لا توجد صورة</div>
+                )}
 
-            {/* Social Links */}
-            <div className="space-y-4 border-t pt-4 mt-4">
-              <h3 className="font-semibold text-lg">روابط التواصل الاجتماعي</h3>
-
-              <div className="space-y-2">
-                <Label htmlFor="facebook">فيسبوك</Label>
-                <Input
-                  id="facebook"
-                  value={formData.facebook_link}
-                  onChange={(e) => setFormData({ ...formData, facebook_link: e.target.value })}
-                  placeholder="https://facebook.com/..."
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="instagram">انستغرام</Label>
-                <Input
-                  id="instagram"
-                  value={formData.instagram_link}
-                  onChange={(e) => setFormData({ ...formData, instagram_link: e.target.value })}
-                  placeholder="https://instagram.com/..."
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="tiktok">تيك توك</Label>
-                <Input
-                  id="tiktok"
-                  value={formData.tiktok_link}
-                  onChange={(e) => setFormData({ ...formData, tiktok_link: e.target.value })}
-                  placeholder="https://tiktok.com/..."
-                />
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="image-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0] ?? null;
+                      setImageFile(f);
+                      if (f) {
+                        const url = URL.createObjectURL(f);
+                        setPreviewUrl(url);
+                      }
+                    }}
+                  />
+                  <Label
+                    htmlFor="image-upload"
+                    className="cursor-pointer bg-secondary text-secondary-foreground hover:bg-secondary/90 h-9 px-4 py-2 rounded-md text-sm font-medium flex items-center"
+                  >
+                    <Upload className="w-4 h-4 ml-2" />
+                    رفع صورة
+                  </Label>
+                </div>
               </div>
             </div>
 

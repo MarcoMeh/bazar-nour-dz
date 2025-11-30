@@ -16,7 +16,6 @@ import NotFound from "./pages/NotFound";
 import About from "./pages/About";
 import ProductStores from "./pages/productstores";
 import MyOrders from "./pages/MyOrders";
-import AdminLogin from "./pages/AdminLogin";
 import ScrollToTop from "@/components/ScrollToTop";
 
 // Admin Pages (Nested Structure)
@@ -57,9 +56,6 @@ const App = () => (
                 <Route path="/login" element={<Login />} />
                 <Route path="/about" element={<About />} />
               </Route>
-
-              {/* Admin Auth */}
-              <Route path="/admin/login" element={<AdminLogin />} />
 
               {/* Admin Routes */}
               <Route path="/admin" element={<AdminLayout />}>

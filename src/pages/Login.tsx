@@ -91,12 +91,6 @@ export default function Login() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <div className="flex items-center justify-between">
-                                    <Label htmlFor="password">كلمة المرور</Label>
-                                    <Button variant="link" className="px-0 font-normal text-xs text-muted-foreground" type="button">
-                                        نسيت كلمة المرور؟
-                                    </Button>
-                                </div>
                                 <Input
                                     id="password"
                                     type="password"
