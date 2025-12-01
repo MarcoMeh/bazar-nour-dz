@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Carousel,
   CarouselContent,
@@ -124,13 +125,52 @@ const ProductDetail = () => {
     return (
       <div className="min-h-screen flex flex-col">
         <main className="flex-1 container mx-auto px-4 py-8">
-          <div className="animate-pulse">
-            <div className="h-96 bg-muted rounded-lg mb-8" />
-            <div className="h-8 bg-muted rounded w-3/4 mb-4" />
-            <div className="h-4 bg-muted rounded w-1/2 mb-8" />
+          <div className="grid md:grid-cols-2 gap-8 mb-12">
+            {/* Image Skeleton */}
+            <div className="space-y-4">
+              <Skeleton className="w-full h-96 rounded-lg" />
+              <div className="grid grid-cols-4 gap-2">
+                {[1, 2, 3, 4].map((i) => (
+                  <Skeleton key={i} className="w-full h-20 rounded-lg" />
+                ))}
+              </div>
+            </div>
+
+            {/* Info Skeleton */}
+            <div className="space-y-6">
+              <div>
+                <Skeleton className="h-10 w-3/4 mb-4" />
+                <Skeleton className="h-8 w-1/4 mb-6" />
+              </div>
+
+              <div className="flex gap-2 mb-4">
+                <Skeleton className="h-8 w-24 rounded-full" />
+                <Skeleton className="h-8 w-24 rounded-full" />
+              </div>
+
+              <div className="mb-6">
+                <Skeleton className="h-6 w-16 mb-3" />
+                <div className="flex gap-3">
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="w-8 h-8 rounded-full" />
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <Skeleton className="h-6 w-16 mb-3" />
+                <div className="flex gap-3">
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="w-12 h-10 rounded-lg" />
+                  ))}
+                </div>
+              </div>
+
+              <Skeleton className="h-32 w-full rounded-lg" />
+              <Skeleton className="h-12 w-full rounded-lg" />
+            </div>
           </div>
         </main>
-
       </div>
     );
   }

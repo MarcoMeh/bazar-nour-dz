@@ -272,13 +272,13 @@ const Products = () => {
             <div className="relative">
               <Label>الحد الأدنى للسعر</Label>
               <Input type="number" onChange={(e) => debouncedSetMinPrice(e.target.value)} defaultValue={minPriceInput} min={globalMinMaxPrice[0]} max={globalMinMaxPrice[1]} className="w-full pl-8" />
-              <DollarSign className="absolute left-2 top-9 text-muted-foreground" size={16} />
+              <span className="absolute left-2 top-9 text-muted-foreground text-sm">دج</span>
             </div>
 
             <div className="relative">
               <Label>الحد الأقصى للسعر</Label>
               <Input type="number" onChange={(e) => debouncedSetMaxPrice(e.target.value)} defaultValue={maxPriceInput} min={globalMinMaxPrice[0]} max={globalMinMaxPrice[1]} className="w-full pl-8" />
-              <DollarSign className="absolute left-2 top-9 text-muted-foreground" size={16} />
+              <span className="absolute left-2 top-9 text-muted-foreground text-sm">دج</span>
             </div>
           </div>
 

@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Minus, Plus, Trash2 } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
 
@@ -12,10 +12,16 @@ export default function Cart() {
       <h1 className="text-3xl font-bold mb-8 text-primary">سلة التسوق</h1>
 
       {items.length === 0 ? (
-        <Card>
-          <CardContent className="py-16 text-center">
-            <p className="text-xl text-muted-foreground mb-4">سلة التسوق فارغة</p>
-            <Button asChild>
+        <Card className="border-dashed">
+          <CardContent className="py-16 flex flex-col items-center justify-center text-center">
+            <div className="bg-primary/10 p-6 rounded-full mb-6">
+              <ShoppingBag className="h-12 w-12 text-primary" />
+            </div>
+            <h2 className="text-2xl font-semibold mb-2">سلة التسوق فارغة</h2>
+            <p className="text-muted-foreground mb-8 max-w-sm mx-auto">
+              يبدو أنك لم تضف أي منتجات إلى سلة التسوق الخاصة بك بعد.
+            </p>
+            <Button asChild size="lg">
               <Link to="/products">تصفح المنتجات</Link>
             </Button>
           </CardContent>

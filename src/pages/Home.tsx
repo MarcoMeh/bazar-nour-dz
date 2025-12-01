@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, ArrowRight, ShoppingBag, Truck, Shield } from "lucide-react";
 
@@ -333,7 +334,13 @@ const Home = () => {
                                 تصفح حسب الفئة
                             </h2>
                             {loading ? (
-                                <p className="text-center">جاري التحميل...</p>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                                    {[1, 2, 3, 4].map((i) => (
+                                        <div key={i} className="rounded-3xl overflow-hidden h-48 md:h-56">
+                                            <Skeleton className="w-full h-full" />
+                                        </div>
+                                    ))}
+                                </div>
                             ) : (
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                                     {mainCategories.map((category) => (
@@ -376,35 +383,51 @@ const Home = () => {
                             </h2>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                                {newestProducts.map((product) => (
-                                    <Link to={`/product/${product.id}`} key={product.id} className="group">
-                                        <div className="rounded-2xl bg-white border border-gray-100 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
-                                            <div className="relative h-64 overflow-hidden">
-                                                <img
-                                                    src={product.image_url || ""}
-                                                    alt={product.name_ar}
-                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                                />
-                                            </div>
-                                            <div className="p-5 text-right">
-                                                <h3 className="font-bold text-lg mb-2 text-gray-800 group-hover:text-green-700 transition-colors">
-                                                    {product.name_ar}
-                                                </h3>
-                                                <p className="text-sm text-gray-500 mb-3">
-                                                    {product.category_name}
-                                                </p>
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-xl font-bold text-green-700">
-                                                        {product.price} دج
-                                                    </span>
-                                                    <Button size="sm" variant="outline" className="rounded-full">
-                                                        عرض
-                                                    </Button>
+                                {loading ? (
+                                    [1, 2, 3, 4].map((i) => (
+                                        <div key={i} className="rounded-2xl border border-gray-100 overflow-hidden">
+                                            <Skeleton className="h-64 w-full" />
+                                            <div className="p-5 space-y-3">
+                                                <Skeleton className="h-6 w-3/4 ml-auto" />
+                                                <Skeleton className="h-4 w-1/2 ml-auto" />
+                                                <div className="flex justify-between items-center">
+                                                    <Skeleton className="h-6 w-20" />
+                                                    <Skeleton className="h-8 w-16 rounded-full" />
                                                 </div>
                                             </div>
                                         </div>
-                                    </Link>
-                                ))}
+                                    ))
+                                ) : (
+                                    newestProducts.map((product) => (
+                                        <Link to={`/product/${product.id}`} key={product.id} className="group">
+                                            <div className="rounded-2xl bg-white border border-gray-100 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
+                                                <div className="relative h-64 overflow-hidden">
+                                                    <img
+                                                        src={product.image_url || ""}
+                                                        alt={product.name_ar}
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                    />
+                                                </div>
+                                                <div className="p-5 text-right">
+                                                    <h3 className="font-bold text-lg mb-2 text-gray-800 group-hover:text-green-700 transition-colors">
+                                                        {product.name_ar}
+                                                    </h3>
+                                                    <p className="text-sm text-gray-500 mb-3">
+                                                        {product.category_name}
+                                                    </p>
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-xl font-bold text-green-700">
+                                                            {product.price} دج
+                                                        </span>
+                                                        <Button size="sm" variant="outline" className="rounded-full">
+                                                            عرض
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </Link>
+                                    ))
+                                )}
                             </div>
                         </div>
                     </section>

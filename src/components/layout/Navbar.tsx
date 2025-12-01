@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Search, ShoppingCart, Menu, User } from "lucide-react";
+import { Search, ShoppingCart, Menu, User, LogOut, Package, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -16,10 +16,12 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 
 export const Navbar = () => {
     const { totalItems } = useCart();
+    const { user, signOut } = useAuth();
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState("");
     const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -30,6 +32,11 @@ export const Navbar = () => {
             navigate(`/products?search=${encodeURIComponent(searchQuery)}`);
             setIsSheetOpen(false);
         }
+    };
+
+    const handleLogout = async () => {
+        await signOut();
+        navigate("/");
     };
 
     return (
@@ -65,6 +72,30 @@ export const Navbar = () => {
                                 <Link to="/stores" className="text-lg font-semibold hover:text-primary" onClick={() => setIsSheetOpen(false)}>
                                     المحلات
                                 </Link>
+                                {user ? (
+                                    <>
+                                        <div className="h-px bg-border my-2" />
+                                        <Link to="/my-orders" className="text-lg font-semibold hover:text-primary flex items-center gap-2" onClick={() => setIsSheetOpen(false)}>
+                                            <Package className="h-5 w-5" />
+                                            طلباتي
+                                        </Link>
+                                        <Link to="/profile" className="text-lg font-semibold hover:text-primary flex items-center gap-2" onClick={() => setIsSheetOpen(false)}>
+                                            <Settings className="h-5 w-5" />
+                                            الإعدادات
+                                        </Link>
+                                        <button onClick={() => { handleLogout(); setIsSheetOpen(false); }} className="text-lg font-semibold hover:text-destructive flex items-center gap-2 text-right w-full">
+                                            <LogOut className="h-5 w-5" />
+                                            تسجيل الخروج
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="h-px bg-border my-2" />
+                                        <Link to="/login" className="text-lg font-semibold hover:text-primary" onClick={() => setIsSheetOpen(false)}>
+                                            تسجيل الدخول
+                                        </Link>
+                                    </>
+                                )}
                             </nav>
                         </SheetContent>
                     </Sheet>
@@ -115,6 +146,45 @@ export const Navbar = () => {
                             <span className="sr-only">السلة</span>
                         </Button>
                     </Link>
+
+                    {user ? (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                    <User className="h-5 w-5" />
+                                    <span className="sr-only">حسابي</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-56">
+                                <DropdownMenuLabel>حسابي</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem asChild>
+                                    <Link to="/my-orders" className="cursor-pointer flex items-center gap-2">
+                                        <Package className="h-4 w-4" />
+                                        <span>طلباتي</span>
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                    <Link to="/profile" className="cursor-pointer flex items-center gap-2">
+                                        <Settings className="h-4 w-4" />
+                                        <span>الإعدادات</span>
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive focus:text-destructive flex items-center gap-2">
+                                    <LogOut className="h-4 w-4" />
+                                    <span>تسجيل الخروج</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    ) : (
+                        <Link to="/login">
+                            <Button variant="ghost" size="icon">
+                                <User className="h-5 w-5" />
+                                <span className="sr-only">تسجيل الدخول</span>
+                            </Button>
+                        </Link>
+                    )}
                 </div>
             </div>
         </nav>
