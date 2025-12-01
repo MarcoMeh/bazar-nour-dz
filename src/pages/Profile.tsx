@@ -41,7 +41,7 @@ export default function Profile() {
             if (data) {
                 setFullName(data.full_name || "");
                 setAddress(data.address || "");
-                setPhone(data.phone_number || "");
+                setPhone(data.phone || "");
             }
         } catch (error) {
             console.error("Error fetching profile:", error);
@@ -61,7 +61,7 @@ export default function Profile() {
                 .update({
                     full_name: fullName,
                     address: address,
-                    phone_number: phone,
+                    phone: phone,
                 })
                 .eq("id", user?.id);
 

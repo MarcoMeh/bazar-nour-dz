@@ -16,32 +16,26 @@ import logo from "@/assets/bazzarna-logo.jpeg";
 
 interface Category {
   id: string;
-  name_ar: string;
+  name: string;
   slug: string;
   parent_id: string | null;
 }
 
 export const Header = () => {
-  const { totalItems } = useCart();
+  const { totalItems } = useCart() || { totalItems: 0 };
   const [categories, setCategories] = useState<Category[]>([]);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openCategory, setOpenCategory] = useState<string | null>(null);
 
   useEffect(() => {
     const loadCategories = async () => {
-      const { data, error } = await supabase
-        .from("categories")
-        .select("id, name_ar, slug, parent_id")
-        .order("name_ar", { ascending: true });
-
-      if (!error && data) setCategories(data);
     };
     loadCategories();
   }, []);
 
-  const mainCategories = categories.filter((c) => c.parent_id === null);
+  const mainCategories = categories?.filter((c) => c.parent_id === null) || [];
   const subCategories = (parentId: string) =>
-    categories.filter((c) => c.parent_id === parentId);
+    categories?.filter((c) => c.parent_id === parentId) || [];
 
   return (
     <>
@@ -171,7 +165,7 @@ export const Header = () => {
                       }
                       className="w-full flex justify-between items-center text-right text-green-800 font-semibold"
                     >
-                      {main.name_ar}
+                      {main.name}
                       {openCategory === main.id ? (
                         <ChevronUp className="w-5 h-5" />
                       ) : (
@@ -187,7 +181,7 @@ export const Header = () => {
                             to={`/products?category=${sub.slug}`}
                             className="block text-right text-gray-600 pr-2"
                           >
-                            {sub.name_ar}
+                            {sub.name}
                           </Link>
                         ))}
                       </div>
