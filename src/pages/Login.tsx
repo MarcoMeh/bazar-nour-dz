@@ -21,8 +21,30 @@ export default function Login() {
         setLoading(true);
 
         try {
+            let loginEmail = email;
+
+            // Check if input is NOT an email
+            if (!email.includes('@')) {
+                // Try to find email by username (store name)
+                const { data: profile, error: profileError } = await supabase
+                    .from("profiles")
+                    .select("email")
+                    .eq("username", email)
+                    .maybeSingle();
+
+                if (profileError) {
+                    console.error("Error looking up username:", profileError);
+                }
+
+                if (profile && profile.email) {
+                    loginEmail = profile.email;
+                } else {
+                    throw new Error("اسم المتجر غير موجود");
+                }
+            }
+
             const { data, error } = await supabase.auth.signInWithPassword({
-                email,
+                email: loginEmail,
                 password,
             });
 
@@ -78,11 +100,11 @@ export default function Login() {
                     <form onSubmit={handleLogin} className="space-y-6">
                         <div className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="email">البريد الإلكتروني</Label>
+                                <Label htmlFor="email">البريد الإلكتروني أو اسم المتجر</Label>
                                 <Input
                                     id="email"
                                     type="email"
-                                    placeholder="name@example.com"
+                                    placeholder="name@example.com or store name"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required

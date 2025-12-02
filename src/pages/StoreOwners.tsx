@@ -39,44 +39,44 @@ const StoreOwners = () => {
   // Fetch Categories (Stores)
   const fetchStores = async () => {
     try {
-      const { data: ourStores, error: err1 } = await supabase
+      const { data: allStores, error } = await supabase
         .from("categories")
-        .select("id")
-        .eq("slug", "ourstores")
-        .single();
+        .select("*")
+        .order("name", { ascending: true });
 
-      if (err1) {
-        // it's okay if not found
-        return;
-      }
-
-      if (ourStores) {
-        setParentCategoryId(ourStores.id);
-        const { data: subcats, error } = await supabase
-          .from("categories")
-          .select("*")
-          .eq("parent_id", ourStores.id);
-        if (error) throw error;
-        setStores(subcats || []);
-      }
+      if (error) throw error;
+      setStores(allStores || []);
     } catch (error) {
       console.error("Error fetching stores", error);
     }
   };
 
-  // Fetch Existing Owners
+  // Fetch Existing Owners (Profiles with role 'store_owner')
   const fetchOwners = async () => {
     setLoading(true);
 
     try {
       const { data, error } = await supabase
-        .from("store_owners")
-        // include related category name if category_id is present
-        .select("*, categories(name_ar)")
+        .from("profiles")
+        .select("*")
+        .eq("role", "store_owner")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setOwners(data || []);
+
+      // Map profiles to the shape expected by the UI
+      const mappedOwners = data?.map(profile => ({
+        id: profile.id,
+        owner_name: profile.full_name,
+        phone: profile.phone,
+        email: (profile as any).email || "...",
+        address: profile.address,
+        username: (profile as any).username || "...",
+        store_image_url: null, // Not in profile
+        categories: { name_ar: "متجر" } // Placeholder
+      })) || [];
+
+      setOwners(mappedOwners);
     } catch (error) {
       console.error(error);
       toast.error("فشل تحميل البيانات");
@@ -148,8 +148,8 @@ const StoreOwners = () => {
     // Check DB directly for duplicate name to be safe (since we might not fetch all categories)
     const { data: existingStore } = await supabase
       .from('categories')
-      .select('id, name_ar')
-      .eq('name_ar', trimmedStoreName)
+      .select('id, name')
+      .eq('name', trimmedStoreName)
       .maybeSingle();
 
     if (existingStore) {
@@ -169,14 +169,13 @@ const StoreOwners = () => {
       if (editingOwner) {
         // Update existing category name if changed
         if (existingStore && existingStore.id === editingOwner.category_id) {
-          if (existingStore.name_ar !== trimmedStoreName) {
-            await supabase.from('categories').update({ name_ar: trimmedStoreName, name: trimmedStoreName }).eq('id', categoryId);
+          if (existingStore.name !== trimmedStoreName) {
+            await supabase.from('categories').update({ name: trimmedStoreName }).eq('id', categoryId);
           }
         } else {
           // This case (editingOwner but no existingStore found) means we are renaming to a NEW name
           // So we update the existing category
           await supabase.from('categories').update({
-            name_ar: trimmedStoreName,
             name: trimmedStoreName,
           }).eq('id', categoryId);
         }
@@ -188,9 +187,7 @@ const StoreOwners = () => {
         const { data: newCat, error: catError } = await supabase
           .from('categories')
           .insert([{
-            name_ar: trimmedStoreName,
             name: trimmedStoreName,
-            parent_id: null, // Explicitly null as requested
             slug: slug
           }])
           .select()
@@ -203,43 +200,49 @@ const StoreOwners = () => {
       // 2. Handle Image Upload
       const uploadedUrl = await uploadImageAndGetUrl(imageFile, formData.username || 'stores');
 
-      // 3. Create/Update Owner
-      const payload: any = {
-        owner_name: formData.owner_name,
-        phone: formData.phone,
-        email: formData.email,
-        address: formData.address,
-        category_id: categoryId,
-        username: formData.username
-      };
-
-      if (formData.password) payload.password = formData.password;
-      if (uploadedUrl) payload.store_image_url = uploadedUrl;
-
-      let error: any = null;
-
       if (editingOwner) {
-        const updatePayload = { ...payload };
-        if (!updatePayload.password) delete updatePayload.password;
+        // Update existing owner (Profile)
+        const updatePayload: any = {
+          full_name: formData.owner_name,
+          phone: formData.phone,
+          address: formData.address,
+          // We don't update email/password here for now as it requires admin auth API or user re-auth
+        };
 
-        const res = await supabase
-          .from("store_owners")
+        // If store name changed, we might need to update the category, but let's keep it simple for now
+        // and focus on the profile update.
+
+        const { error: updateError } = await supabase
+          .from('profiles')
           .update(updatePayload)
-          .eq("id", editingOwner.id);
-        error = res.error;
+          .eq('id', editingOwner.id);
+
+        if (updateError) throw updateError;
+        toast.success("تم تحديث البيانات");
+
       } else {
-        const res = await supabase.from("store_owners").insert([payload]);
-        error = res.error;
+        // Create new Owner using Edge Function
+        const { data, error } = await supabase.functions.invoke('create-user', {
+          body: {
+            email: formData.email,
+            password: formData.password,
+            fullName: formData.owner_name,
+            phone: formData.phone,
+            address: formData.address,
+            storeName: formData.store_name,
+            username: formData.username, // Pass the username
+            role: 'store_owner'
+          }
+        });
+
+        if (error) throw error;
+        toast.success("تم إضافة المالك وإنشاء المتجر");
       }
-
-      if (error) throw error;
-
-      toast.success(editingOwner ? "تم تحديث البيانات" : "تم إضافة المالك وإنشاء المتجر");
 
       setIsDialogOpen(false);
       resetForm();
       fetchOwners();
-      fetchStores(); // Refresh stores list as we might have added/renamed one
+      fetchStores();
     } catch (error: any) {
       console.error("Error:", error);
       toast.error("حدث خطأ: " + (error?.message ?? error));
@@ -249,16 +252,9 @@ const StoreOwners = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("هل أنت متأكد؟ سيتم حذف حساب الدخول أيضاً.")) return;
-
-    const { error } = await supabase.from("store_owners").delete().eq("id", id);
-
-    if (error) {
-      toast.error("فشل الحذف");
-    } else {
-      toast.success("تم الحذف");
-      fetchOwners();
-    }
+    if (!confirm("هل أنت متأكد؟")) return;
+    toast.info("حذف المستخدمين غير مفعل حالياً من هذه الواجهة.");
+    // To implement: Call an Edge Function to delete the user from Auth.
   };
 
   const handleEdit = (owner: any) => {
