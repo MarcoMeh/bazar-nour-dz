@@ -82,8 +82,10 @@ export default function Login() {
             });
 
             // Redirect based on role
-            if (profile?.role === "admin" || profile?.role === "store_owner") {
+            if (profile?.role === "admin") {
                 navigate("/admin");
+            } else if (profile?.role === "store_owner") {
+                navigate("/store-dashboard");
             } else {
                 navigate("/");
             }

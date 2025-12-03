@@ -14,6 +14,8 @@ import { toast } from 'sonner';
 import { ArrowRight, Plus, Trash2, Edit, Upload, Palette, Ruler, Truck, PackageX } from 'lucide-react';
 import logo from '@/assets/bazzarna-logo.jpeg';
 import { Badge } from '@/components/ui/badge';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { ERROR_MESSAGES, SUCCESS_MESSAGES, getErrorMessage } from '@/lib/errorMessages';
 
 const PRESET_COLORS = ['Black', 'White', 'Red', 'Blue', 'Green', 'Gold', 'Silver'];
 const PRESET_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '37', '38', '39', '40', '41', '42'];
@@ -29,6 +31,8 @@ const AdminProducts = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [uploading, setUploading] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<string | null>(null);
 
   // UI Toggles
   const [hasColors, setHasColors] = useState(false);
@@ -150,16 +154,25 @@ const AdminProducts = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('هل أنت متأكد من حذف هذا المنتج؟')) return;
+    setProductToDelete(id);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!productToDelete) return;
+
     setLoading(true);
-    const { error } = await supabase.from('products').delete().eq('id', id);
+    const { error } = await supabase.from('products').delete().eq('id', productToDelete);
     setLoading(false);
+
     if (error) {
-      toast.error('حدث خطأ');
+      toast.error(getErrorMessage(error));
       return;
     }
-    toast.success('تم الحذف');
+
+    toast.success(SUCCESS_MESSAGES.PRODUCTS.DELETED);
     fetchProducts();
+    setProductToDelete(null);
   };
 
   const handleAddPresetColor = () => {
@@ -571,6 +584,17 @@ const AdminProducts = () => {
           ))}
         </div>
       </main>
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        onConfirm={confirmDelete}
+        title="حذف المنتج"
+        description="هل أنت متأكد من حذف هذا المنتج؟ لن تتمكن من التراجع عن هذا الإجراء."
+        confirmText="حذف"
+        cancelText="إلغاء"
+        variant="destructive"
+      />
     </div>
   );
 };
