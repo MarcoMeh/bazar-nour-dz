@@ -22,6 +22,7 @@ export default function Login() {
 
         try {
             let loginEmail = email;
+            let usernameNotFound = false;
 
             // Check if input is NOT an email
             if (!email.includes('@')) {
@@ -39,6 +40,7 @@ export default function Login() {
                 if (profile && profile.email) {
                     loginEmail = profile.email;
                 } else {
+                    usernameNotFound = true;
                     throw new Error("اسم المتجر غير موجود");
                 }
             }
@@ -48,7 +50,20 @@ export default function Login() {
                 password,
             });
 
-            if (error) throw error;
+            if (error) {
+                // Supabase returns "Invalid login credentials" for both wrong email and wrong password
+                // We can provide better messages based on context
+                if (usernameNotFound) {
+                    throw new Error("اسم المتجر غير موجود");
+                } else if (error.message.includes("Invalid login credentials")) {
+                    // If email format is valid, likely wrong password or email doesn't exist
+                    throw new Error("البريد الإلكتروني أو كلمة السر خاطئة");
+                } else if (error.message.includes("Email not confirmed")) {
+                    throw new Error("يرجى تأكيد البريد الإلكتروني أولاً");
+                } else {
+                    throw error;
+                }
+            }
 
             // Get user profile to check role
             const { data: profile, error: profileError } = await supabase
@@ -103,7 +118,7 @@ export default function Login() {
                                 <Label htmlFor="email">البريد الإلكتروني أو اسم المتجر</Label>
                                 <Input
                                     id="email"
-                                    type="email"
+                                    type="text"
                                     placeholder="name@example.com or store name"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}

@@ -43,8 +43,8 @@ const AdminProducts = () => {
     category_id: '',
     image_url: '',
     supplier_name: '',
-    is_delivery_home_available: true,
-    is_delivery_desk_available: true,
+    home_delivery: true,
+    office_delivery: true,
     is_sold_out: false,
     is_free_delivery: false,
     colors: [] as string[],
@@ -106,8 +106,8 @@ const AdminProducts = () => {
       category_id: '',
       image_url: '',
       supplier_name: '',
-      is_delivery_home_available: true,
-      is_delivery_desk_available: true,
+      home_delivery: true,
+      office_delivery: true,
       is_sold_out: false,
       is_free_delivery: false,
       colors: [],
@@ -136,8 +136,8 @@ const AdminProducts = () => {
       category_id: product.category_id?.toString() || '',
       image_url: product.image_url || '',
       supplier_name: product.supplier_name || (product.stores?.name ?? ''),
-      is_delivery_home_available: product.is_delivery_home_available ?? true,
-      is_delivery_desk_available: product.is_delivery_desk_available ?? true,
+      home_delivery: product.home_delivery ?? true,
+      office_delivery: product.office_delivery ?? true,
       is_sold_out: product.is_sold_out ?? false,
       is_free_delivery: product.is_free_delivery ?? false,
       colors: productColors,
@@ -247,8 +247,8 @@ const AdminProducts = () => {
       category_id: formData.category_id,
       image_url: formData.image_url || null,
       supplier_name: formData.supplier_name || null,
-      is_delivery_home_available: !!formData.is_delivery_home_available,
-      is_delivery_desk_available: !!formData.is_delivery_desk_available,
+      home_delivery: !!formData.home_delivery,
+      office_delivery: !!formData.office_delivery,
       is_sold_out: !!formData.is_sold_out,
       is_free_delivery: !!formData.is_free_delivery,
       colors: hasColors && formData.colors.length ? formData.colors : null,
@@ -482,37 +482,25 @@ const AdminProducts = () => {
                     <div className="flex items-center justify-between border-b pb-2 md:border-b-0">
                       <Label className="flex flex-col">
                         <span>التوصيل للمنزل</span>
-                        <span className="text-xs text-muted-foreground font-normal">تفعيل خدمة التوصيل للمنزل</span>
+                        <span className="text-xs text-muted-foreground font-normal">هل يمكن توصيل المنتج للمنزل؟</span>
                       </Label>
                       <Switch
-                        checked={formData.is_delivery_home_available}
-                        onCheckedChange={(checked) => setFormData(prev => ({
-                          ...prev,
-                          is_delivery_home_available: checked,
-                          // If home delivery is disabled, typically desk delivery might be disabled too or independent? 
-                          // User request: "if delivery avaible in home and delivery availbel in desk"
-                          // Let's keep logic: if home is off, desk is off? Or independent?
-                          // User said: "then if delivery avaible in home and delivery availbel in desk"
-                          // I will keep them somewhat linked but allow desk only if home is enabled based on previous logic, 
-                          // OR allow them to be independent. Let's stick to user request flow.
-                          is_delivery_desk_available: checked ? prev.is_delivery_desk_available : false
-                        }))}
+                        checked={formData.home_delivery}
+                        onCheckedChange={(checked) => setFormData(prev => ({ ...prev, home_delivery: checked }))}
                       />
                     </div>
 
-                    {/* Desk Delivery (Only if Home is ON, or just independent? User said "then if...") */}
-                    {formData.is_delivery_home_available && (
-                      <div className="flex items-center justify-between animate-in fade-in">
-                        <Label className="flex flex-col">
-                          <span>الاستلام من المكتب</span>
-                          <span className="text-xs text-muted-foreground font-normal">تفعيل خيار الاستلام من المكتب</span>
-                        </Label>
-                        <Switch
-                          checked={formData.is_delivery_desk_available}
-                          onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_delivery_desk_available: checked }))}
-                        />
-                      </div>
-                    )}
+                    {/* Office Delivery */}
+                    <div className="flex items-center justify-between">
+                      <Label className="flex flex-col">
+                        <span>التوصيل للمكتب</span>
+                        <span className="text-xs text-muted-foreground font-normal">هل يمكن توصيل المنتج للمكتب؟</span>
+                      </Label>
+                      <Switch
+                        checked={formData.office_delivery}
+                        onCheckedChange={(checked) => setFormData(prev => ({ ...prev, office_delivery: checked }))}
+                      />
+                    </div>
 
                     {/* Sold Out */}
                     <div className="flex items-center justify-between pt-2 md:pt-0">
@@ -549,8 +537,8 @@ const AdminProducts = () => {
 
                 <div className="mt-3 flex flex-wrap gap-2">
                   {product.is_free_delivery && <Badge variant="secondary" className="bg-green-100 text-green-800 hover:bg-green-200">توصيل مجاني</Badge>}
-                  {product.is_delivery_home_available && <Badge variant="outline">توصيل منزل</Badge>}
-                  {product.is_delivery_desk_available && <Badge variant="outline">استلام مكتب</Badge>}
+                  {product.home_delivery && <Badge variant="outline">توصيل منزل</Badge>}
+                  {product.office_delivery && <Badge variant="outline">توصيل مكتب</Badge>}
                 </div>
 
                 {(product.colors?.length > 0 || product.sizes?.length > 0) && (
