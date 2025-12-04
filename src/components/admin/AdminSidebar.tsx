@@ -9,6 +9,7 @@ import {
   Settings,
   LogOut,
   Truck,
+  Tags,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,7 +27,8 @@ export const AdminSidebar = () => {
   const navItems = [
     { name: "لوحة التحكم", href: "/admin", icon: LayoutDashboard, show: true },
     { name: "المنتجات", href: "/admin/products", icon: Package, show: true },
-    { name: "التصنيفات", href: "/admin/categories", icon: FolderTree, show: isAdmin },
+    { name: "تصنيفات المنتجات", href: "/admin/categories", icon: FolderTree, show: isAdmin },
+    { name: "تصنيفات المتاجر", href: "/admin/store-categories", icon: Tags, show: isAdmin },
     { name: "الطلبات", href: "/admin/orders", icon: ShoppingCart, show: true },
     { name: isStoreOwner ? "متجري" : "المحلات", href: "/admin/stores", icon: Store, show: true },
     { name: "رسوم التوصيل", href: "/admin/delivery", icon: Truck, show: isAdmin },

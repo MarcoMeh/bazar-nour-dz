@@ -29,6 +29,7 @@ import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useAdmin } from "@/contexts/AdminContext";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 interface Product {
     id: string;
@@ -86,6 +87,7 @@ export default function AdminProducts() {
     const [open, setOpen] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
+    const [deleteId, setDeleteId] = useState<string | null>(null);
 
     // Tag Input State
     const [inputColor, setInputColor] = useState("");
@@ -243,12 +245,6 @@ export default function AdminProducts() {
             delivery_type: delivery_type,
         };
 
-        console.log("Saving Product Payload:", payload);
-        console.log("Is Admin:", isAdmin);
-        console.log("Is Store Owner:", isStoreOwner);
-        console.log("Store ID from Context:", storeId);
-        console.log("Form Data Store ID:", formData.store_id);
-
         let error;
         if (editingId) {
             const { error: updateError } = await supabase
@@ -274,15 +270,16 @@ export default function AdminProducts() {
         }
     };
 
-    const handleDelete = async (id: string) => {
-        if (!confirm("هل أنت متأكد من حذف هذا المنتج؟")) return;
-        const { error } = await supabase.from("products").delete().eq("id", id);
+    const handleDelete = async () => {
+        if (!deleteId) return;
+        const { error } = await supabase.from("products").delete().eq("id", deleteId);
         if (error) {
             toast.error("فشل في الحذف");
         } else {
             toast.success("تم الحذف");
             fetchData();
         }
+        setDeleteId(null);
     };
 
     const handleEdit = (product: Product) => {
@@ -635,7 +632,7 @@ export default function AdminProducts() {
                                                 <Button variant="ghost" size="icon" onClick={() => handleEdit(product)}>
                                                     <Pencil className="h-4 w-4" />
                                                 </Button>
-                                                <Button variant="ghost" size="icon" onClick={() => handleDelete(product.id)}>
+                                                <Button variant="ghost" size="icon" onClick={() => setDeleteId(product.id)}>
                                                     <Trash2 className="h-4 w-4 text-destructive" />
                                                 </Button>
                                             </div>
@@ -647,6 +644,15 @@ export default function AdminProducts() {
                     </Table>
                 </CardContent>
             </Card>
+
+            <ConfirmDialog
+                open={!!deleteId}
+                onOpenChange={(open) => !open && setDeleteId(null)}
+                onConfirm={handleDelete}
+                title="حذف المنتج"
+                description="هل أنت متأكد من أنك تريد حذف هذا المنتج؟ لا يمكن التراجع عن هذا الإجراء."
+                variant="destructive"
+            />
         </div>
     );
 }

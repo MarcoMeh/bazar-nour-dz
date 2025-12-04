@@ -24,6 +24,7 @@ import { Plus, Pencil, Trash2, Loader2, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 // Interfaces matching the DB schema (plus slug)
 interface Category {
@@ -62,6 +63,9 @@ export default function AdminCategories() {
     const [editingType, setEditingType] = useState<'category' | 'subcategory'>('category');
     const [editingId, setEditingId] = useState<string | null>(null);
 
+    const [deleteId, setDeleteId] = useState<string | null>(null);
+    const [deleteType, setDeleteType] = useState<'category' | 'subcategory'>('category');
+
     const [formData, setFormData] = useState<FormData>({
         name: "",
         slug: "",
@@ -96,11 +100,11 @@ export default function AdminCategories() {
         setLoading(false);
     };
 
-    const handleDelete = async (id: string, type: 'category' | 'subcategory') => {
-        if (!confirm("هل أنت متأكد من الحذف؟")) return;
+    const handleDelete = async () => {
+        if (!deleteId) return;
 
-        const table = (type === 'category' ? 'categories' : 'subcategories') as "categories" | "subcategories";
-        const { error } = await supabase.from(table).delete().eq("id", id);
+        const table = (deleteType === 'category' ? 'categories' : 'subcategories') as "categories" | "subcategories";
+        const { error } = await supabase.from(table).delete().eq("id", deleteId);
 
         if (error) {
             toast.error("فشل في الحذف");
@@ -108,6 +112,12 @@ export default function AdminCategories() {
             toast.success("تم الحذف بنجاح");
             fetchData();
         }
+        setDeleteId(null);
+    };
+
+    const confirmDelete = (id: string, type: 'category' | 'subcategory') => {
+        setDeleteId(id);
+        setDeleteType(type);
     };
 
     const handleEdit = (item: Category | Subcategory, type: 'category' | 'subcategory') => {
@@ -377,7 +387,7 @@ export default function AdminCategories() {
                                                     <Button variant="ghost" size="icon" onClick={() => handleEdit(cat, 'category')}>
                                                         <Pencil className="h-4 w-4" />
                                                     </Button>
-                                                    <Button variant="ghost" size="icon" onClick={() => handleDelete(cat.id, 'category')}>
+                                                    <Button variant="ghost" size="icon" onClick={() => confirmDelete(cat.id, 'category')}>
                                                         <Trash2 className="h-4 w-4 text-destructive" />
                                                     </Button>
                                                 </div>
@@ -437,7 +447,7 @@ export default function AdminCategories() {
                                                     <Button variant="ghost" size="icon" onClick={() => handleEdit(sub, 'subcategory')}>
                                                         <Pencil className="h-4 w-4" />
                                                     </Button>
-                                                    <Button variant="ghost" size="icon" onClick={() => handleDelete(sub.id, 'subcategory')}>
+                                                    <Button variant="ghost" size="icon" onClick={() => confirmDelete(sub.id, 'subcategory')}>
                                                         <Trash2 className="h-4 w-4 text-destructive" />
                                                     </Button>
                                                 </div>
@@ -450,6 +460,15 @@ export default function AdminCategories() {
                     </CardContent>
                 </Card>
             </div>
+
+            <ConfirmDialog
+                open={!!deleteId}
+                onOpenChange={(open) => !open && setDeleteId(null)}
+                onConfirm={handleDelete}
+                title="حذف التصنيف"
+                description="هل أنت متأكد من أنك تريد حذف هذا التصنيف؟ لا يمكن التراجع عن هذا الإجراء."
+                variant="destructive"
+            />
         </div>
     );
 }

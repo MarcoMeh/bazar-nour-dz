@@ -23,6 +23,7 @@ import ScrollToTop from "@/components/ScrollToTop";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminProducts from "./pages/admin/Products";
 import AdminCategories from "./pages/admin/Categories";
+import AdminStoreCategories from "./pages/admin/StoreCategories";
 import AdminOrders from "./pages/admin/Orders";
 import AdminStores from "./pages/admin/Stores";
 import AdminDelivery from "./pages/admin/Delivery";
@@ -33,6 +34,7 @@ import { StoreOwnerLayout } from "./components/layout/StoreOwnerLayout";
 import StoreOwnerDashboard from "./pages/store-owner/Dashboard";
 import StoreOwnerProducts from "./pages/store-owner/Products";
 import StoreOwnerOrders from "./pages/store-owner/Orders";
+import StoreOwnerProfile from "./pages/store-owner/Profile";
 
 // Contexts
 import { CartProvider } from "./contexts/CartContext";
@@ -84,6 +86,7 @@ const App = () => (
                     <Route index element={<AdminDashboard />} />
                     <Route path="products" element={<AdminProducts />} />
                     <Route path="categories" element={<AdminCategories />} />
+                    <Route path="store-categories" element={<AdminStoreCategories />} />
                     <Route path="orders" element={<AdminOrders />} />
                     <Route path="stores" element={<AdminStores />} />
                     <Route path="delivery" element={<AdminDelivery />} />
@@ -102,7 +105,7 @@ const App = () => (
                     <Route index element={<StoreOwnerDashboard />} />
                     <Route path="products" element={<StoreOwnerProducts />} />
                     <Route path="orders" element={<StoreOwnerOrders />} />
-                    <Route path="profile" element={<Profile />} />
+                    <Route path="profile" element={<StoreOwnerProfile />} />
                   </Route>
 
                   {/* 404 */}
