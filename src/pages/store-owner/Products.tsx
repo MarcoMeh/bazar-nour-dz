@@ -53,13 +53,13 @@ export default function StoreOwnerProducts() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        const { data: profile } = await supabase
-            .from("profiles")
-            .select("store_id")
-            .eq("id", user.id)
+        const { data: store } = await supabase
+            .from("stores")
+            .select("id")
+            .eq("owner_id", user.id)
             .single();
 
-        const id = (profile as any)?.store_id;
+        const id = store?.id;
         setStoreId(id || null);
 
         if (!id) {

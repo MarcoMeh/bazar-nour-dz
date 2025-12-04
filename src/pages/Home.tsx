@@ -4,7 +4,9 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, ArrowRight, ShoppingBag, Truck, Shield } from "lucide-react";
+import { ArrowLeft, ArrowRight, ShoppingBag, Truck, Shield, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { useNavigate } from "react-router-dom";
 
 // Assets
 import logo from "@/assets/bazzarna_logo_2.png";
@@ -54,6 +56,15 @@ const Home = () => {
         stores_visible: true,
         categories_visible: true,
     });
+    const [searchQuery, setSearchQuery] = useState("");
+    const navigate = useNavigate();
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            navigate(`/products?search=${encodeURIComponent(searchQuery)}`);
+        }
+    };
 
     useEffect(() => {
         const loadData = async () => {
@@ -160,6 +171,29 @@ const Home = () => {
                             <p className="text-lg md:text-2xl mb-10 opacity-90 text-white animate-fadeIn delay-400">
                                 متجرك الإلكتروني الموثوق في الجزائر
                             </p>
+
+                            {/* Search Bar */}
+                            <form onSubmit={handleSearch} className="max-w-2xl mx-auto mb-6 animate-fadeIn delay-500">
+                                <div className="relative flex gap-2">
+                                    <Input
+                                        type="text"
+                                        placeholder="ابحث عن منتج..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="h-14 pl-12 text-lg bg-white/90 backdrop-blur-sm border-2 border-white/20 focus:border-yellow-400"
+                                    />
+                                    <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
+                                    <Button
+                                        type="submit"
+                                        size="lg"
+                                        className="h-14 px-8 bg-[#FFD700] text-white hover:bg-yellow-500"
+                                    >
+                                        <Search className="mr-2 h-5 w-5" />
+                                        بحث
+                                    </Button>
+                                </div>
+                            </form>
+
                             <Link to="/products">
                                 <Button className="bg-[#FFD700] text-white font-bold px-10 py-5 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 animate-fadeIn delay-600">
                                     تسوق الآن
@@ -308,6 +342,7 @@ const Home = () => {
                                             <img
                                                 src={store.image_url}
                                                 alt={store.name}
+                                                loading="lazy"
                                                 className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                                             />
                                         ) : (
@@ -353,6 +388,7 @@ const Home = () => {
                                                 <img
                                                     src={category.image_url}
                                                     alt={category.name_ar || category.name || ""}
+                                                    loading="lazy"
                                                     className="w-full h-48 md:h-56 object-cover group-hover:scale-105 transition-transform duration-500"
                                                 />
                                             ) : (
@@ -405,6 +441,7 @@ const Home = () => {
                                                     <img
                                                         src={product.image_url || ""}
                                                         alt={product.name_ar}
+                                                        loading="lazy"
                                                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                                     />
                                                 </div>

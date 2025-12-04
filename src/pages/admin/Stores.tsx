@@ -262,31 +262,53 @@ export default function AdminStores() {
                     },
                 });
 
-                if (authError) throw authError;
+
+                if (authError) {
+                    // Check if it's a duplicate email error
+                    if (authError.message?.includes('already registered') || authError.message?.includes('already been registered')) {
+                        throw new Error("البريد الإلكتروني مستخدم مسبقاً. يرجى استخدام بريد إلكتروني آخر");
+                    }
+                    throw authError;
+                }
                 if (!authData.user) throw new Error("فشل في إنشاء المستخدم");
 
                 const userId = authData.user.id;
+                // Retry logic for profile creation (to handle trigger lag)
+                let profileError = null;
+                for (let i = 0; i < 3; i++) {
+                    // Wait a bit (increasing delay)
+                    await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
 
-                // 2. Insert into profiles (if trigger doesn't handle it or to ensure data)
-                // Note: If you have a trigger on auth.users -> public.profiles, this might duplicate or fail if conflict.
-                // Assuming standard setup where we might need to update or insert if trigger is simple.
-                // Let's try to update the profile created by trigger, or insert if it doesn't exist.
-                // Since we can't easily know if trigger ran, we'll try UPSERT.
-
-                const { error: profileError } = await supabase
-                    .from("profiles")
-                    .upsert({
-                        id: userId,
-                        email: formData.email,
-                        role: 'store_owner',
-                        full_name: formData.owner_name,
-                        phone: formData.phone,
-                        address: formData.address,
+                    // Use RPC function to create profile (bypasses RLS)
+                    const { error } = await supabase.rpc('create_profile_for_user', {
+                        user_id: userId,
+                        user_email: formData.email,
+                        user_role: 'store_owner',
+                        user_full_name: formData.owner_name,
+                        user_phone: formData.phone,
+                        user_address: formData.address,
                     });
+
+                    if (!error) {
+                        profileError = null;
+                        break;
+                    }
+                    profileError = error;
+                    console.log(`Profile upsert attempt ${i + 1} failed:`, error);
+                }
 
                 if (profileError) {
                     console.error("Profile creation error:", profileError);
-                    // Continue anyway, maybe trigger worked?
+                    // Check if profile exists (maybe created by trigger)
+                    const { data: existingProfile } = await supabase
+                        .from("profiles")
+                        .select("id")
+                        .eq("id", userId)
+                        .single();
+
+                    if (!existingProfile) {
+                        throw new Error("فشل في إنشاء ملف المستخدم: " + profileError.message);
+                    }
                 }
 
                 // 3. Create Store

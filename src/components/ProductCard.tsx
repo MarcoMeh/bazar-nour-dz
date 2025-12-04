@@ -67,6 +67,7 @@ export const ProductCard = ({
             <img
               src={image_url}
               alt={name_ar}
+              loading="lazy"
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
           ) : (

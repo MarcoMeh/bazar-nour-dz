@@ -44,8 +44,23 @@ import { AuthProvider } from "./contexts/AuthContext";
 // Security Components
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { OfflineIndicator } from "./components/OfflineIndicator";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+      retry: 2,
+      refetchOnWindowFocus: false,
+      networkMode: 'offlineFirst', // Continue serving from cache when offline
+    },
+    mutations: {
+      retry: 1,
+      networkMode: 'offlineFirst',
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -57,6 +72,7 @@ const App = () => (
               <Toaster />
               <Sonner />
               <BrowserRouter>
+                <OfflineIndicator />
                 <ScrollToTop />
                 <Routes>
                   {/* Public Routes */}
