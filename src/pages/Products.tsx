@@ -1,478 +1,468 @@
-/* FULLY RESPONSIVE & SORTING + COLORS/SIZES FILTER — SAFE TO REPLACE */
+/* PREMIUM PRODUCTS PAGE - WORLD CLASS DESIGN */
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-
 import { ProductCard } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Search,
-  Tag,
-  LayoutGrid,
-  ArrowLeft,
-  Inbox,
-} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { PriceRangeSlider } from "@/components/PriceRangeSlider";
+import { QuickViewModal } from "@/components/QuickViewModal";
 import { useProducts } from "@/hooks/useProducts";
 import { useCategories } from "@/hooks/useCategories";
 import { Pagination } from "@/components/Pagination";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import {
+  Search,
+  SlidersHorizontal,
+  Grid3x3,
+  List,
+  X,
+  Star,
+  TrendingUp,
+  Sparkles,
+  Filter,
+} from "lucide-react";
 
 interface Category {
   id: string;
   name: string;
   slug: string;
   parent_id?: string | null;
-  image_url?: string | null;
 }
 
 const Products = () => {
   const [searchParams] = useSearchParams();
+
+  // View & Layout
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [gridCols, setGridCols] = useState(3);
+  const [showFilters, setShowFilters] = useState(true);
+
+  // Filters
   const [selectedMainCategory, setSelectedMainCategory] = useState<string | null>(null);
   const [selectedSubCategory, setSelectedSubCategory] = useState<string | null>(null);
   const [selectedStore, setSelectedStore] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  // Price
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
+
+  // Advanced Filters
+  const [freeDeliveryFilter, setFreeDeliveryFilter] = useState(false);
+  const [homeDeliveryFilter, setHomeDeliveryFilter] = useState(false);
+  const [inStockOnly, setInStockOnly] = useState(false);
+  const [minRating, setMinRating] = useState<number | undefined>(undefined);
+
+  // Sort
+  const [sortBy, setSortBy] = useState<"created_at" | "price" | "average_rating" | "view_count">("created_at");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+
+  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 12;
 
-  const [sortField, setSortField] = useState<"name" | "price" | "created_at" | "view_count" | "average_rating">("created_at");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  // Quick View
+  const [quickViewProduct, setQuickViewProduct] = useState<any>(null);
+  const [quickViewOpen, setQuickViewOpen] = useState(false);
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [minPriceInput, setMinPriceInput] = useState<string>("");
-  const [maxPriceInput, setMaxPriceInput] = useState<string>("");
-
-  const [selectedColor, setSelectedColor] = useState<string>("");
-  const [selectedSize, setSelectedSize] = useState<string>("");
-  const [availableColors, setAvailableColors] = useState<string[]>([]);
-  const [availableSizes, setAvailableSizes] = useState<string[]>([]);
-
-  // New filter states
-  const [freeDeliveryFilter, setFreeDeliveryFilter] = useState<boolean | undefined>(undefined);
-  const [homeDeliveryFilter, setHomeDeliveryFilter] = useState<boolean | undefined>(undefined);
-  const [inStockOnly, setInStockOnly] = useState(false);
-  const [minRatingFilter, setMinRatingFilter] = useState<number | undefined>(undefined);
-
-  // Fetch categories
+  // Fetch data
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
-
-  // Fetch products with React Query
-  const { data: productsData, isLoading: productsLoading, error } = useProducts({
+  const { data: productsData, isLoading: productsLoading } = useProducts({
     page: currentPage,
     pageSize,
     categoryId: selectedSubCategory || selectedMainCategory || undefined,
     storeId: selectedStore || undefined,
-    search: searchTerm || undefined,
-    minPrice: minPriceInput ? parseFloat(minPriceInput) : undefined,
-    maxPrice: maxPriceInput ? parseFloat(maxPriceInput) : undefined,
-    color: selectedColor || undefined,
-    size: selectedSize || undefined,
-    // New filters
-    isFreeDelivery: freeDeliveryFilter,
-    isHomeDelivery: homeDeliveryFilter,
-    inStockOnly: inStockOnly,
-    minRating: minRatingFilter,
-    // Sort options
-    sortBy: sortField,
-    sortOrder: sortOrder,
+    search: debouncedSearch || undefined,
+    minPrice: priceRange[0],
+    maxPrice: priceRange[1],
+    isFreeDelivery: freeDeliveryFilter || undefined,
+    isHomeDelivery: homeDeliveryFilter || undefined,
+    inStockOnly,
+    minRating,
+    sortBy,
+    sortOrder,
   });
 
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setCurrentPage(1);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // URL params
   useEffect(() => {
     const categoryParam = searchParams.get("category");
-    const storeParam = searchParams.get("store");
     const searchParam = searchParams.get("search");
-
-    if (categoryParam) {
-      setSelectedMainCategory(categoryParam);
-    }
-    if (storeParam) {
-      setSelectedStore(storeParam);
-    }
-    if (searchParam) {
-      setSearchTerm(searchParam);
-    }
+    if (categoryParam) setSelectedMainCategory(categoryParam);
+    if (searchParam) setSearchTerm(searchParam);
   }, [searchParams]);
 
-  // Extract available colors and sizes from products
-  useEffect(() => {
-    if (productsData?.products) {
-      const colors = Array.from(
-        new Set(productsData.products.flatMap((p) => p.colors || []))
-      ).sort();
-      const sizes = Array.from(
-        new Set(productsData.products.flatMap((p) => p.sizes || []))
-      ).sort();
-      setAvailableColors(colors);
-      setAvailableSizes(sizes);
-    }
-  }, [productsData]);
+  const mainCategories = categories.filter((c) => !c.parent_id);
+  const subCategories = categories.filter((c) => c.parent_id === selectedMainCategory);
 
-  // Show error toast if query fails
-  useEffect(() => {
-    if (error) {
-      toast.error("حدث خطأ في تحميل المنتجات");
-    }
-  }, [error]);
+  const activeFiltersCount = [
+    freeDeliveryFilter,
+    homeDeliveryFilter,
+    inStockOnly,
+    minRating,
+    selectedMainCategory,
+    selectedSubCategory,
+    priceRange[0] > 0 || priceRange[1] < 100000,
+  ].filter(Boolean).length;
 
-  const getMainCategories = () => categories.filter((cat) => !cat.parent_id);
-  const getSubCategories = (parentId: string) =>
-    categories.filter((cat) => cat.parent_id === parentId);
-
-  const handleMainCategoryClick = (categoryId: string) => {
-    setSelectedMainCategory(categoryId);
-    setSelectedSubCategory(null);
-    setSearchTerm("");
-    setCurrentPage(1);
-  };
-
-  const handleBackToMain = () => {
+  const clearAllFilters = () => {
     setSelectedMainCategory(null);
     setSelectedSubCategory(null);
+    setFreeDeliveryFilter(false);
+    setHomeDeliveryFilter(false);
+    setInStockOnly(false);
+    setMinRating(undefined);
+    setPriceRange([0, 100000]);
     setSearchTerm("");
-    setSelectedColor("");
-    setSelectedSize("");
-    setCurrentPage(1);
   };
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  // Client-side sorting
-  const sortedProducts = [...(productsData?.products || [])].sort((a, b) => {
-    let fieldA: any = a[sortField] ?? "";
-    let fieldB: any = b[sortField] ?? "";
-
-    if (sortField === "created_at") {
-      fieldA = new Date(fieldA).getTime();
-      fieldB = new Date(fieldB).getTime();
-    }
-    if (sortField === "price") {
-      fieldA = Number(fieldA);
-      fieldB = Number(fieldB);
-    }
-    if (sortField === "name") {
-      fieldA = String(fieldA);
-      fieldB = String(fieldB);
-    }
-
-    if (sortOrder === "asc") return fieldA > fieldB ? 1 : fieldA < fieldB ? -1 : 0;
-    return fieldA < fieldB ? 1 : fieldA > fieldB ? -1 : 0;
-  });
-
-  const shouldShowProductGrid =
-    selectedSubCategory || selectedMainCategory || (!selectedMainCategory && !selectedSubCategory);
-
-  const loading = productsLoading || categoriesLoading;
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <main className="flex-1 container mx-auto px-4 py-8">
-        {/* HERO */}
-        <div className="text-center mb-10 py-10 bg-gradient-to-r from-blue-600 to-purple-700 text-white rounded-xl shadow-lg">
-          <h1 className="text-2xl sm:text-3xl md:text-5xl font-extrabold mb-2">منتجاتنا المذهلة</h1>
-          <p className="text-sm sm:text-base md:text-lg opacity-90 max-w-xl mx-auto">
-            اكتشف أحدث المنتجات وأفضل العروض.
-          </p>
-        </div>
-
-        {/* FILTER BOX */}
-        <Card className="mb-8 p-4 sm:p-6 md:p-8 bg-card rounded-xl shadow-xl border">
-          <h2 className="text-xl sm:text-2xl font-bold mb-4 text-center flex items-center justify-center gap-2">
-            <Search size={20} /> بحث وفلترة
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            <div className="relative">
-              <Label>البحث بالاسم</Label>
-              <Input
-                type="text"
-                placeholder="ابحث عن منتج..."
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="w-full pl-8"
-              />
-              <Search className="absolute left-2 top-9 text-muted-foreground" size={16} />
-            </div>
-
-            <div className="relative">
-              <Label>الحد الأدنى للسعر</Label>
-              <Input
-                type="number"
-                value={minPriceInput}
-                onChange={(e) => {
-                  setMinPriceInput(e.target.value);
-                  setCurrentPage(1);
-                }}
-                placeholder="0"
-                className="w-full pl-8"
-              />
-              <span className="absolute left-2 top-9 text-muted-foreground text-sm">دج</span>
-            </div>
-
-            <div className="relative">
-              <Label>الحد الأقصى للسعر</Label>
-              <Input
-                type="number"
-                value={maxPriceInput}
-                onChange={(e) => {
-                  setMaxPriceInput(e.target.value);
-                  setCurrentPage(1);
-                }}
-                placeholder="10000"
-                className="w-full pl-8"
-              />
-              <span className="absolute left-2 top-9 text-muted-foreground text-sm">دج</span>
-            </div>
-          </div>
-
-          {/* NEW: color & size selectors */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8 animate-slide-up">
+          <div className="flex items-center justify-between mb-4">
             <div>
-              <Label>اللون</Label>
-              <select
-                value={selectedColor}
-                onChange={(e) => {
-                  setSelectedColor(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="w-full border p-2 rounded-lg"
-              >
-                <option value="">كل الألوان</option>
-                {availableColors.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
+              <h1 className="text-4xl font-bold mb-2 text-gradient">
+                <Sparkles className="inline-block ml-2 h-8 w-8" />
+                اكتشف منتجاتنا
+              </h1>
+              <p className="text-muted-foreground">
+                {productsData?.totalCount || 0} منتج متاح
+              </p>
             </div>
 
-            <div>
-              <Label>المقاس</Label>
-              <select
-                value={selectedSize}
-                onChange={(e) => {
-                  setSelectedSize(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="w-full border p-2 rounded-lg"
-              >
-                <option value="">كل المقاسات</option>
-                {availableSizes.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Delivery & Stock Filters */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
-            <div>
-              <Label>نوع التوصيل</Label>
-              <select
-                value={freeDeliveryFilter === true ? "free" : homeDeliveryFilter === true ? "home" : "all"}
-                onChange={(e) => {
-                  if (e.target.value === "free") {
-                    setFreeDeliveryFilter(true);
-                    setHomeDeliveryFilter(undefined);
-                  } else if (e.target.value === "home") {
-                    setFreeDeliveryFilter(undefined);
-                    setHomeDeliveryFilter(true);
-                  } else {
-                    setFreeDeliveryFilter(undefined);
-                    setHomeDeliveryFilter(undefined);
-                  }
-                  setCurrentPage(1);
-                }}
-                className="w-full border p-2 rounded-lg"
-              >
-                <option value="all">كل الخيارات</option>
-                <option value="free">توصيل مجاني</option>
-                <option value="home">توصيل للمنزل</option>
-              </select>
-            </div>
-
-            <div>
-              <Label>التوفر</Label>
-              <select
-                value={inStockOnly ? "in-stock" : "all"}
-                onChange={(e) => {
-                  setInStockOnly(e.target.value === "in-stock");
-                  setCurrentPage(1);
-                }}
-                className="w-full border p-2 rounded-lg"
-              >
-                <option value="all">عرض الكل</option>
-                <option value="in-stock">متوفر فقط</option>
-              </select>
-            </div>
-
-            <div>
-              <Label>التقييم</Label>
-              <select
-                value={minRatingFilter || "all"}
-                onChange={(e) => {
-                  setMinRatingFilter(e.target.value === "all" ? undefined : parseFloat(e.target.value));
-                  setCurrentPage(1);
-                }}
-                className="w-full border p-2 rounded-lg"
-              >
-                <option value="all">جميع التقييمات</option>
-                <option value="5">5 نجوم فقط</option>
-                <option value="4">4 نجوم وأعلى</option>
-                <option value="3">3 نجوم وأعلى</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Sorting */}
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mt-4 justify-center">
-            <select
-              value={sortField}
-              onChange={(e) => setSortField(e.target.value as any)}
-              className="border p-2 rounded-lg"
-            >
-              <option value="created_at">التاريخ</option>
-              <option value="name">الاسم</option>
-              <option value="price">السعر</option>
-              <option value="view_count">الأكثر مشاهدة</option>
-              <option value="average_rating">الأعلى تقييماً</option>
-            </select>
-            <select
-              value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value as any)}
-              className="border p-2 rounded-lg"
-            >
-              <option value="desc">من الأعلى</option>
-              <option value="asc">من الأسفل</option>
-            </select>
-          </div>
-        </Card>
-
-        {/* MAIN CATEGORIES */}
-        {!selectedMainCategory && (
-          <div className="mb-8">
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 text-center flex items-center justify-center gap-2">
-              <LayoutGrid size={20} /> التصنيفات
-            </h2>
-
-            {categoriesLoading ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="h-32 bg-muted animate-pulse rounded-lg" />
-                ))}
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                {getMainCategories().map((cat) => (
-                  <Card
-                    key={cat.id}
-                    onClick={() => handleMainCategoryClick(cat.id)}
-                    className="cursor-pointer hover:shadow-lg transition p-2 sm:p-3"
-                  >
-                    <div className="h-24 sm:h-28 overflow-hidden rounded-md">
-                      <img
-                        src={cat.image_url || ""}
-                        loading="lazy"
-                        alt={cat.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <p className="text-center mt-2 font-semibold text-sm sm:text-base">{cat.name}</p>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* SUB CATEGORIES */}
-        {selectedMainCategory && !selectedSubCategory && (
-          <div className="mb-8">
-            <Button variant="outline" onClick={handleBackToMain} className="mb-4">
-              <ArrowLeft size={16} /> العودة
-            </Button>
-
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 text-center flex items-center justify-center gap-2">
-              <Tag size={20} /> التصنيفات الفرعية
-            </h2>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {getSubCategories(selectedMainCategory).map((cat) => (
-                <Card
-                  key={cat.id}
-                  className="cursor-pointer hover:shadow-lg transition p-2 sm:p-3"
-                  onClick={() => {
-                    setSelectedSubCategory(cat.id);
-                    setCurrentPage(1);
-                  }}
+            {/* View Controls */}
+            <div className="flex items-center gap-3">
+              <div className="hidden md:flex items-center gap-2 bg-muted/50 p-1 rounded-lg">
+                <Button
+                  variant={viewMode === "grid" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewMode("grid")}
                 >
-                  <div className="h-24 sm:h-28 overflow-hidden rounded-md">
-                    <img
-                      src={cat.image_url || ""}
-                      loading="lazy"
-                      alt={cat.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <p className="text-center mt-2 font-semibold text-sm sm:text-base">{cat.name}</p>
-                </Card>
-              ))}
-            </div>
-          </div>
-        )}
+                  <Grid3x3 className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === "list" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewMode("list")}
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
 
-        {/* PRODUCT GRID */}
-        {shouldShowProductGrid && (
-          <>
-            {(selectedMainCategory || selectedSubCategory) && (
+              {viewMode === "grid" && (
+                <Select value={gridCols.toString()} onValueChange={(v) => setGridCols(Number(v))}>
+                  <SelectTrigger className="w-24">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="2">2 أعمدة</SelectItem>
+                    <SelectItem value="3">3 أعمدة</SelectItem>
+                    <SelectItem value="4">4 أعمدة</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+
               <Button
                 variant="outline"
-                onClick={() => (selectedSubCategory ? setSelectedSubCategory(null) : handleBackToMain())}
-                className="mb-4"
+                size="sm"
+                onClick={() => setShowFilters(!showFilters)}
+                className="md:hidden"
               >
-                <ArrowLeft size={16} /> العودة
+                <Filter className="h-4 w-4 ml-2" />
+                فلاتر {activeFiltersCount > 0 && `(${activeFiltersCount})`}
               </Button>
-            )}
+            </div>
+          </div>
 
-            {loading ? (
-              <div className="flex justify-center py-16">
-                <LoadingSpinner size="lg" message="جاري تحميل المنتجات..." />
-              </div>
-            ) : sortedProducts.length === 0 ? (
-              <div className="text-center py-16 bg-card rounded-xl shadow border">
-                <Inbox size={40} className="mx-auto mb-4 opacity-60" />
-                <p className="text-lg sm:text-xl mb-2">لا توجد منتجات</p>
-                <Button onClick={handleBackToMain}>عرض كل المنتجات</Button>
-              </div>
+          {/* Search & Sort Bar */}
+          <div className="flex gap-3">
+            <div className="flex-1 relative">
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <Input
+                placeholder="ابحث عن منتج..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pr-10 h-12 text-lg"
+              />
+            </div>
+            <Select value={`${sortBy}-${sortOrder}`} onValueChange={(v) => {
+              const [field, order] = v.split("-");
+              setSortBy(field as any);
+              setSortOrder(order as any);
+            }}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="ترتيب حسب" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="created_at-desc">
+                  <TrendingUp className="inline h-4 w-4 ml-2" />
+                  الأحدث
+                </SelectItem>
+                <SelectItem value="price-asc">السعر: الأقل أولاً</SelectItem>
+                <SelectItem value="price-desc">السعر: الأعلى أولاً</SelectItem>
+                <SelectItem value="average_rating-desc">
+                  <Star className="inline h-4 w-4 ml-2" />
+                  الأعلى تقييماً
+                </SelectItem>
+                <SelectItem value="view_count-desc">الأكثر مشاهدة</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex gap-8">
+          {/* Filters Sidebar */}
+          {showFilters && (
+            <aside className={`${showFilters ? "block" : "hidden"
+              } md:block w-full md:w-80 shrink-0 animate-slide-up`}>
+              <Card className="p-6 sticky top-4 glass-card">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-2">
+                    <SlidersHorizontal className="h-5 w-5" />
+                    <h3 className="font-bold text-lg">الفلاتر</h3>
+                    {activeFiltersCount > 0 && (
+                      <Badge variant="secondary">{activeFiltersCount}</Badge>
+                    )}
+                  </div>
+                  {activeFiltersCount > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearAllFilters}
+                      className="text-destructive"
+                    >
+                      <X className="h-4 w-4 ml-1" />
+                      مسح الكل
+                    </Button>
+                  )}
+                </div>
+
+                <div className="space-y-6">
+                  {/* Price Range */}
+                  <div>
+                    <PriceRangeSlider
+                      min={0}
+                      max={100000}
+                      value={priceRange}
+                      onChange={setPriceRange}
+                    />
+                  </div>
+
+                  <Separator />
+
+                  {/* Categories */}
+                  <div>
+                    <Label className="text-sm font-semibold mb-3 block">الفئات</Label>
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {mainCategories.map((cat) => (
+                        <div key={cat.id}>
+                          <Button
+                            variant={selectedMainCategory === cat.id ? "default" : "ghost"}
+                            className="w-full justify-start"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedMainCategory(
+                                selectedMainCategory === cat.id ? null : cat.id
+                              );
+                              setSelectedSubCategory(null);
+                            }}
+                          >
+                            {cat.name}
+                          </Button>
+                          {selectedMainCategory === cat.id && subCategories.length > 0 && (
+                            <div className="mr-4 mt-2 space-y-1">
+                              {subCategories.map((sub) => (
+                                <Button
+                                  key={sub.id}
+                                  variant={selectedSubCategory === sub.id ? "secondary" : "ghost"}
+                                  className="w-full justify-start text-sm"
+                                  size="sm"
+                                  onClick={() =>
+                                    setSelectedSubCategory(
+                                      selectedSubCategory === sub.id ? null : sub.id
+                                    )
+                                  }
+                                >
+                                  {sub.name}
+                                </Button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Quick Filters */}
+                  <div>
+                    <Label className="text-sm font-semibold mb-3 block">خيارات سريعة</Label>
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-2 space-x-reverse">
+                        <Checkbox
+                          id="free-delivery"
+                          checked={freeDeliveryFilter}
+                          onCheckedChange={(checked) =>
+                            setFreeDeliveryFilter(checked as boolean)
+                          }
+                        />
+                        <label htmlFor="free-delivery" className="text-sm cursor-pointer">
+                          توصيل مجاني
+                        </label>
+                      </div>
+                      <div className="flex items-center space-x-2 space-x-reverse">
+                        <Checkbox
+                          id="home-delivery"
+                          checked={homeDeliveryFilter}
+                          onCheckedChange={(checked) =>
+                            setHomeDeliveryFilter(checked as boolean)
+                          }
+                        />
+                        <label htmlFor="home-delivery" className="text-sm cursor-pointer">
+                          توصيل للمنزل
+                        </label>
+                      </div>
+                      <div className="flex items-center space-x-2 space-x-reverse">
+                        <Checkbox
+                          id="in-stock"
+                          checked={inStockOnly}
+                          onCheckedChange={(checked) => setInStockOnly(checked as boolean)}
+                        />
+                        <label htmlFor="in-stock" className="text-sm cursor-pointer">
+                          متوفر في المخزون
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Rating Filter */}
+                  <div>
+                    <Label className="text-sm font-semibold mb-3 block">التقييم</Label>
+                    <div className="space-y-2">
+                      {[4, 3, 2].map((rating) => (
+                        <Button
+                          key={rating}
+                          variant={minRating === rating ? "default" : "ghost"}
+                          className="w-full justify-start"
+                          size="sm"
+                          onClick={() =>
+                            setMinRating(minRating === rating ? undefined : rating)
+                          }
+                        >
+                          <div className="flex items-center">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`h-4 w-4 ${i < rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+                                  }`}
+                              />
+                            ))}
+                            <span className="mr-2">وأكثر</span>
+                          </div>
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </aside>
+          )}
+
+          {/* Products Grid */}
+          <main className="flex-1">
+            {productsLoading ? (
+              <LoadingSpinner fullScreen={false} message="جاري تحميل المنتجات..." />
+            ) : !productsData?.products?.length ? (
+              <Card className="p-12 text-center animate-fade-in">
+                <div className="max-w-md mx-auto">
+                  <div className="text-6xl mb-4">🔍</div>
+                  <h3 className="text-2xl font-bold mb-2">لا توجد منتجات</h3>
+                  <p className="text-muted-foreground mb-4">
+                    جرب تغيير الفلاتر أو البحث عن شيء آخر
+                  </p>
+                  {activeFiltersCount > 0 && (
+                    <Button onClick={clearAllFilters}>
+                      <X className="ml-2 h-4 w-4" />
+                      مسح جميع الفلاتر
+                    </Button>
+                  )}
+                </div>
+              </Card>
             ) : (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                  {sortedProducts.map((product) => (
-                    <ProductCard key={product.id} {...product} />
+                <div
+                  className={`grid gap-6 animate-fade-in ${viewMode === "grid"
+                      ? `grid-cols-1 sm:grid-cols-2 ${gridCols === 4
+                        ? "lg:grid-cols-4"
+                        : gridCols === 3
+                          ? "lg:grid-cols-3"
+                          : "lg:grid-cols-2"
+                      }`
+                      : "grid-cols-1"
+                    }`}
+                >
+                  {productsData.products.map((product: any, index: number) => (
+                    <div
+                      key={product.id}
+                      className="hover-lift animate-scale-in"
+                      style={{ animationDelay: `${index * 0.05}s` }}
+                    >
+                      <ProductCard
+                        {...product}
+                        name_ar={product.name}
+                        description_ar={product.description}
+                        is_delivery_home_available={product.home_delivery}
+                        is_delivery_desktop_available={product.office_delivery}
+                        is_sold_out={product.is_sold_out}
+                        is_free_delivery={product.is_free_delivery}
+                      />
+                    </div>
                   ))}
                 </div>
 
-                {productsData && (
-                  <Pagination
-                    currentPage={currentPage}
-                    totalPages={productsData.totalPages}
-                    onPageChange={handlePageChange}
-                  />
+                {/* Pagination */}
+                {productsData.totalCount > pageSize && (
+                  <div className="mt-12 flex justify-center">
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={Math.ceil(productsData.totalCount / pageSize)}
+                      onPageChange={setCurrentPage}
+                    />
+                  </div>
                 )}
               </>
             )}
-          </>
-        )}
-      </main>
+          </main>
+        </div>
+      </div>
+
+      {/* Quick View Modal */}
+      <QuickViewModal
+        product={quickViewProduct}
+        open={quickViewOpen}
+        onOpenChange={setQuickViewOpen}
+      />
     </div>
   );
 };
