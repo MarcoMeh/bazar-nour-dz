@@ -2,7 +2,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { useCart } from '@/contexts/CartContext';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Eye, Heart } from 'lucide-react';
+import { useState } from 'react';
 
 interface ProductCardProps {
   id: string;
@@ -17,6 +18,8 @@ interface ProductCardProps {
   store_id: string;
   colors?: string[];
   sizes?: string[];
+  onQuickView?: (product: any) => void;
+  onAddToWishlist?: (productId: string) => void;
 }
 
 export const ProductCard = ({
@@ -32,9 +35,12 @@ export const ProductCard = ({
   store_id,
   colors,
   sizes,
+  onQuickView,
+  onAddToWishlist,
 }: ProductCardProps) => {
   const { addItem } = useCart();
   const navigate = useNavigate();
+  const [isWishlisted, setIsWishlisted] = useState(false);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -59,10 +65,40 @@ export const ProductCard = ({
     }
   };
 
+  const handleQuickView = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onQuickView) {
+      onQuickView({
+        id,
+        name: name_ar,
+        description: description_ar,
+        price,
+        image_url,
+        is_delivery_home_available,
+        is_delivery_desktop_available,
+        is_sold_out,
+        is_free_delivery,
+        store_id,
+        colors,
+        sizes
+      });
+    }
+  };
+
+  const handleWishlist = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsWishlisted(!isWishlisted);
+    if (onAddToWishlist) {
+      onAddToWishlist(id);
+    }
+  };
+
   return (
     <Card className="card-3d overflow-hidden hover:shadow-xl transition-all duration-300 group border-muted hover:border-accent/30 relative">
       <Link to={`/product/${id}`}>
-        <div className="aspect-square overflow-hidden bg-gradient-to-br from-muted to-muted/50">
+        <div className="aspect-square overflow-hidden bg-gradient-to-br from-muted to-muted/50 relative">
           {image_url ? (
             <img
               src={image_url}
@@ -75,11 +111,37 @@ export const ProductCard = ({
               <span className="text-6xl opacity-20">📦</span>
             </div>
           )}
+
+          {/* Quick Actions Overlay */}
+          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
+            {onQuickView && (
+              <Button
+                size="icon"
+                variant="secondary"
+                className="rounded-full shadow-lg hover:scale-110 transition-transform"
+                onClick={handleQuickView}
+              >
+                <Eye className="h-5 w-5" />
+              </Button>
+            )}
+          </div>
         </div>
       </Link>
 
+      {/* Wishlist Button */}
+      {onAddToWishlist && (
+        <Button
+          size="icon"
+          variant="ghost"
+          className="absolute top-2 right-2 z-20 bg-white/80 hover:bg-white rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-300"
+          onClick={handleWishlist}
+        >
+          <Heart className={`h-5 w-5 ${isWishlisted ? "fill-red-500 text-red-500" : ""}`} />
+        </Button>
+      )}
+
       {/* Badges for status and delivery */}
-      <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
+      <div className="absolute top-2 left-2 flex flex-col gap-1 z-10 pointer-events-none">
         {is_free_delivery && (
           <span className="bg-green-600 text-white text-xs px-2 py-1 rounded-full shadow-md">
             توصيل مجاني

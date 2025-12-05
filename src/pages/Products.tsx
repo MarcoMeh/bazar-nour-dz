@@ -228,7 +228,7 @@ const Products = () => {
         </div>
 
         {/* Main Content */}
-        <div className="flex gap-8">
+        <div className="flex flex-col md:flex-row gap-8">
           {/* Filters Sidebar */}
           {showFilters && (
             <aside className={`${showFilters ? "block" : "hidden"
@@ -413,13 +413,13 @@ const Products = () => {
               <>
                 <div
                   className={`grid gap-6 animate-fade-in ${viewMode === "grid"
-                      ? `grid-cols-1 sm:grid-cols-2 ${gridCols === 4
-                        ? "lg:grid-cols-4"
-                        : gridCols === 3
-                          ? "lg:grid-cols-3"
-                          : "lg:grid-cols-2"
-                      }`
-                      : "grid-cols-1"
+                    ? `grid-cols-1 sm:grid-cols-2 ${gridCols === 4
+                      ? "lg:grid-cols-4"
+                      : gridCols === 3
+                        ? "lg:grid-cols-3"
+                        : "lg:grid-cols-2"
+                    }`
+                    : "grid-cols-1"
                     }`}
                 >
                   {productsData.products.map((product: any, index: number) => (
@@ -436,6 +436,10 @@ const Products = () => {
                         is_delivery_desktop_available={product.office_delivery}
                         is_sold_out={product.is_sold_out}
                         is_free_delivery={product.is_free_delivery}
+                        onQuickView={(p) => {
+                          setQuickViewProduct(p);
+                          setQuickViewOpen(true);
+                        }}
                       />
                     </div>
                   ))}
