@@ -29,6 +29,7 @@ export const Header = () => {
 
   useEffect(() => {
     const loadCategories = async () => {
+      // Placeholder for category loading logic if needed
     };
     loadCategories();
   }, []);
@@ -73,7 +74,7 @@ export const Header = () => {
                 المنتجات
               </Link>
               <Link
-                to="/productstores"
+                to="/stores"
                 className="text-green-700 hover:text-green-900 font-semibold"
               >
                 محلاتنا

@@ -432,8 +432,8 @@ const Products = () => {
                         {...product}
                         name_ar={product.name}
                         description_ar={product.description}
-                        is_delivery_home_available={product.home_delivery}
-                        is_delivery_desktop_available={product.office_delivery}
+                        is_delivery_home_available={product.is_delivery_home_available}
+                        is_delivery_desktop_available={product.is_delivery_desktop_available}
                         is_sold_out={product.is_sold_out}
                         is_free_delivery={product.is_free_delivery}
                         onQuickView={(p) => {

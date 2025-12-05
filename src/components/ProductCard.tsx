@@ -11,6 +11,7 @@ interface ProductCardProps {
   description_ar?: string;
   price: number;
   image_url?: string;
+  additional_images?: string[];
   is_delivery_home_available: boolean;
   is_delivery_desktop_available: boolean;
   is_sold_out: boolean;
@@ -28,6 +29,7 @@ export const ProductCard = ({
   description_ar,
   price,
   image_url,
+  additional_images,
   is_delivery_home_available,
   is_delivery_desktop_available,
   is_sold_out,
@@ -100,12 +102,22 @@ export const ProductCard = ({
       <Link to={`/product/${id}`}>
         <div className="aspect-square overflow-hidden bg-gradient-to-br from-muted to-muted/50 relative">
           {image_url ? (
-            <img
-              src={image_url}
-              alt={name_ar}
-              loading="lazy"
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
+            <>
+              <img
+                src={image_url}
+                alt={name_ar}
+                loading="lazy"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+              {additional_images && additional_images.length > 0 && (
+                <img
+                  src={additional_images[0]}
+                  alt={name_ar}
+                  loading="lazy"
+                  className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                />
+              )}
+            </>
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-accent/10">
               <span className="text-6xl opacity-20">📦</span>

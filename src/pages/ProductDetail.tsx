@@ -10,6 +10,7 @@ import {
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
+  type CarouselApi,
 } from '@/components/ui/carousel';
 import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/contexts/CartContext';
@@ -23,7 +24,8 @@ interface Product {
   description?: string; // Changed from description_ar (assuming DB uses description based on AdminProducts)
   price: number;
   image_url?: string;
-  images?: string[];
+  additional_images?: string[];
+  images?: string[]; // Keep for backward compatibility if needed
   category_id?: string;
 
   is_delivery_home_available: boolean;
@@ -45,6 +47,7 @@ const ProductDetail = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [api, setApi] = useState<CarouselApi>();
 
   useEffect(() => {
     if (id) {
@@ -52,12 +55,29 @@ const ProductDetail = () => {
     }
   }, [id]);
 
+  useEffect(() => {
+    if (!api) {
+      return;
+    }
+
+    api.on("select", () => {
+      setSelectedImage(api.selectedScrollSnap());
+    });
+  }, [api]);
+
+  useEffect(() => {
+    if (!api) {
+      return;
+    }
+    api.scrollTo(selectedImage);
+  }, [selectedImage, api]);
+
   const fetchProduct = async () => {
     setLoading(true);
     // Explicitly select fields to be safe, including store_id
     const { data, error } = (await supabase
       .from('products')
-      .select('*, store_id, is_delivery_home_available, is_delivery_desk_available, is_sold_out, is_free_delivery, colors, sizes')
+      .select('*, store_id, is_delivery_home_available, is_delivery_desk_available, is_sold_out, is_free_delivery, colors, sizes, additional_images')
       .eq('id', id)
       .maybeSingle()) as { data: Product | null; error: PostgrestError | null };
 
@@ -113,7 +133,9 @@ const ProductDetail = () => {
     if (!product) return [];
     const images = [];
     if (product.image_url) images.push(product.image_url);
-    if (product.images && Array.isArray(product.images)) {
+    if (product.additional_images && Array.isArray(product.additional_images)) {
+      images.push(...product.additional_images);
+    } else if (product.images && Array.isArray(product.images)) {
       images.push(...product.images);
     }
     return images;
@@ -199,7 +221,7 @@ const ProductDetail = () => {
               </div>
             )}
             {allImages.length > 1 ? (
-              <Carousel className="w-full">
+              <Carousel setApi={setApi} className="w-full">
                 <CarouselContent>
                   {allImages.map((image, index) => (
                     <CarouselItem key={index}>

@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Edit, Trash2, Upload } from "lucide-react";
+import { Plus, Edit, Trash2, Upload, X } from "lucide-react";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { ERROR_MESSAGES, SUCCESS_MESSAGES, getErrorMessage } from "@/lib/errorMessages";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
@@ -36,6 +36,7 @@ export default function StoreOwnerProducts() {
         office_delivery: true,
         is_sold_out: false,
         is_free_delivery: false,
+        additional_images: [] as string[],
     });
 
     useEffect(() => {
@@ -100,7 +101,9 @@ export default function StoreOwnerProducts() {
             home_delivery: true,
             office_delivery: true,
             is_sold_out: false,
+            is_sold_out: false,
             is_free_delivery: false,
+            additional_images: [],
         });
         setEditingProduct(null);
     };
@@ -116,7 +119,9 @@ export default function StoreOwnerProducts() {
             home_delivery: product.home_delivery ?? true,
             office_delivery: product.office_delivery ?? true,
             is_sold_out: product.is_sold_out ?? false,
+            is_sold_out: product.is_sold_out ?? false,
             is_free_delivery: product.is_free_delivery ?? false,
+            additional_images: product.additional_images || [],
         });
         setIsDialogOpen(true);
     };
@@ -164,6 +169,47 @@ export default function StoreOwnerProducts() {
         setUploading(false);
     };
 
+    const handleAdditionalImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+        setUploading(true);
+
+        const newImages: string[] = [];
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const fileExt = file.name.split(".").pop();
+            const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from("product-images")
+                .upload(fileName, file);
+
+            if (uploadError) {
+                toast.error(`فشل رفع الصورة ${file.name}`);
+                continue;
+            }
+
+            const { data: { publicUrl } } = supabase.storage.from("product-images").getPublicUrl(fileName);
+            newImages.push(publicUrl);
+        }
+
+        setFormData((prev) => ({
+            ...prev,
+            additional_images: [...(prev.additional_images || []), ...newImages]
+        }));
+
+        toast.success("تم رفع الصور الإضافية");
+        setUploading(false);
+    };
+
+    const removeAdditionalImage = (indexToRemove: number) => {
+        setFormData((prev) => ({
+            ...prev,
+            additional_images: prev.additional_images.filter((_, index) => index !== indexToRemove)
+        }));
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -187,7 +233,9 @@ export default function StoreOwnerProducts() {
             home_delivery: formData.home_delivery,
             office_delivery: formData.office_delivery,
             is_sold_out: formData.is_sold_out,
+            is_sold_out: formData.is_sold_out,
             is_free_delivery: formData.is_free_delivery,
+            additional_images: formData.additional_images,
         };
 
         let error;
@@ -271,7 +319,7 @@ export default function StoreOwnerProducts() {
                             </div>
 
                             <div>
-                                <Label>صورة المنتج</Label>
+                                <Label>صورة المنتج الرئيسية</Label>
                                 <div className="flex items-center gap-3">
                                     <input id="image-upload" type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                                     <label htmlFor="image-upload">
@@ -281,7 +329,36 @@ export default function StoreOwnerProducts() {
                                     </label>
                                     <Input placeholder="أو ضع رابط الصورة" value={formData.image_url} onChange={(e) => setFormData((prev) => ({ ...prev, image_url: e.target.value }))} />
                                 </div>
-                                {formData.image_url && <img src={formData.image_url} alt="preview" className="h-32 w-32 object-cover rounded mt-2" />}
+                                {formData.image_url && <img src={formData.image_url} alt="preview" className="h-32 w-32 object-cover rounded mt-2 border" />}
+                            </div>
+
+                            <div>
+                                <Label>صور إضافية (للمعرض)</Label>
+                                <div className="flex items-center gap-3 mb-2">
+                                    <input id="additional-images-upload" type="file" accept="image/*" multiple onChange={handleAdditionalImageUpload} className="hidden" />
+                                    <label htmlFor="additional-images-upload">
+                                        <Button type="button" variant="secondary" asChild>
+                                            <span><Plus className="ml-2 h-4 w-4" />{uploading ? "جاري الرفع..." : "إضافة صور"}</span>
+                                        </Button>
+                                    </label>
+                                </div>
+
+                                {formData.additional_images && formData.additional_images.length > 0 && (
+                                    <div className="grid grid-cols-4 gap-2 mt-2">
+                                        {formData.additional_images.map((img, index) => (
+                                            <div key={index} className="relative group">
+                                                <img src={img} alt={`additional-${index}`} className="h-20 w-full object-cover rounded border" />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeAdditionalImage(index)}
+                                                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                >
+                                                    <X className="h-3 w-3" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">

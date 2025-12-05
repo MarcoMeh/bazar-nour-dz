@@ -35,6 +35,10 @@ export default function StoreOwnerProfile() {
         description: "",
         image_url: "",
         category_id: "",
+        whatsapp: "",
+        facebook: "",
+        instagram: "",
+        tiktok: "",
     });
 
     const [categories, setCategories] = useState<any[]>([]);
@@ -78,12 +82,17 @@ export default function StoreOwnerProfile() {
             }
 
             if (store) {
+                const storeData = store as any;
                 setStoreData({
                     id: store.id,
                     name: store.name,
                     description: store.description || "",
                     image_url: store.image_url || "",
                     category_id: store.category_id || "",
+                    whatsapp: storeData.whatsapp || "",
+                    facebook: storeData.facebook || "",
+                    instagram: storeData.instagram || "",
+                    tiktok: storeData.tiktok || "",
                 });
             }
 
@@ -161,6 +170,10 @@ export default function StoreOwnerProfile() {
                         description: storeData.description,
                         image_url: storeData.image_url,
                         category_id: storeData.category_id || null,
+                        whatsapp: storeData.whatsapp || null,
+                        facebook: storeData.facebook || null,
+                        instagram: storeData.instagram || null,
+                        tiktok: storeData.tiktok || null,
                     })
                     .eq("id", storeData.id);
 
@@ -273,6 +286,56 @@ export default function StoreOwnerProfile() {
                                 onChange={(e) => setStoreData({ ...storeData, description: e.target.value })}
                                 placeholder="وصف مختصر للمتجر وما يقدمه"
                             />
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Social Media Links */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Store className="h-5 w-5" />
+                            روابط التواصل الاجتماعي
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="grid gap-4 md:grid-cols-2">
+                            <div className="space-y-2">
+                                <Label htmlFor="whatsapp">WhatsApp</Label>
+                                <Input
+                                    id="whatsapp"
+                                    value={storeData.whatsapp}
+                                    onChange={(e) => setStoreData({ ...storeData, whatsapp: e.target.value })}
+                                    placeholder="رقم الواتساب أو الرابط"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="facebook">Facebook</Label>
+                                <Input
+                                    id="facebook"
+                                    value={storeData.facebook}
+                                    onChange={(e) => setStoreData({ ...storeData, facebook: e.target.value })}
+                                    placeholder="رابط صفحة الفيسبوك"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="instagram">Instagram</Label>
+                                <Input
+                                    id="instagram"
+                                    value={storeData.instagram}
+                                    onChange={(e) => setStoreData({ ...storeData, instagram: e.target.value })}
+                                    placeholder="رابط حساب انستغرام"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="tiktok">TikTok</Label>
+                                <Input
+                                    id="tiktok"
+                                    value={storeData.tiktok}
+                                    onChange={(e) => setStoreData({ ...storeData, tiktok: e.target.value })}
+                                    placeholder="رابط حساب تيك توك"
+                                />
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
