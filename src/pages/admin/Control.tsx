@@ -3,9 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, X, Plus, Search } from "lucide-react";
 
 interface SiteSettings {
     id: number;
@@ -14,6 +15,9 @@ interface SiteSettings {
     products_visible: boolean;
     stores_visible: boolean;
     categories_visible: boolean;
+    flash_sale_visible: boolean;
+    trending_visible: boolean;
+    newsletter_visible: boolean;
 }
 
 export default function AdminControl() {
@@ -21,9 +25,94 @@ export default function AdminControl() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
+    const [flashSaleProducts, setFlashSaleProducts] = useState<any[]>([]);
+    const [productSearchQuery, setProductSearchQuery] = useState("");
+    const [searchResults, setSearchResults] = useState<any[]>([]);
+
     useEffect(() => {
         fetchSettings();
+        fetchFlashSaleProducts();
     }, []);
+
+    const fetchFlashSaleProducts = async () => {
+        const { data, error } = await supabase
+            .from('flash_sale_items')
+            .select(`
+                id,
+                product:products (
+                    id,
+                    name_ar,
+                    image_url,
+                    price
+                )
+            `);
+
+        if (error) {
+            console.error('Error fetching flash sale items:', error);
+            return;
+        }
+
+        if (data) {
+            // Flatten the structure for the UI
+            const formattedData = data.map((item: any) => ({
+                id: item.product.id, // Use product ID for UI logic match
+                flash_sale_item_id: item.id,
+                name_ar: item.product.name_ar,
+                image_url: item.product.image_url,
+                price: item.product.price
+            }));
+            setFlashSaleProducts(formattedData);
+        }
+    };
+
+    const searchProducts = async () => {
+        if (!productSearchQuery.trim()) return;
+        const { data } = await supabase
+            .from('products')
+            .select('id, name_ar, image_url, price')
+            .ilike('name_ar', `%${productSearchQuery}%`)
+            .limit(5);
+        if (data) setSearchResults(data);
+    };
+
+    const addToFlashSale = async (productId: string) => {
+        // Check if already exists to avoid unique constraint error (though UI should handle this, safety first)
+        const { error } = await supabase
+            .from('flash_sale_items')
+            .insert({ product_id: productId });
+
+        if (error) {
+            console.error("Error adding to flash sale:", error);
+            if (error.code === '23505') { // Unique violation
+                toast.error("المنتج موجود بالفعل في عروض فلاش");
+            } else {
+                toast.error("حدث خطأ أثناء إضافة المنتج");
+            }
+            return;
+        }
+
+        fetchFlashSaleProducts();
+        setSearchResults([]);
+        setProductSearchQuery("");
+        toast.success("تم إضافة المنتج لعروض فلاش");
+    };
+
+    const removeFromFlashSale = async (productId: string) => {
+        // We delete by product_id for convenience since we map it in the UI
+        const { error } = await supabase
+            .from('flash_sale_items')
+            .delete()
+            .eq('product_id', productId);
+
+        if (error) {
+            console.error("Error removing from flash sale:", error);
+            toast.error("حدث خطأ أثناء حذف المنتج");
+            return;
+        }
+
+        fetchFlashSaleProducts();
+        toast.success("تم إزالة المنتج من عروض فلاش");
+    };
 
     const fetchSettings = async () => {
         try {
@@ -34,8 +123,6 @@ export default function AdminControl() {
 
             if (error) {
                 console.error("Error fetching settings:", error);
-                // If table is empty, maybe insert default? Or just handle error.
-                // For now, assume script ran and row exists.
             } else {
                 setSettings(data as any);
             }
@@ -63,6 +150,9 @@ export default function AdminControl() {
                     products_visible: settings.products_visible,
                     stores_visible: settings.stores_visible,
                     categories_visible: settings.categories_visible,
+                    flash_sale_visible: settings.flash_sale_visible,
+                    trending_visible: settings.trending_visible,
+                    newsletter_visible: settings.newsletter_visible,
                 })
                 .eq("id", 1); // Assuming single row with ID 1
 
@@ -169,6 +259,101 @@ export default function AdminControl() {
                                 id="categories-visible"
                                 checked={settings.categories_visible}
                                 onCheckedChange={() => handleToggle("categories_visible")}
+                            />
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Flash Sale Control */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>عروض فلاش</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor="flash-sale-visible">إظهار قسم عروض فلاش</Label>
+                            <Switch
+                                id="flash-sale-visible"
+                                checked={settings.flash_sale_visible}
+                                onCheckedChange={() => handleToggle("flash_sale_visible")}
+                            />
+                        </div>
+
+                        <div className="mt-6 border-t pt-4">
+                            <h3 className="font-bold mb-4">منتجات عروض فلاش</h3>
+
+                            {/* Active Products */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                {flashSaleProducts.map(p => (
+                                    <div key={p.id} className="flex items-center gap-2 border p-2 rounded relative bg-gray-50">
+                                        <img src={p.image_url || "/placeholder.svg"} className="w-10 h-10 rounded object-cover" />
+                                        <div className="text-sm truncate flex-1">{p.name_ar}</div>
+                                        <Button variant="ghost" size="icon" className="h-6 w-6 text-red-500 hover:text-red-700 hover:bg-red-100" onClick={() => removeFromFlashSale(p.id)}>
+                                            <X className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                ))}
+                                {flashSaleProducts.length === 0 && <p className="text-sm text-gray-500 col-span-2">لا توجد منتجات في عروض فلاش حالياً</p>}
+                            </div>
+
+                            {/* Add Product */}
+                            <div className="flex gap-2">
+                                <Input
+                                    placeholder="بحث عن منتج لإضافته..."
+                                    value={productSearchQuery}
+                                    onChange={e => setProductSearchQuery(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && searchProducts()}
+                                />
+                                <Button onClick={searchProducts} variant="secondary"><Search className="h-4 w-4" /></Button>
+                            </div>
+
+                            {/* Search Results */}
+                            {searchResults.length > 0 && (
+                                <div className="mt-2 border rounded-md p-2 space-y-1 max-h-40 overflow-y-auto bg-white shadow-sm">
+                                    {searchResults.map(p => (
+                                        <div key={p.id} className="flex justify-between items-center p-2 hover:bg-gray-100 cursor-pointer rounded transition-colors" onClick={() => addToFlashSale(p.id)}>
+                                            <div className="flex items-center gap-2">
+                                                <img src={p.image_url || "/placeholder.svg"} className="w-8 h-8 rounded object-cover" />
+                                                <span className="text-sm">{p.name_ar}</span>
+                                            </div>
+                                            <Plus className="h-4 w-4 text-green-600" />
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Trending Control */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>الأكثر مبيعاً (Trending)</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor="trending-visible">إظهار قسم الأكثر مبيعاً</Label>
+                            <Switch
+                                id="trending-visible"
+                                checked={settings.trending_visible}
+                                onCheckedChange={() => handleToggle("trending_visible")}
+                            />
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Newsletter Control */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>النشرة البريدية</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor="newsletter-visible">إظهار قسم النشرة البريدية</Label>
+                            <Switch
+                                id="newsletter-visible"
+                                checked={settings.newsletter_visible}
+                                onCheckedChange={() => handleToggle("newsletter_visible")}
                             />
                         </div>
                     </CardContent>

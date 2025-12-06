@@ -18,6 +18,13 @@ import { useCategories } from "@/hooks/useCategories";
 import { Pagination } from "@/components/Pagination";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
   Search,
   SlidersHorizontal,
   Grid3x3,
@@ -42,7 +49,6 @@ const Products = () => {
   // View & Layout
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [gridCols, setGridCols] = useState(3);
-  const [showFilters, setShowFilters] = useState(true);
 
   // Filters
   const [selectedMainCategory, setSelectedMainCategory] = useState<string | null>(null);
@@ -103,8 +109,17 @@ const Products = () => {
   useEffect(() => {
     const categoryParam = searchParams.get("category");
     const searchParam = searchParams.get("search");
-    if (categoryParam) setSelectedMainCategory(categoryParam);
-    if (searchParam) setSearchTerm(searchParam);
+    const storeParam = searchParams.get("store");
+
+    if (categoryParam) {
+      setSelectedMainCategory(categoryParam);
+    }
+    if (searchParam) {
+      setSearchTerm(searchParam);
+    }
+    if (storeParam) {
+      setSelectedStore(storeParam);
+    }
   }, [searchParams]);
 
   const mainCategories = categories.filter((c) => !c.parent_id);
@@ -131,24 +146,199 @@ const Products = () => {
     setSearchTerm("");
   };
 
+  const FiltersContent = () => (
+    <div className="space-y-6">
+      {/* Price Range */}
+      <div>
+        <PriceRangeSlider
+          min={0}
+          max={100000}
+          value={priceRange}
+          onChange={setPriceRange}
+        />
+      </div>
+
+      <Separator />
+
+      {/* Categories */}
+      <div>
+        <Label className="text-sm font-semibold mb-3 block">الفئات</Label>
+        <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
+          {mainCategories.map((cat) => (
+            <div key={cat.id}>
+              <Button
+                variant={selectedMainCategory === cat.id ? "default" : "ghost"}
+                className={`w-full justify-start ${selectedMainCategory === cat.id ? "bg-primary text-primary-foreground font-bold" : ""}`}
+                size="sm"
+                onClick={() => {
+                  setSelectedMainCategory(
+                    selectedMainCategory === cat.id ? null : cat.id
+                  );
+                  setSelectedSubCategory(null);
+                }}
+              >
+                {cat.name}
+              </Button>
+              {selectedMainCategory === cat.id && (
+                <div className="mr-4 mt-2 space-y-1 border-r-2 border-primary/20 pr-2">
+                  <p className="text-xs text-muted-foreground mb-2 px-2">الأقسام الفرعية:</p>
+                  {subCategories.length > 0 ? (
+                    subCategories.map((sub) => (
+                      <Button
+                        key={sub.id}
+                        variant={selectedSubCategory === sub.id ? "secondary" : "ghost"}
+                        className={`w-full justify-start text-sm h-8 ${selectedSubCategory === sub.id ? "bg-secondary/50 font-medium" : "text-muted-foreground hover:text-foreground"}`}
+                        size="sm"
+                        onClick={() =>
+                          setSelectedSubCategory(
+                            selectedSubCategory === sub.id ? null : sub.id
+                          )
+                        }
+                      >
+                        {sub.name}
+                      </Button>
+                    ))
+                  ) : (
+                    <p className="text-xs text-muted-foreground px-2">لا توجد أقسام فرعية</p>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Quick Filters */}
+      <div>
+        <Label className="text-sm font-semibold mb-3 block">خيارات سريعة</Label>
+        <div className="space-y-3">
+          <div className="flex items-center space-x-2 space-x-reverse">
+            <Checkbox
+              id="free-delivery"
+              checked={freeDeliveryFilter}
+              onCheckedChange={(checked) =>
+                setFreeDeliveryFilter(checked as boolean)
+              }
+            />
+            <label htmlFor="free-delivery" className="text-sm cursor-pointer">
+              توصيل مجاني
+            </label>
+          </div>
+          <div className="flex items-center space-x-2 space-x-reverse">
+            <Checkbox
+              id="home-delivery"
+              checked={homeDeliveryFilter}
+              onCheckedChange={(checked) =>
+                setHomeDeliveryFilter(checked as boolean)
+              }
+            />
+            <label htmlFor="home-delivery" className="text-sm cursor-pointer">
+              توصيل للمنزل
+            </label>
+          </div>
+          <div className="flex items-center space-x-2 space-x-reverse">
+            <Checkbox
+              id="in-stock"
+              checked={inStockOnly}
+              onCheckedChange={(checked) => setInStockOnly(checked as boolean)}
+            />
+            <label htmlFor="in-stock" className="text-sm cursor-pointer">
+              متوفر في المخزون
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Rating Filter */}
+      <div>
+        <Label className="text-sm font-semibold mb-3 block">التقييم</Label>
+        <div className="space-y-2">
+          {[4, 3, 2].map((rating) => (
+            <Button
+              key={rating}
+              variant={minRating === rating ? "default" : "ghost"}
+              className="w-full justify-start h-8"
+              size="sm"
+              onClick={() =>
+                setMinRating(minRating === rating ? undefined : rating)
+              }
+            >
+              <div className="flex items-center">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`h-3 w-3 ${i < rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+                      }`}
+                  />
+                ))}
+                <span className="mr-2 text-xs">وأكثر</span>
+              </div>
+            </Button>
+          ))}
+        </div>
+      </div>
+      {activeFiltersCount > 0 && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={clearAllFilters}
+          className="w-full mt-4 text-destructive border-destructive hover:bg-destructive/10"
+        >
+          <X className="h-4 w-4 ml-2" />
+          مسح جميع الفلاتر
+        </Button>
+      )}
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8 animate-slide-up">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-4xl font-bold mb-2 text-gradient">
-                <Sparkles className="inline-block ml-2 h-8 w-8" />
+              <h1 className="text-3xl md:text-4xl font-bold mb-2 text-gradient flex items-center">
+                <Sparkles className="inline-block ml-2 h-6 w-6 md:h-8 md:w-8 text-primary" />
                 اكتشف منتجاتنا
               </h1>
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground text-sm md:text-base">
                 {productsData?.totalCount || 0} منتج متاح
               </p>
             </div>
 
-            {/* View Controls */}
-            <div className="flex items-center gap-3">
+            {/* View Controls & Filters */}
+            <div className="flex items-center gap-3 self-end md:self-auto">
+              {/* Mobile Filter Sheet */}
+              <div className="md:hidden">
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <Filter className="h-4 w-4" />
+                      فلاتر
+                      {activeFiltersCount > 0 && (
+                        <Badge variant="secondary" className="px-1 h-5 min-w-[1.25rem] text-[10px]">
+                          {activeFiltersCount}
+                        </Badge>
+                      )}
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="right" className="w-[300px] sm:w-[400px] overflow-y-auto">
+                    <SheetHeader className="mb-6 text-right">
+                      <SheetTitle className="flex items-center gap-2">
+                        <SlidersHorizontal className="h-5 w-5" />
+                        تصفية النتائج
+                      </SheetTitle>
+                    </SheetHeader>
+                    <FiltersContent />
+                  </SheetContent>
+                </Sheet>
+              </div>
+
               <div className="hidden md:flex items-center gap-2 bg-muted/50 p-1 rounded-lg">
                 <Button
                   variant={viewMode === "grid" ? "default" : "ghost"}
@@ -168,7 +358,7 @@ const Products = () => {
 
               {viewMode === "grid" && (
                 <Select value={gridCols.toString()} onValueChange={(v) => setGridCols(Number(v))}>
-                  <SelectTrigger className="w-24">
+                  <SelectTrigger className="w-24 hidden md:flex">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -178,28 +368,18 @@ const Products = () => {
                   </SelectContent>
                 </Select>
               )}
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowFilters(!showFilters)}
-                className="md:hidden"
-              >
-                <Filter className="h-4 w-4 ml-2" />
-                فلاتر {activeFiltersCount > 0 && `(${activeFiltersCount})`}
-              </Button>
             </div>
           </div>
 
           {/* Search & Sort Bar */}
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1 relative">
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
                 placeholder="ابحث عن منتج..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pr-10 h-12 text-lg"
+                className="pr-10 h-12 text-lg rounded-full"
               />
             </div>
             <Select value={`${sortBy}-${sortOrder}`} onValueChange={(v) => {
@@ -207,7 +387,7 @@ const Products = () => {
               setSortBy(field as any);
               setSortOrder(order as any);
             }}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-full sm:w-48 h-12 rounded-full">
                 <SelectValue placeholder="ترتيب حسب" />
               </SelectTrigger>
               <SelectContent>
@@ -229,180 +409,47 @@ const Products = () => {
 
         {/* Main Content */}
         <div className="flex flex-col md:flex-row gap-8">
-          {/* Filters Sidebar */}
-          {showFilters && (
-            <aside className={`${showFilters ? "block" : "hidden"
-              } md:block w-full md:w-80 shrink-0 animate-slide-up`}>
-              <Card className="p-6 sticky top-4 glass-card">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-2">
-                    <SlidersHorizontal className="h-5 w-5" />
-                    <h3 className="font-bold text-lg">الفلاتر</h3>
-                    {activeFiltersCount > 0 && (
-                      <Badge variant="secondary">{activeFiltersCount}</Badge>
-                    )}
-                  </div>
+          {/* Desktop Filters Sidebar */}
+          <aside className="hidden md:block w-80 shrink-0 animate-slide-up">
+            <Card className="p-6 sticky top-24 glass-card border-none shadow-lg">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2">
+                  <SlidersHorizontal className="h-5 w-5" />
+                  <h3 className="font-bold text-lg">الفلاتر</h3>
                   {activeFiltersCount > 0 && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={clearAllFilters}
-                      className="text-destructive"
-                    >
-                      <X className="h-4 w-4 ml-1" />
-                      مسح الكل
-                    </Button>
+                    <Badge variant="secondary">{activeFiltersCount}</Badge>
                   )}
                 </div>
-
-                <div className="space-y-6">
-                  {/* Price Range */}
-                  <div>
-                    <PriceRangeSlider
-                      min={0}
-                      max={100000}
-                      value={priceRange}
-                      onChange={setPriceRange}
-                    />
-                  </div>
-
-                  <Separator />
-
-                  {/* Categories */}
-                  <div>
-                    <Label className="text-sm font-semibold mb-3 block">الفئات</Label>
-                    <div className="space-y-2 max-h-48 overflow-y-auto">
-                      {mainCategories.map((cat) => (
-                        <div key={cat.id}>
-                          <Button
-                            variant={selectedMainCategory === cat.id ? "default" : "ghost"}
-                            className="w-full justify-start"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedMainCategory(
-                                selectedMainCategory === cat.id ? null : cat.id
-                              );
-                              setSelectedSubCategory(null);
-                            }}
-                          >
-                            {cat.name}
-                          </Button>
-                          {selectedMainCategory === cat.id && subCategories.length > 0 && (
-                            <div className="mr-4 mt-2 space-y-1">
-                              {subCategories.map((sub) => (
-                                <Button
-                                  key={sub.id}
-                                  variant={selectedSubCategory === sub.id ? "secondary" : "ghost"}
-                                  className="w-full justify-start text-sm"
-                                  size="sm"
-                                  onClick={() =>
-                                    setSelectedSubCategory(
-                                      selectedSubCategory === sub.id ? null : sub.id
-                                    )
-                                  }
-                                >
-                                  {sub.name}
-                                </Button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  {/* Quick Filters */}
-                  <div>
-                    <Label className="text-sm font-semibold mb-3 block">خيارات سريعة</Label>
-                    <div className="space-y-3">
-                      <div className="flex items-center space-x-2 space-x-reverse">
-                        <Checkbox
-                          id="free-delivery"
-                          checked={freeDeliveryFilter}
-                          onCheckedChange={(checked) =>
-                            setFreeDeliveryFilter(checked as boolean)
-                          }
-                        />
-                        <label htmlFor="free-delivery" className="text-sm cursor-pointer">
-                          توصيل مجاني
-                        </label>
-                      </div>
-                      <div className="flex items-center space-x-2 space-x-reverse">
-                        <Checkbox
-                          id="home-delivery"
-                          checked={homeDeliveryFilter}
-                          onCheckedChange={(checked) =>
-                            setHomeDeliveryFilter(checked as boolean)
-                          }
-                        />
-                        <label htmlFor="home-delivery" className="text-sm cursor-pointer">
-                          توصيل للمنزل
-                        </label>
-                      </div>
-                      <div className="flex items-center space-x-2 space-x-reverse">
-                        <Checkbox
-                          id="in-stock"
-                          checked={inStockOnly}
-                          onCheckedChange={(checked) => setInStockOnly(checked as boolean)}
-                        />
-                        <label htmlFor="in-stock" className="text-sm cursor-pointer">
-                          متوفر في المخزون
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  {/* Rating Filter */}
-                  <div>
-                    <Label className="text-sm font-semibold mb-3 block">التقييم</Label>
-                    <div className="space-y-2">
-                      {[4, 3, 2].map((rating) => (
-                        <Button
-                          key={rating}
-                          variant={minRating === rating ? "default" : "ghost"}
-                          className="w-full justify-start"
-                          size="sm"
-                          onClick={() =>
-                            setMinRating(minRating === rating ? undefined : rating)
-                          }
-                        >
-                          <div className="flex items-center">
-                            {Array.from({ length: 5 }).map((_, i) => (
-                              <Star
-                                key={i}
-                                className={`h-4 w-4 ${i < rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
-                                  }`}
-                              />
-                            ))}
-                            <span className="mr-2">وأكثر</span>
-                          </div>
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            </aside>
-          )}
+                {activeFiltersCount > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearAllFilters}
+                    className="text-destructive hover:bg-destructive/10"
+                  >
+                    <X className="h-4 w-4 ml-1" />
+                    مسح
+                  </Button>
+                )}
+              </div>
+              <FiltersContent />
+            </Card>
+          </aside>
 
           {/* Products Grid */}
           <main className="flex-1">
             {productsLoading ? (
               <LoadingSpinner fullScreen={false} message="جاري تحميل المنتجات..." />
             ) : !productsData?.products?.length ? (
-              <Card className="p-12 text-center animate-fade-in">
+              <Card className="p-12 text-center animate-fade-in border-dashed">
                 <div className="max-w-md mx-auto">
-                  <div className="text-6xl mb-4">🔍</div>
+                  <div className="text-6xl mb-4 text-muted-foreground/30">🔍</div>
                   <h3 className="text-2xl font-bold mb-2">لا توجد منتجات</h3>
                   <p className="text-muted-foreground mb-4">
                     جرب تغيير الفلاتر أو البحث عن شيء آخر
                   </p>
                   {activeFiltersCount > 0 && (
-                    <Button onClick={clearAllFilters}>
+                    <Button onClick={clearAllFilters} variant="outline">
                       <X className="ml-2 h-4 w-4" />
                       مسح جميع الفلاتر
                     </Button>
@@ -412,8 +459,8 @@ const Products = () => {
             ) : (
               <>
                 <div
-                  className={`grid gap-6 animate-fade-in ${viewMode === "grid"
-                    ? `grid-cols-1 sm:grid-cols-2 ${gridCols === 4
+                  className={`grid gap-4 sm:gap-6 animate-fade-in ${viewMode === "grid"
+                    ? `grid-cols-2 ${gridCols === 4
                       ? "lg:grid-cols-4"
                       : gridCols === 3
                         ? "lg:grid-cols-3"
