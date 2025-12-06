@@ -198,11 +198,13 @@ export default function StoreOwnerProfile() {
     }
 
     return (
-        <div className="container max-w-4xl py-6">
-            <h1 className="text-3xl font-bold mb-8 flex items-center gap-2">
-                <Store className="h-8 w-8" />
-                إعدادات المتجر والملف الشخصي
-            </h1>
+        <div className="p-4 md:p-8 space-y-4 md:space-y-6">
+            <div>
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-primary flex items-center gap-2">
+                    <Store className="h-6 w-6 md:h-8 md:w-8" />
+                    إعدادات المتجر والملف الشخصي
+                </h1>
+            </div>
 
             <form onSubmit={handleSave} className="space-y-8">
                 {/* Store Settings */}

@@ -280,16 +280,16 @@ export default function StoreOwnerProducts() {
     }
 
     return (
-        <div>
-            <div className="flex justify-between items-center mb-8">
+        <div className="p-4 md:p-8 space-y-4 md:space-y-6">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3">
                 <div>
-                    <h1 className="text-3xl font-bold">إدارة المنتجات</h1>
-                    <p className="text-muted-foreground mt-1">إضافة وتعديل منتجات محلك</p>
+                    <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">إدارة المنتجات</h1>
+                    <p className="text-sm md:text-base text-muted-foreground mt-1">إضافة وتعديل منتجات محلك</p>
                 </div>
 
                 <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
                     <DialogTrigger asChild>
-                        <Button>
+                        <Button className="w-full md:w-auto">
                             <Plus className="ml-2 h-4 w-4" />
                             إضافة منتج
                         </Button>

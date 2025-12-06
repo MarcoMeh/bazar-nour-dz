@@ -1,0 +1,62 @@
+/* Mobile Optimizations for Store Owner Dashboard */
+
+/* Improve table responsiveness on mobile */
+@media (max-width: 768px) {
+
+    /* Make tables horizontally scrollable */
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Increase font size for better readability on mobile */
+    table {
+        font-size: 0.875rem;
+    }
+
+    /* Make table cells more compact */
+    table th,
+    table td {
+        padding: 0.5rem 0.25rem;
+        white-space: nowrap;
+    }
+
+    /* Improve button sizes for touch */
+    button {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    /* Make inputs larger for better touch targets */
+    input,
+    textarea,
+    select {
+        min-height: 44px;
+        font-size: 16px;
+        /* Prevents zoom on iOS */
+    }
+
+    /* Improve dialog/modal on mobile */
+    [role="dialog"] {
+        max-height: 90vh;
+        margin: 1rem;
+    }
+
+    /* Better spacing for mobile cards */
+    .mobile-card-spacing {
+        gap: 0.75rem;
+    }
+}
+
+/* Improve touch targets */
+@media (hover: none) and (pointer: coarse) {
+
+    /* All clickable elements should be at least 44x44px */
+    a,
+    button,
+    input[type="button"],
+    input[type="submit"] {
+        min-height: 44px;
+        padding: 0.75rem 1rem;
+    }
+}

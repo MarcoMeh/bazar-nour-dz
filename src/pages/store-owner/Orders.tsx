@@ -204,16 +204,16 @@ export default function StoreOwnerOrders() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="p-4 md:p-8 space-y-4 md:space-y-6">
             <div>
-                <h1 className="text-3xl font-bold">الطلبات</h1>
-                <p className="text-muted-foreground mt-1">عرض ومتابعة طلبات منتجاتك</p>
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">الطلبات</h1>
+                <p className="text-sm md:text-base text-muted-foreground mt-1">عرض ومتابعة طلبات منتجاتك</p>
             </div>
 
             <Tabs defaultValue="active" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-8">
-                    <TabsTrigger value="active">الطلبات الجارية</TabsTrigger>
-                    <TabsTrigger value="history">سجل الطلبات</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 mb-4 md:mb-8 h-11 md:h-10">
+                    <TabsTrigger value="active" className="text-sm md:text-base">الطلبات الجارية</TabsTrigger>
+                    <TabsTrigger value="history" className="text-sm md:text-base">سجل الطلبات</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="active">
@@ -222,11 +222,13 @@ export default function StoreOwnerOrders() {
                             <CardTitle>الطلبات الجارية</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <OrdersTable
-                                orders={orders.filter(o => ['pending', 'processing', 'shipped'].includes(o.status))}
-                                onView={handleViewOrder}
-                                getStatusBadge={getStatusBadge}
-                            />
+                            <div className="table-container overflow-x-auto">
+                                <OrdersTable
+                                    orders={orders.filter(o => ['pending', 'processing', 'shipped'].includes(o.status))}
+                                    onView={handleViewOrder}
+                                    getStatusBadge={getStatusBadge}
+                                />
+                            </div>
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -237,11 +239,13 @@ export default function StoreOwnerOrders() {
                             <CardTitle>سجل الطلبات السابقة</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <OrdersTable
-                                orders={orders.filter(o => ['delivered', 'cancelled'].includes(o.status))}
-                                onView={handleViewOrder}
-                                getStatusBadge={getStatusBadge}
-                            />
+                            <div className="table-container overflow-x-auto">
+                                <OrdersTable
+                                    orders={orders.filter(o => ['delivered', 'cancelled'].includes(o.status))}
+                                    onView={handleViewOrder}
+                                    getStatusBadge={getStatusBadge}
+                                />
+                            </div>
                         </CardContent>
                     </Card>
                 </TabsContent>
