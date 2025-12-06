@@ -101,19 +101,22 @@ export default function StoreOwnerOrders() {
         if (!storeId) return;
         setLoading(true);
         try {
-            // Get orders for this store using the RPC function
-            const { data: storeOrders, error: storeError } = await supabase
-                .rpc('get_store_orders', { p_store_id: storeId });
+            // Get orders for this store by checking order_items
+            const { data: items, error: itemsError } = await supabase
+                .from('order_items')
+                .select('order_id, products!inner(store_id)')
+                .eq('products.store_id', storeId);
 
-            if (storeError) throw storeError;
+            if (itemsError) throw itemsError;
 
-            if (!storeOrders || storeOrders.length === 0) {
+            if (!items || items.length === 0) {
                 setOrders([]);
                 setLoading(false);
                 return;
             }
 
-            const orderIds = storeOrders.map((o: any) => o.id);
+            // Extract unique order IDs
+            const orderIds = [...new Set(items.map((item: any) => item.order_id))];
 
             // Fetch full order details
             const { data, error } = await supabase
