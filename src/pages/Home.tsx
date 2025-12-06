@@ -129,14 +129,14 @@ const Home = () => {
     };
 
     const fetchMainCategories = async () => {
-        // Fetch only main categories (where parent_id is null)
-        const { data } = await supabase
+        // Fetch all categories (they are main categories, subcategories are in separate table)
+        const { data, error } = await supabase
             .from("categories")
             .select("*")
-            .is('parent_id', null)
             .order("name")
-            .limit(5); // Limit to 5 for the bento grid
-            
+            .limit(5);
+
+        console.log("Fetched categories:", data, "Error:", error);
         if (data) setMainCategories(data);
     };
 
@@ -548,7 +548,7 @@ const Home = () => {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 h-[600px] md:h-[500px]">
                     {loading ? (
                         [1, 2, 3, 4].map(i => <Skeleton key={i} className="w-full h-full rounded-3xl" />)
-                    ) : (
+                    ) : mainCategories.length > 0 ? (
                         mainCategories.slice(0, 5).map((cat, index) => (
                             <Link
                                 key={cat.id}
@@ -558,18 +558,22 @@ const Home = () => {
                             >
                                 <img
                                     src={cat.image_url || "/placeholder.svg"}
-                                    alt={cat.name_ar}
+                                    alt={cat.name || cat.name_ar}
                                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity"></div>
                                 <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                                    <h3 className={`${index === 0 ? 'text-3xl' : 'text-xl'} font-bold mb-1`}>{cat.name_ar}</h3>
+                                    <h3 className={`${index === 0 ? 'text-3xl' : 'text-xl'} font-bold mb-1`}>{cat.name || cat.name_ar}</h3>
                                     <span className="inline-flex items-center gap-1 text-sm opacity-0 group-hover:opacity-100 transition-all transform translate-y-4 group-hover:translate-y-0 duration-300">
                                         تصفح الآن <ArrowLeft className="h-4 w-4" />
                                     </span>
                                 </div>
                             </Link>
                         ))
+                    ) : (
+                        <div className="col-span-4 text-center py-20 text-gray-400">
+                            <p>لا توجد أقسام متاحة حالياً</p>
+                        </div>
                     )}
                 </div>
             </section>
