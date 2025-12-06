@@ -1,6 +1,6 @@
 /* PREMIUM PRODUCTS PAGE - WORLD CLASS DESIGN */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ProductCard } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import { PriceRangeSlider } from "@/components/PriceRangeSlider";
 import { QuickViewModal } from "@/components/QuickViewModal";
 import { useProducts } from "@/hooks/useProducts";
 import { useCategories } from "@/hooks/useCategories";
+import { useStore } from "@/hooks/useStores";
 import { Pagination } from "@/components/Pagination";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import {
@@ -80,10 +81,34 @@ const Products = () => {
 
   // Fetch data
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
+  const { data: storeDetails } = useStore(selectedStore);
+
+  // Prepare Categories Data
+  const mainCategories = categories.filter((c) => !c.parent_id);
+  const subCategories = categories.filter((c) => c.parent_id === selectedMainCategory);
+
+  // Compute filters for useProducts
+  const targetCategoryIds = useMemo(() => {
+    // If a subcategory is selected, strictly filter by it
+    if (selectedSubCategory) {
+      return [selectedSubCategory];
+    }
+    // If a main category is selected, include it AND all its subcategories
+    if (selectedMainCategory) {
+      const childIds = categories
+        .filter(c => c.parent_id === selectedMainCategory)
+        .map(c => c.id);
+      return [selectedMainCategory, ...childIds];
+    }
+    // Otherwise invalid/undefined to fetch all
+    return undefined;
+  }, [selectedMainCategory, selectedSubCategory, categories]);
+
   const { data: productsData, isLoading: productsLoading } = useProducts({
     page: currentPage,
     pageSize,
-    categoryId: selectedSubCategory || selectedMainCategory || undefined,
+    // Pass categoryIds array instead of single categoryId
+    categoryIds: targetCategoryIds,
     storeId: selectedStore || undefined,
     search: debouncedSearch || undefined,
     minPrice: priceRange[0],
@@ -122,9 +147,6 @@ const Products = () => {
     }
   }, [searchParams]);
 
-  const mainCategories = categories.filter((c) => !c.parent_id);
-  const subCategories = categories.filter((c) => c.parent_id === selectedMainCategory);
-
   const activeFiltersCount = [
     freeDeliveryFilter,
     homeDeliveryFilter,
@@ -148,6 +170,24 @@ const Products = () => {
 
   const FiltersContent = () => (
     <div className="space-y-6">
+      <div className="p-4 bg-muted/50 rounded-lg">
+        <p className="text-sm font-medium mb-2">الفئة المختارة:</p>
+        {selectedMainCategory ? (
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="default" className="text-sm py-1 px-3">
+              {categories.find(c => c.id === selectedMainCategory)?.name}
+            </Badge>
+            {selectedSubCategory && (
+              <Badge variant="outline" className="text-sm py-1 px-3 bg-background">
+                {categories.find(c => c.id === selectedSubCategory)?.name}
+              </Badge>
+            )}
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">الكل</p>
+        )}
+      </div>
+
       {/* Price Range */}
       <div>
         <PriceRangeSlider
@@ -156,56 +196,6 @@ const Products = () => {
           value={priceRange}
           onChange={setPriceRange}
         />
-      </div>
-
-      <Separator />
-
-      {/* Categories */}
-      <div>
-        <Label className="text-sm font-semibold mb-3 block">الفئات</Label>
-        <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
-          {mainCategories.map((cat) => (
-            <div key={cat.id}>
-              <Button
-                variant={selectedMainCategory === cat.id ? "default" : "ghost"}
-                className={`w-full justify-start ${selectedMainCategory === cat.id ? "bg-primary text-primary-foreground font-bold" : ""}`}
-                size="sm"
-                onClick={() => {
-                  setSelectedMainCategory(
-                    selectedMainCategory === cat.id ? null : cat.id
-                  );
-                  setSelectedSubCategory(null);
-                }}
-              >
-                {cat.name}
-              </Button>
-              {selectedMainCategory === cat.id && (
-                <div className="mr-4 mt-2 space-y-1 border-r-2 border-primary/20 pr-2">
-                  <p className="text-xs text-muted-foreground mb-2 px-2">الأقسام الفرعية:</p>
-                  {subCategories.length > 0 ? (
-                    subCategories.map((sub) => (
-                      <Button
-                        key={sub.id}
-                        variant={selectedSubCategory === sub.id ? "secondary" : "ghost"}
-                        className={`w-full justify-start text-sm h-8 ${selectedSubCategory === sub.id ? "bg-secondary/50 font-medium" : "text-muted-foreground hover:text-foreground"}`}
-                        size="sm"
-                        onClick={() =>
-                          setSelectedSubCategory(
-                            selectedSubCategory === sub.id ? null : sub.id
-                          )
-                        }
-                      >
-                        {sub.name}
-                      </Button>
-                    ))
-                  ) : (
-                    <p className="text-xs text-muted-foreground px-2">لا توجد أقسام فرعية</p>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
       </div>
 
       <Separator />
@@ -299,80 +289,168 @@ const Products = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="mb-8 animate-slide-up">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold mb-2 text-gradient flex items-center">
-                <Sparkles className="inline-block ml-2 h-6 w-6 md:h-8 md:w-8 text-primary" />
-                اكتشف منتجاتنا
-              </h1>
-              <p className="text-muted-foreground text-sm md:text-base">
-                {productsData?.totalCount || 0} منتج متاح
-              </p>
-            </div>
-
-            {/* View Controls & Filters */}
-            <div className="flex items-center gap-3 self-end md:self-auto">
-              {/* Mobile Filter Sheet */}
-              <div className="md:hidden">
-                <Sheet>
-                  <SheetTrigger asChild>
-                    <Button variant="outline" size="sm" className="gap-2">
-                      <Filter className="h-4 w-4" />
-                      فلاتر
-                      {activeFiltersCount > 0 && (
-                        <Badge variant="secondary" className="px-1 h-5 min-w-[1.25rem] text-[10px]">
-                          {activeFiltersCount}
-                        </Badge>
-                      )}
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent side="right" className="w-[300px] sm:w-[400px] overflow-y-auto">
-                    <SheetHeader className="mb-6 text-right">
-                      <SheetTitle className="flex items-center gap-2">
-                        <SlidersHorizontal className="h-5 w-5" />
-                        تصفية النتائج
-                      </SheetTitle>
-                    </SheetHeader>
-                    <FiltersContent />
-                  </SheetContent>
-                </Sheet>
+        {/* Header */}
+        <div className="mb-6 animate-slide-up">
+          {selectedStore && storeDetails ? (
+            <div className="relative mb-8">
+              {/* Store Cover */}
+              <div className="h-32 md:h-48 rounded-3xl bg-gradient-to-r from-primary/10 to-primary/5 relative overflow-hidden mb-12">
+                <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 mix-blend-overlay"></div>
+                {storeDetails.image_url && (
+                  <img
+                    src={storeDetails.image_url}
+                    alt="Store Cover"
+                    className="w-full h-full object-cover opacity-80 blur-[2px]"
+                  />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent"></div>
               </div>
 
-              <div className="hidden md:flex items-center gap-2 bg-muted/50 p-1 rounded-lg">
-                <Button
-                  variant={viewMode === "grid" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setViewMode("grid")}
-                >
-                  <Grid3x3 className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === "list" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setViewMode("list")}
-                >
-                  <List className="h-4 w-4" />
-                </Button>
+              {/* Store Info */}
+              <div className="absolute top-16 md:top-24 right-4 md:right-8 flex items-end gap-4 z-10">
+                <div className="relative group">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-primary to-secondary rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
+                  <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-background bg-white overflow-hidden shadow-xl flex items-center justify-center">
+                    {storeDetails.image_url ? (
+                      <img src={storeDetails.image_url} alt={storeDetails.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-4xl font-bold text-gray-800">{storeDetails.name.charAt(0)}</span>
+                    )}
+                  </div>
+                </div>
+                <div className="mb-2">
+                  <Badge variant="secondary" className="mb-2">متجر موثوق</Badge>
+                  <h1 className="text-2xl md:text-4xl font-black text-foreground">{storeDetails.name}</h1>
+                </div>
               </div>
 
-              {viewMode === "grid" && (
-                <Select value={gridCols.toString()} onValueChange={(v) => setGridCols(Number(v))}>
-                  <SelectTrigger className="w-24 hidden md:flex">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="2">2 أعمدة</SelectItem>
-                    <SelectItem value="3">3 أعمدة</SelectItem>
-                    <SelectItem value="4">4 أعمدة</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
+              {/* Store Description - Below header on mobile */}
+              <div className="mt-4 md:mt-0 md:mr-40 px-2 max-w-2xl">
+                <p className="text-muted-foreground text-sm md:text-base line-clamp-2 md:line-clamp-3">
+                  {storeDetails.description || "أهلاً بكم في متجرنا! نقدم لكم أفضل المنتجات بأفضل الأسعار."}
+                </p>
+              </div>
+
+              {/* Controls Wrapper for Store View */}
+              <div className="flex items-center justify-end gap-3 mt-4">
+                {/* View Controls & Filters duplicated here for store view */}
+                <div className="md:hidden">
+                  <Sheet>
+                    <SheetTrigger asChild>
+                      <Button variant="outline" size="sm" className="gap-2">
+                        <Filter className="h-4 w-4" />
+                        فلاتر
+                        {activeFiltersCount > 0 && (
+                          <Badge variant="secondary" className="px-1 h-5 min-w-[1.25rem] text-[10px]">
+                            {activeFiltersCount}
+                          </Badge>
+                        )}
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="right" className="w-[300px] sm:w-[400px] overflow-y-auto">
+                      <SheetHeader className="mb-6 text-right">
+                        <SheetTitle className="flex items-center gap-2">
+                          <SlidersHorizontal className="h-5 w-5" />
+                          تصفية النتائج
+                        </SheetTitle>
+                      </SheetHeader>
+                      <FiltersContent />
+                    </SheetContent>
+                  </Sheet>
+                </div>
+                <div className="hidden md:flex items-center gap-2 bg-muted/50 p-1 rounded-lg">
+                  <Button
+                    variant={viewMode === "grid" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setViewMode("grid")}
+                  >
+                    <Grid3x3 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === "list" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setViewMode("list")}
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
             </div>
-          </div>
+          ) : (
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+              <div>
+                <h1 className="text-3xl md:text-4xl font-bold mb-2 text-gradient flex items-center">
+                  <Sparkles className="inline-block ml-2 h-6 w-6 md:h-8 md:w-8 text-primary" />
+                  اكتشف منتجاتنا
+                </h1>
+                <p className="text-muted-foreground text-sm md:text-base">
+                  {productsData?.totalCount || 0} منتج متاح
+                </p>
+              </div>
+
+              {/* View Controls & Filters */}
+              <div className="flex items-center gap-3 self-end md:self-auto">
+                <div className="md:hidden">
+                  <Sheet>
+                    <SheetTrigger asChild>
+                      <Button variant="outline" size="sm" className="gap-2">
+                        <Filter className="h-4 w-4" />
+                        فلاتر
+                        {activeFiltersCount > 0 && (
+                          <Badge variant="secondary" className="px-1 h-5 min-w-[1.25rem] text-[10px]">
+                            {activeFiltersCount}
+                          </Badge>
+                        )}
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="right" className="w-[300px] sm:w-[400px] overflow-y-auto">
+                      <SheetHeader className="mb-6 text-right">
+                        <SheetTitle className="flex items-center gap-2">
+                          <SlidersHorizontal className="h-5 w-5" />
+                          تصفية النتائج
+                        </SheetTitle>
+                      </SheetHeader>
+                      <FiltersContent />
+                    </SheetContent>
+                  </Sheet>
+                </div>
+
+                <div className="hidden md:flex items-center gap-2 bg-muted/50 p-1 rounded-lg">
+                  <Button
+                    variant={viewMode === "grid" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setViewMode("grid")}
+                  >
+                    <Grid3x3 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === "list" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setViewMode("list")}
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {viewMode === "grid" && (
+                  <Select value={gridCols.toString()} onValueChange={(v) => setGridCols(Number(v))}>
+                    <SelectTrigger className="w-24 hidden md:flex">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="2">2 أعمدة</SelectItem>
+                      <SelectItem value="3">3 أعمدة</SelectItem>
+                      <SelectItem value="4">4 أعمدة</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Search & Sort Bar */}
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row gap-3 mb-6">
             <div className="flex-1 relative">
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
@@ -405,20 +483,72 @@ const Products = () => {
               </SelectContent>
             </Select>
           </div>
+
+          {/* Horizontal Category Navigation - Main Request Implementation */}
+          <div className="space-y-4">
+            {/* Main Categories Row */}
+            <div className="flex overflow-x-auto pb-2 gap-2 scrollbar-none items-center">
+              <Button
+                variant={!selectedMainCategory ? "default" : "outline"}
+                className={`rounded-full whitespace-nowrap px-6 h-10 ${!selectedMainCategory ? "bg-primary text-primary-foreground shadow-md" : "border-muted-foreground/30 hover:border-primary hover:text-primary bg-background"}`}
+                onClick={() => {
+                  setSelectedMainCategory(null);
+                  setSelectedSubCategory(null);
+                }}
+              >
+                الكل
+              </Button>
+              {mainCategories.map((cat) => (
+                <Button
+                  key={cat.id}
+                  variant={selectedMainCategory === cat.id ? "default" : "outline"}
+                  className={`rounded-full whitespace-nowrap px-6 h-10 transition-all duration-300 ${selectedMainCategory === cat.id ? "bg-primary text-primary-foreground shadow-md scale-105 font-bold" : "border-muted-foreground/30 hover:border-primary hover:text-primary bg-background"}`}
+                  onClick={() => {
+                    setSelectedMainCategory(cat.id === selectedMainCategory ? null : cat.id);
+                    setSelectedSubCategory(null);
+                  }}
+                >
+                  {cat.name}
+                </Button>
+              ))}
+            </div>
+
+            {/* Sub Categories Row (Visible only when main category is selected) */}
+            {selectedMainCategory && subCategories.length > 0 && (
+              <div className="flex overflow-x-auto pb-2 gap-2 scrollbar-none items-center animate-fade-in bg-muted/30 p-2 rounded-xl">
+                <Button
+                  variant={!selectedSubCategory ? "secondary" : "ghost"}
+                  size="sm"
+                  className={`rounded-full whitespace-nowrap h-8 px-4 ${!selectedSubCategory ? "bg-white shadow-sm font-semibold" : "text-muted-foreground hover:bg-white/50"}`}
+                  onClick={() => setSelectedSubCategory(null)}
+                >
+                  الكل في {categories.find(c => c.id === selectedMainCategory)?.name}
+                </Button>
+                {subCategories.map((sub) => (
+                  <Button
+                    key={sub.id}
+                    variant={selectedSubCategory === sub.id ? "secondary" : "ghost"}
+                    size="sm"
+                    className={`rounded-full whitespace-nowrap h-8 px-4 transition-all ${selectedSubCategory === sub.id ? "bg-white shadow-sm font-semibold text-primary" : "text-muted-foreground hover:bg-white/50"}`}
+                    onClick={() => setSelectedSubCategory(sub.id === selectedSubCategory ? null : sub.id)}
+                  >
+                    {sub.name}
+                  </Button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Main Content */}
         <div className="flex flex-col md:flex-row gap-8">
           {/* Desktop Filters Sidebar */}
-          <aside className="hidden md:block w-80 shrink-0 animate-slide-up">
+          <aside className="hidden md:block w-72 shrink-0 animate-slide-up">
             <Card className="p-6 sticky top-24 glass-card border-none shadow-lg">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2">
                   <SlidersHorizontal className="h-5 w-5" />
                   <h3 className="font-bold text-lg">الفلاتر</h3>
-                  {activeFiltersCount > 0 && (
-                    <Badge variant="secondary">{activeFiltersCount}</Badge>
-                  )}
                 </div>
                 {activeFiltersCount > 0 && (
                   <Button

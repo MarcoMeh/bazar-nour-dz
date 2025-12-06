@@ -12,6 +12,7 @@ export interface ProductFilters {
     maxPrice?: number;
     color?: string;
     size?: string;
+    categoryIds?: string[];
     // New filters
     isFreeDelivery?: boolean;
     isHomeDelivery?: boolean;
@@ -81,7 +82,9 @@ async function fetchProducts(filters: ProductFilters = {}): Promise<ProductsResp
         query = query.eq('store_id', storeId);
     }
 
-    if (subcategoryId) {
+    if (filters.categoryIds && filters.categoryIds.length > 0) {
+        query = query.in('category_id', filters.categoryIds);
+    } else if (subcategoryId) {
         query = query.eq('category_id', subcategoryId);
     } else if (categoryId) {
         query = query.eq('category_id', categoryId);

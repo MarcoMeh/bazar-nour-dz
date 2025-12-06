@@ -26,11 +26,36 @@ async function fetchStores(): Promise<Store[]> {
     return (data || []) as Store[];
 }
 
+async function fetchStoreById(storeId: string): Promise<Store | null> {
+    const { data, error } = await supabase
+        .from('stores')
+        .select('*')
+        .eq('id', storeId)
+        .single();
+
+    if (error) {
+        // If not found or valid error, throw or return null
+        if (error.code === 'PGRST116') return null; // Postgrest single returned no rows
+        throw new Error(error.message);
+    }
+
+    return data as Store;
+}
+
 export function useStores() {
     return useQuery({
         queryKey: ['stores'],
         queryFn: fetchStores,
-        staleTime: 10 * 60 * 1000, // 10 minutes
-        gcTime: 30 * 60 * 1000, // 30 minutes
+        staleTime: 10 * 60 * 1000,
+        gcTime: 30 * 60 * 1000,
+    });
+}
+
+export function useStore(storeId?: string | null) {
+    return useQuery({
+        queryKey: ['store', storeId],
+        queryFn: () => fetchStoreById(storeId!),
+        enabled: !!storeId,
+        staleTime: 5 * 60 * 1000,
     });
 }
