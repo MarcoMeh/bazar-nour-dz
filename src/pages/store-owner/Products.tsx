@@ -25,13 +25,13 @@ export default function StoreOwnerProducts() {
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [productToDelete, setProductToDelete] = useState<string | null>(null);
     const [storeId, setStoreId] = useState<string | null>(null);
-    const [activeParentId, setActiveParentId] = useState<string | null>(null);
 
     const [formData, setFormData] = useState({
         name_ar: "",
         description_ar: "",
         price: "",
         category_id: "",
+        subcategory_id: "",
         image_url: "",
         home_delivery: true,
         office_delivery: true,
@@ -61,12 +61,7 @@ export default function StoreOwnerProducts() {
             .eq("owner_id", user.id)
             .single();
 
-        const id = store?.id;
-        setStoreId(id || null);
-
-        if (!id) {
-            setLoading(false);
-        }
+        setStoreId(store?.id || null);
     };
 
     const fetchCategories = async () => {
@@ -98,6 +93,7 @@ export default function StoreOwnerProducts() {
             description_ar: "",
             price: "",
             category_id: "",
+            subcategory_id: "",
             image_url: "",
             home_delivery: true,
             office_delivery: true,
@@ -106,16 +102,35 @@ export default function StoreOwnerProducts() {
             additional_images: [],
         });
         setEditingProduct(null);
-        setActiveParentId(null);
     };
 
     const handleEdit = (product: any) => {
         setEditingProduct(product);
+
+        // Determine category and subcategory
+        let categoryId = "";
+        let subcategoryId = "";
+
+        if (product.category_id) {
+            const cat = categories.find(c => c.id === product.category_id);
+            if (cat) {
+                if (cat.parent_id) {
+                    // This is a subcategory
+                    categoryId = cat.parent_id;
+                    subcategoryId = cat.id;
+                } else {
+                    // This is a main category
+                    categoryId = cat.id;
+                }
+            }
+        }
+
         setFormData({
             name_ar: product.name || "",
             description_ar: product.description || "",
             price: product.price?.toString() || "",
-            category_id: product.category_id?.toString() || "",
+            category_id: categoryId,
+            subcategory_id: subcategoryId,
             image_url: product.image_url || "",
             home_delivery: product.home_delivery ?? true,
             office_delivery: product.office_delivery ?? true,
@@ -123,18 +138,6 @@ export default function StoreOwnerProducts() {
             is_free_delivery: product.is_free_delivery ?? false,
             additional_images: product.additional_images || [],
         });
-
-        // Set active parent category for two-step selection
-        const cat = categories.find(c => c.id === product.category_id);
-        if (cat) {
-            if (cat.parent_id) {
-                setActiveParentId(cat.parent_id);
-            } else {
-                setActiveParentId(cat.id);
-            }
-        } else {
-            setActiveParentId(null);
-        }
 
         setIsDialogOpen(true);
     };
@@ -236,11 +239,14 @@ export default function StoreOwnerProducts() {
             return;
         }
 
+        // Determine final category_id: use subcategory if selected, otherwise use main category
+        const finalCategoryId = formData.subcategory_id || formData.category_id;
+
         const productData = {
             name: formData.name_ar,
             description: formData.description_ar || null,
             price: parseFloat(formData.price),
-            category_id: formData.category_id,
+            category_id: finalCategoryId,
             image_url: formData.image_url || null,
             store_id: storeId,
             home_delivery: formData.home_delivery,
@@ -266,6 +272,9 @@ export default function StoreOwnerProducts() {
             fetchProducts();
         }
     };
+
+    // Filter subcategories based on selected main category
+    const filteredSubcategories = categories.filter(c => c.parent_id === formData.category_id);
 
     if (loading) {
         return <LoadingSpinner fullScreen message="جاري تحميل المنتجات..." />;
@@ -321,16 +330,8 @@ export default function StoreOwnerProducts() {
                                     <div>
                                         <Label>الفئة الرئيسية *</Label>
                                         <Select
-                                            value={(() => {
-                                                if (!formData.category_id) return activeParentId || "";
-                                                const selectedCat = categories.find(c => c.id === formData.category_id);
-                                                if (selectedCat?.parent_id) return selectedCat.parent_id;
-                                                return selectedCat?.id || "";
-                                            })()}
-                                            onValueChange={(parentId) => {
-                                                setActiveParentId(parentId);
-                                                setFormData(prev => ({ ...prev, category_id: "" }));
-                                            }}
+                                            value={formData.category_id}
+                                            onValueChange={(v) => setFormData(prev => ({ ...prev, category_id: v, subcategory_id: "" }))}
                                         >
                                             <SelectTrigger><SelectValue placeholder="اختر الفئة الرئيسية" /></SelectTrigger>
                                             <SelectContent>
@@ -341,20 +342,19 @@ export default function StoreOwnerProducts() {
                                         </Select>
                                     </div>
 
-                                    {activeParentId && (
+                                    {formData.category_id && filteredSubcategories.length > 0 && (
                                         <div className="animate-in fade-in slide-in-from-top-2">
-                                            <Label>الفئة الفرعية *</Label>
+                                            <Label>الفئة الفرعية (اختياري)</Label>
                                             <Select
-                                                value={formData.category_id}
-                                                onValueChange={(v) => setFormData((prev) => ({ ...prev, category_id: v }))}
+                                                value={formData.subcategory_id}
+                                                onValueChange={(v) => setFormData((prev) => ({ ...prev, subcategory_id: v }))}
                                             >
                                                 <SelectTrigger><SelectValue placeholder="اختر الفئة الفرعية" /></SelectTrigger>
                                                 <SelectContent>
-                                                    {categories
-                                                        .filter(c => c.parent_id === activeParentId)
-                                                        .map((cat) => (
-                                                            <SelectItem key={cat.id} value={String(cat.id)}>{cat.name}</SelectItem>
-                                                        ))}
+                                                    <SelectItem value="">بدون فئة فرعية</SelectItem>
+                                                    {filteredSubcategories.map((cat) => (
+                                                        <SelectItem key={cat.id} value={String(cat.id)}>{cat.name}</SelectItem>
+                                                    ))}
                                                 </SelectContent>
                                             </Select>
                                         </div>
