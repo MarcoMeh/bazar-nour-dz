@@ -18,6 +18,7 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
 export default function StoreOwnerProducts() {
     const [products, setProducts] = useState<any[]>([]);
     const [categories, setCategories] = useState<any[]>([]);
+    const [subcategories, setSubcategories] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<any>(null);
@@ -65,8 +66,13 @@ export default function StoreOwnerProducts() {
     };
 
     const fetchCategories = async () => {
-        const { data } = await supabase.from("categories").select("*").order("name");
-        setCategories(data || []);
+        // Fetch categories (main categories)
+        const { data: cats } = await supabase.from("categories").select("*").order("name");
+        // Fetch subcategories (separate table like admin page)
+        const { data: subcats } = await supabase.from("subcategories").select("*").order("name");
+
+        setCategories(cats || []);
+        setSubcategories(subcats || []);
     };
 
     const fetchProducts = async () => {
@@ -75,7 +81,7 @@ export default function StoreOwnerProducts() {
         setLoading(true);
         const { data, error } = await supabase
             .from("products")
-            .select("*")
+            .select("*, categories(name), subcategories(name)")
             .eq("store_id", storeId)
             .order("created_at", { ascending: false });
 
@@ -107,30 +113,12 @@ export default function StoreOwnerProducts() {
     const handleEdit = (product: any) => {
         setEditingProduct(product);
 
-        // Determine category and subcategory
-        let categoryId = "";
-        let subcategoryId = "";
-
-        if (product.category_id) {
-            const cat = categories.find(c => c.id === product.category_id);
-            if (cat) {
-                if (cat.parent_id) {
-                    // This is a subcategory
-                    categoryId = cat.parent_id;
-                    subcategoryId = cat.id;
-                } else {
-                    // This is a main category
-                    categoryId = cat.id;
-                }
-            }
-        }
-
         setFormData({
             name_ar: product.name || "",
             description_ar: product.description || "",
             price: product.price?.toString() || "",
-            category_id: categoryId,
-            subcategory_id: subcategoryId,
+            category_id: product.category_id || "",
+            subcategory_id: product.subcategory_id || "",
             image_url: product.image_url || "",
             home_delivery: product.home_delivery ?? true,
             office_delivery: product.office_delivery ?? true,
@@ -226,11 +214,20 @@ export default function StoreOwnerProducts() {
         }));
     };
 
+    // Filter subcategories based on selected category (same logic as admin page)
+    const filteredSubcategories = subcategories.filter(sub => sub.category_id === formData.category_id);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!formData.name_ar || !formData.price || !formData.category_id) {
-            toast.error("الرجاء ملء الاسم، السعر، والفئة");
+            toast.error("الرجاء ملء الاسم، السعر، والفئة الرئيسية");
+            return;
+        }
+
+        // Subcategory is required if there are subcategories for the selected category
+        if (filteredSubcategories.length > 0 && !formData.subcategory_id) {
+            toast.error("الرجاء اختيار الفئة الفرعية");
             return;
         }
 
@@ -239,14 +236,12 @@ export default function StoreOwnerProducts() {
             return;
         }
 
-        // Determine final category_id: use subcategory if selected, otherwise use main category
-        const finalCategoryId = formData.subcategory_id || formData.category_id;
-
         const productData = {
             name: formData.name_ar,
             description: formData.description_ar || null,
             price: parseFloat(formData.price),
-            category_id: finalCategoryId,
+            category_id: formData.category_id || null,
+            subcategory_id: formData.subcategory_id || null,
             image_url: formData.image_url || null,
             store_id: storeId,
             home_delivery: formData.home_delivery,
@@ -272,9 +267,6 @@ export default function StoreOwnerProducts() {
             fetchProducts();
         }
     };
-
-    // Filter subcategories based on selected main category
-    const filteredSubcategories = categories.filter(c => c.parent_id === formData.category_id);
 
     if (loading) {
         return <LoadingSpinner fullScreen message="جاري تحميل المنتجات..." />;
@@ -327,36 +319,43 @@ export default function StoreOwnerProducts() {
                                 </div>
 
                                 <div className="space-y-4">
+                                    {/* Main Category */}
                                     <div>
-                                        <Label>الفئة الرئيسية *</Label>
+                                        <Label>التصنيف الرئيسي *</Label>
                                         <Select
                                             value={formData.category_id}
                                             onValueChange={(v) => setFormData(prev => ({ ...prev, category_id: v, subcategory_id: "" }))}
                                         >
-                                            <SelectTrigger><SelectValue placeholder="اختر الفئة الرئيسية" /></SelectTrigger>
+                                            <SelectTrigger><SelectValue placeholder="اختر التصنيف" /></SelectTrigger>
                                             <SelectContent>
-                                                {categories.filter(c => !c.parent_id).map((cat) => (
-                                                    <SelectItem key={cat.id} value={String(cat.id)}>{cat.name}</SelectItem>
+                                                {categories.map((cat) => (
+                                                    <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
                                     </div>
 
-                                    {formData.category_id && filteredSubcategories.length > 0 && (
+                                    {/* Subcategory - shows when main category is selected */}
+                                    {formData.category_id && (
                                         <div className="animate-in fade-in slide-in-from-top-2">
-                                            <Label>الفئة الفرعية (اختياري)</Label>
-                                            <Select
-                                                value={formData.subcategory_id}
-                                                onValueChange={(v) => setFormData((prev) => ({ ...prev, subcategory_id: v }))}
-                                            >
-                                                <SelectTrigger><SelectValue placeholder="اختر الفئة الفرعية" /></SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="">بدون فئة فرعية</SelectItem>
-                                                    {filteredSubcategories.map((cat) => (
-                                                        <SelectItem key={cat.id} value={String(cat.id)}>{cat.name}</SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
+                                            <Label>التصنيف الفرعي {filteredSubcategories.length > 0 ? "*" : "(اختياري)"}</Label>
+                                            {filteredSubcategories.length > 0 ? (
+                                                <Select
+                                                    value={formData.subcategory_id}
+                                                    onValueChange={(v) => setFormData((prev) => ({ ...prev, subcategory_id: v }))}
+                                                >
+                                                    <SelectTrigger><SelectValue placeholder="اختر التصنيف الفرعي" /></SelectTrigger>
+                                                    <SelectContent>
+                                                        {filteredSubcategories.map((subcat) => (
+                                                            <SelectItem key={subcat.id} value={subcat.id}>{subcat.name}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            ) : (
+                                                <p className="text-sm text-muted-foreground p-2 border rounded-md bg-muted">
+                                                    لا توجد تصنيفات فرعية لهذا التصنيف
+                                                </p>
+                                            )}
                                         </div>
                                     )}
                                 </div>
@@ -455,6 +454,12 @@ export default function StoreOwnerProducts() {
                                     {product.is_sold_out && <Badge variant="destructive">نفد</Badge>}
                                 </div>
                                 <p className="text-sm font-medium text-primary">{product.price} دج</p>
+                                {product.categories?.name && (
+                                    <p className="text-xs text-muted-foreground">
+                                        {product.categories.name}
+                                        {product.subcategories?.name && ` / ${product.subcategories.name}`}
+                                    </p>
+                                )}
                                 {product.description && <p className="text-sm text-muted-foreground mt-1">{product.description}</p>}
 
                                 <div className="mt-3 flex flex-wrap gap-2">
