@@ -101,22 +101,65 @@ export default function StoreOwnerOrders() {
         if (!storeId) return;
         setLoading(true);
         try {
-            // Get orders for this store by checking order_items
-            const { data: items, error: itemsError } = await supabase
-                .from('order_items')
-                .select('order_id, products!inner(store_id)')
-                .eq('products.store_id', storeId);
+            // Method 1: Check orders table store_ids array
+            let ordersFromArray: any[] = [];
+            let arrayError: any = null;
+            try {
+                const result1: any = await supabase
+                    .from('orders' as any)
+                    .select('id')
+                    .contains('store_ids', [storeId]);
+                ordersFromArray = result1.data || [];
+                arrayError = result1.error;
+            } catch (e) { arrayError = e; }
 
-            if (itemsError) throw itemsError;
+            // Method 2: Check order_items table store_id field
+            let ordersFromItems: any[] = [];
+            let itemsError: any = null;
+            try {
+                const result2: any = await supabase
+                    .from('order_items' as any)
+                    .select('order_id')
+                    .eq('store_id', storeId);
+                ordersFromItems = result2.data || [];
+                itemsError = result2.error;
+            } catch (e) { itemsError = e; }
 
-            if (!items || items.length === 0) {
+            // Method 3: Check via products.store_id relation
+            let ordersFromProducts: any[] = [];
+            let productsError: any = null;
+            try {
+                const result3: any = await supabase
+                    .from('order_items' as any)
+                    .select('order_id, products!inner(store_id)')
+                    .eq('products.store_id', storeId);
+                ordersFromProducts = result3.data || [];
+                productsError = result3.error;
+            } catch (e) { productsError = e; }
+
+            // Combine all order IDs
+            const allOrderIds = new Set<string>();
+
+            if (ordersFromArray && !arrayError) {
+                ordersFromArray.forEach((o: any) => allOrderIds.add(o.id));
+            }
+            if (ordersFromItems && !itemsError) {
+                ordersFromItems.forEach((o: any) => allOrderIds.add(o.order_id));
+            }
+            if (ordersFromProducts && !productsError) {
+                ordersFromProducts.forEach((o: any) => allOrderIds.add(o.order_id));
+            }
+
+            const orderIds = Array.from(allOrderIds);
+
+            console.log("Store ID:", storeId);
+            console.log("Found order IDs:", orderIds);
+
+            if (orderIds.length === 0) {
                 setOrders([]);
                 setLoading(false);
                 return;
             }
-
-            // Extract unique order IDs
-            const orderIds = [...new Set(items.map((item: any) => item.order_id))];
 
             // Fetch full order details
             const { data, error } = await supabase

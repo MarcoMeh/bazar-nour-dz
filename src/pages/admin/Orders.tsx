@@ -23,11 +23,12 @@ import {
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Eye, Loader2 } from "lucide-react";
+import { Eye, Loader2, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { useAdmin } from "@/contexts/AdminContext";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 interface OrderItem {
     id: string;
@@ -84,6 +85,11 @@ export default function AdminOrders() {
     const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
     const [loadingItems, setLoadingItems] = useState(false);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+    // Delete State
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+    const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
+    const [deleting, setDeleting] = useState(false);
 
     const fetchOrders = async () => {
         setLoading(true);
@@ -169,6 +175,43 @@ export default function AdminOrders() {
         }
     };
 
+    const handleDeleteClick = (orderId: string) => {
+        setOrderToDelete(orderId);
+        setDeleteConfirmOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!orderToDelete) return;
+
+        setDeleting(true);
+        try {
+            // First delete order items
+            const { error: itemsError } = await supabase
+                .from("order_items")
+                .delete()
+                .eq("order_id", orderToDelete);
+
+            if (itemsError) throw itemsError;
+
+            // Then delete the order
+            const { error: orderError } = await supabase
+                .from("orders")
+                .delete()
+                .eq("id", orderToDelete);
+
+            if (orderError) throw orderError;
+
+            toast.success("تم حذف الطلب بنجاح");
+            fetchOrders();
+        } catch (error: any) {
+            console.error("Error deleting order:", error);
+            toast.error(`فشل في حذف الطلب: ${error.message || 'خطأ غير معروف'}`);
+        } finally {
+            setDeleting(false);
+            setOrderToDelete(null);
+        }
+    };
+
     return (
         <div className="p-8">
             <h1 className="text-3xl font-bold mb-8 text-primary">إدارة الطلبات</h1>
@@ -244,9 +287,21 @@ export default function AdminOrders() {
                                         </TableCell>
                                         <TableCell>{format(new Date(order.created_at), "yyyy-MM-dd")}</TableCell>
                                         <TableCell>
-                                            <Button variant="ghost" size="icon" onClick={() => handleViewOrder(order)}>
-                                                <Eye className="h-4 w-4" />
-                                            </Button>
+                                            <div className="flex gap-1">
+                                                <Button variant="ghost" size="icon" onClick={() => handleViewOrder(order)}>
+                                                    <Eye className="h-4 w-4" />
+                                                </Button>
+                                                {isAdmin && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                                        onClick={() => handleDeleteClick(order.id)}
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                )}
+                                            </div>
                                         </TableCell>
                                     </TableRow>
                                 ))
@@ -360,6 +415,17 @@ export default function AdminOrders() {
                     )}
                 </DialogContent>
             </Dialog>
+
+            {/* Delete Confirmation Dialog */}
+            <ConfirmDialog
+                open={deleteConfirmOpen}
+                onOpenChange={setDeleteConfirmOpen}
+                onConfirm={confirmDelete}
+                title="حذف الطلب"
+                description="هل أنت متأكد من حذف هذا الطلب؟ سيتم حذف جميع عناصر الطلب ولن تتمكن من التراجع عن هذا الإجراء."
+                confirmText="حذف"
+                variant="destructive"
+            />
         </div>
     );
 }

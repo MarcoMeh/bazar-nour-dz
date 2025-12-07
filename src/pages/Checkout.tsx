@@ -17,6 +17,8 @@ import {
 import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { Gift } from "lucide-react";
 
 interface Wilaya {
   id: number;
@@ -65,11 +67,16 @@ const Checkout = () => {
   };
 
   const selectedWilaya = wilayas.find((w) => String(w.id) === formData.wilayaId);
-  const deliveryPrice = selectedWilaya
+
+  // Check if all items have free delivery
+  const hasFreeDelivery = items.length > 0 && items.every(item => item.is_free_delivery);
+
+  // Calculate delivery price (0 if free delivery)
+  const deliveryPrice = hasFreeDelivery ? 0 : (selectedWilaya
     ? formData.deliveryType === "home"
       ? selectedWilaya.home_delivery_price
       : selectedWilaya.desk_delivery_price
-    : 0;
+    : 0);
 
   const finalTotal = totalPrice + deliveryPrice;
 
@@ -203,13 +210,26 @@ const Checkout = () => {
             <Card className="p-6">
               <h2 className="text-xl font-semibold mb-4">طريقة التوصيل</h2>
 
+              {hasFreeDelivery && (
+                <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2">
+                  <Gift className="h-5 w-5 text-green-600" />
+                  <span className="text-green-700 font-medium">🎉 جميع المنتجات في سلتك تتمتع بتوصيل مجاني!</span>
+                </div>
+              )}
+
               <RadioGroup value={formData.deliveryType} onValueChange={(v) => setFormData({ ...formData, deliveryType: v as "home" | "office" })}>
                 <div className="flex items-center justify-between p-4 border rounded mb-3">
                   <div>
                     <RadioGroupItem value="home" id="home" />
                     <Label htmlFor="home" className="ml-2">توصيل إلى المنزل</Label>
                   </div>
-                  <div className="font-bold">{selectedWilaya ? selectedWilaya.home_delivery_price : "--"} دج</div>
+                  <div className="font-bold">
+                    {hasFreeDelivery ? (
+                      <Badge variant="secondary" className="bg-green-100 text-green-700">مجاني</Badge>
+                    ) : (
+                      <>{selectedWilaya ? selectedWilaya.home_delivery_price : "--"} دج</>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-between p-4 border rounded">
@@ -217,7 +237,13 @@ const Checkout = () => {
                     <RadioGroupItem value="office" id="office" />
                     <Label htmlFor="office" className="ml-2">استلام من المكتب</Label>
                   </div>
-                  <div className="font-bold">{selectedWilaya ? selectedWilaya.desk_delivery_price : "--"} دج</div>
+                  <div className="font-bold">
+                    {hasFreeDelivery ? (
+                      <Badge variant="secondary" className="bg-green-100 text-green-700">مجاني</Badge>
+                    ) : (
+                      <>{selectedWilaya ? selectedWilaya.desk_delivery_price : "--"} دج</>
+                    )}
+                  </div>
                 </div>
               </RadioGroup>
             </Card>
@@ -251,7 +277,11 @@ const Checkout = () => {
 
               <div className="flex justify-between">
                 <span>رسوم التوصيل</span>
-                <strong>{deliveryPrice.toFixed(2)} دج</strong>
+                {hasFreeDelivery ? (
+                  <Badge variant="secondary" className="bg-green-100 text-green-700">مجاني 🎁</Badge>
+                ) : (
+                  <strong>{deliveryPrice.toFixed(2)} دج</strong>
+                )}
               </div>
 
               <hr className="my-4" />

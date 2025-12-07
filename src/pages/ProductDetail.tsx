@@ -122,6 +122,7 @@ const ProductDetail = () => {
         ownerId: product.store_id,
         color: selectedColor,
         size: selectedSize,
+        is_free_delivery: product.is_free_delivery,
       });
       toast.success('تمت إضافة المنتج إلى السلة!');
     } else if (product?.is_sold_out) {

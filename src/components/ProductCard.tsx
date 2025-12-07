@@ -62,7 +62,8 @@ export const ProductCard = ({
         name_ar,
         price,
         image_url,
-        ownerId: store_id
+        ownerId: store_id,
+        is_free_delivery,
       });
     }
   };
