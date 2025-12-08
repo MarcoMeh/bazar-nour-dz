@@ -23,7 +23,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Pencil, Trash2, Loader2, Upload, X } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Upload, X, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -87,7 +87,9 @@ export default function AdminProducts() {
     const [open, setOpen] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
+
     const [deleteId, setDeleteId] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState("");
 
     // Tag Input State
     const [inputColor, setInputColor] = useState("");
@@ -324,10 +326,26 @@ export default function AdminProducts() {
     // Filter subcategories based on selected category
     const filteredSubcategories = subcategories.filter(sub => sub.category_id === formData.category_id);
 
+    // Filter products based on search
+    const filteredProducts = products.filter(product =>
+        product.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     return (
         <div className="p-8">
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between mb-8 gap-4">
                 <h1 className="text-3xl font-bold text-primary">إدارة المنتجات</h1>
+
+                <div className="relative flex-1 max-w-sm hidden md:flex">
+                    <Search className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        placeholder="بحث عن منتج..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pr-9"
+                    />
+                </div>
+
                 <Dialog open={open} onOpenChange={(val) => {
                     setOpen(val);
                     if (!val) resetForm();
@@ -598,12 +616,12 @@ export default function AdminProducts() {
                                         <Loader2 className="h-6 w-6 animate-spin mx-auto" />
                                     </TableCell>
                                 </TableRow>
-                            ) : products.length === 0 ? (
+                            ) : filteredProducts.length === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={7} className="text-center py-4">لا توجد منتجات</TableCell>
                                 </TableRow>
                             ) : (
-                                products.map((product) => (
+                                filteredProducts.map((product) => (
                                     <TableRow key={product.id}>
                                         <TableCell>
                                             {product.image_url ? (
@@ -639,6 +657,7 @@ export default function AdminProducts() {
                                         </TableCell>
                                     </TableRow>
                                 ))
+
                             )}
                         </TableBody>
                     </Table>

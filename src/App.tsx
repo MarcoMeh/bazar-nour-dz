@@ -17,6 +17,8 @@ import About from "./pages/About";
 import ProductStores from "./pages/productstores";
 import MyOrders from "./pages/MyOrders";
 import Profile from "./pages/Profile";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import Terms from "./pages/Terms";
 import ScrollToTop from "@/components/ScrollToTop";
 
 // Admin Pages (Nested Structure)
@@ -88,6 +90,8 @@ const App = () => (
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/about" element={<About />} />
+                    <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                    <Route path="/terms-conditions" element={<Terms />} />
                   </Route>
 
                   {/* Admin Routes - Protected */}

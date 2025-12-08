@@ -97,8 +97,8 @@ export const Footer = () => {
                 <div className="mt-8 pt-8 border-t border-white/20 text-center text-sm text-white/80 flex flex-col md:flex-row justify-between items-center gap-4">
                     <p>© {new Date().getFullYear()} بازارنا. جميع الحقوق محفوظة.</p>
                     <div className="flex gap-4">
-                        <Link to="/privacy" className="hover:text-white transition-colors">سياسة الخصوصية</Link>
-                        <Link to="/terms" className="hover:text-white transition-colors">الشروط والأحكام</Link>
+                        <Link to="/privacy-policy" className="hover:text-white transition-colors">سياسة الخصوصية</Link>
+                        <Link to="/terms-conditions" className="hover:text-white transition-colors">الشروط والأحكام</Link>
                         <Link to="/login" className="opacity-60 hover:opacity-100 transition-opacity">إدارة</Link>
                     </div>
                 </div>

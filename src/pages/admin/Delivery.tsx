@@ -168,7 +168,7 @@ const AdminDelivery = () => {
                     {/* HOME PRICE */}
                     <TableCell>
                       {editingId === wilaya.id &&
-                      editingField === 'home' ? (
+                        editingField === 'home' ? (
                         <div className="flex gap-2">
                           <Input
                             type="number"
@@ -235,12 +235,12 @@ const AdminDelivery = () => {
                     {/* DESK PRICE */}
                     <TableCell>
                       {editingId === wilaya.id &&
-                      editingField === 'desk' ? (
+                        editingField === 'desk' ? (
                         <div className="flex gap-2">
                           <Input
                             type="number"
                             step="0.01"
-                            value={editPrice === '' ? '' : Number(editPrice)}
+                            value={editPrice}
                             onChange={(e) => setEditPrice(e.target.value)}
                             className="w-24"
                           />

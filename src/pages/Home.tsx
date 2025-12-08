@@ -240,49 +240,54 @@ const Home = () => {
                     <img
                         src={heroBg}
                         alt="Hero Background"
-                        className="w-full h-full object-cover scale-105 animate-pulse-slow"
+                        className="w-full h-full object-cover scale-105 animate-pulse-slow object-center"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-black/30 md:to-transparent"></div>
+                    {/* Updated Gradient: More vibrant and trustworthy (Indigo/Slate) */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-indigo-950/80 to-black/40 md:to-transparent"></div>
+                    {/* Optional: Subtle Pattern Overlay for texture */}
+                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
                 </div>
 
                 <div className="container mx-auto px-4 relative z-10 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center pt-8 md:pt-0">
                     {/* Text Content */}
                     <div className="text-white space-y-6 md:space-y-8 text-right order-2 lg:order-1">
-                        <div className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 animate-fade-in">
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-indigo-500/20 backdrop-blur-md border border-indigo-400/30 animate-fade-in shadow-lg">
                             <span className="relative flex h-2.5 w-2.5 md:h-3 md:w-3">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-full w-full bg-yellow-400"></span>
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-full w-full bg-emerald-400"></span>
                             </span>
-                            <span className="text-yellow-400 font-bold text-xs md:text-sm tracking-wide">أفضل متجر إلكتروني في الجزائر</span>
+                            <span className="text-indigo-100 font-bold text-xs md:text-sm tracking-wide">المنصة رقم #1 في الجزائر</span>
                         </div>
 
-                        <h1 className="text-3xl md:text-5xl lg:text-7xl font-black leading-tight animate-slide-up">
-                            تسوق بذكاء <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-l from-yellow-400 to-yellow-200">
-                                وعش برفاهية
+                        <h1 className="text-4xl md:text-6xl lg:text-7xl font-black leading-tight animate-slide-up tracking-tight">
+                            بازارنا.. <br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-l from-yellow-300 via-amber-200 to-yellow-100 filter drop-shadow-sm">
+                                كل ما تحتاجه
                             </span>
+                            <br className="md:hidden" /> في مكان واحد
                         </h1>
 
-                        <p className="text-base md:text-xl text-gray-200 max-w-xl leading-relaxed animate-slide-up delay-100">
-                            اكتشف عالماً من المنتجات الحصرية بأسعار لا تقبل المنافسة. جودة مضمونة وتوصيل سريع لجميع الولايات.
+                        <p className="text-base md:text-xl text-gray-200/90 max-w-xl leading-relaxed animate-slide-up delay-100 font-medium">
+                            أضخم تشكيلة من المنتجات الأصلية والمحلات الموثوقة.
+                            أسعار تنافسية، وتوصيل سريع <span className="text-yellow-400 font-bold">لـ 58 ولاية</span> مع الدفع عند الاستلام.
                         </p>
 
-                        {/* Search Bar */}
+                        {/* Search Bar - Enhanced */}
                         <form onSubmit={handleSearch} className="relative max-w-lg animate-slide-up delay-200">
                             <div className="relative group">
-                                <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-                                <div className="relative flex bg-white rounded-full p-1.5 md:p-2 shadow-2xl">
+                                <div className="absolute -inset-0.5 bg-gradient-to-r from-yellow-400 to-amber-600 rounded-full blur opacity-40 group-hover:opacity-70 transition duration-500"></div>
+                                <div className="relative flex bg-white rounded-full p-1.5 md:p-2 shadow-2xl items-center">
                                     <Input
                                         type="text"
-                                        placeholder="عن ماذا تبحث اليوم؟"
+                                        placeholder="ابحث عن هاتف، ملابس، ديكور..."
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="flex-1 border-none shadow-none focus-visible:ring-0 text-gray-800 text-base md:text-lg h-10 md:h-12 px-4 md:px-6 rounded-full bg-transparent"
+                                        className="flex-1 border-none shadow-none focus-visible:ring-0 text-gray-900 text-base md:text-lg h-10 md:h-12 px-4 md:px-6 rounded-full bg-transparent placeholder:text-gray-400"
                                     />
                                     <Button
                                         type="submit"
                                         size="lg"
-                                        className="rounded-full px-6 md:px-8 bg-gray-900 hover:bg-gray-800 text-white h-10 md:h-12 transition-all duration-300 hover:scale-105"
+                                        className="rounded-full px-6 md:px-8 bg-indigo-600 hover:bg-indigo-700 text-white h-10 md:h-12 transition-all duration-300 hover:scale-105 shadow-md"
                                     >
                                         <Search className="h-4 w-4 md:h-5 md:w-5" />
                                     </Button>
@@ -290,46 +295,37 @@ const Home = () => {
                             </div>
                         </form>
 
-                        <div className="flex flex-wrap gap-3 md:gap-4 pt-2 md:pt-4 animate-slide-up delay-300">
-                            <div className="flex items-center gap-2 text-xs md:text-sm font-medium bg-black/30 backdrop-blur-sm px-3 py-1.5 md:px-4 md:py-2 rounded-lg border border-white/10">
-                                <Truck className="text-yellow-400 h-4 w-4 md:h-5 md:w-5" />
-                                <span>توصيل 58 ولاية</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-xs md:text-sm font-medium bg-black/30 backdrop-blur-sm px-3 py-1.5 md:px-4 md:py-2 rounded-lg border border-white/10">
-                                <Shield className="text-yellow-400 h-4 w-4 md:h-5 md:w-5" />
-                                <span>دفع عند الاستلام</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Floating Hero Image */}
-                    <div className="relative hidden lg:block order-1 lg:order-2 animate-float">
-                        <div className="relative z-10 transform rotate-[-5deg] hover:rotate-0 transition-all duration-700">
-                            <div className="absolute -inset-4 bg-gradient-to-r from-yellow-400 to-purple-600 rounded-[2.5rem] blur-2xl opacity-30"></div>
-                            <img
-                                src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=2070&auto=format&fit=crop"
-                                alt="Hero Product"
-                                className="relative rounded-[2rem] shadow-2xl border-4 border-white/10 w-full max-w-md mx-auto object-cover h-[550px]"
-                            />
-
-                            {/* Floating Cards */}
-                            <div className="absolute top-10 -left-10 bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-xl flex items-center gap-3 animate-bounce delay-700">
-                                <div className="bg-green-100 p-2 rounded-full"><Zap className="h-6 w-6 text-green-600" /></div>
-                                <div>
-                                    <p className="font-bold text-gray-900">عروض حصرية</p>
-                                    <p className="text-xs text-gray-500">تخفيضات تصل لـ 50%</p>
+                        {/* Trust Badges - More Prominent */}
+                        <div className="flex flex-wrap gap-3 md:gap-6 pt-2 md:pt-4 animate-slide-up delay-300">
+                            <div className="flex items-center gap-3 bg-white/5 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 hover:bg-white/10 transition-colors cursor-default">
+                                <div className="p-2 bg-yellow-400/20 rounded-full text-yellow-400">
+                                    <Truck className="h-5 w-5 md:h-6 md:w-6" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-xs md:text-sm font-bold text-white">توصيل 58 ولاية</span>
+                                    <span className="text-[10px] md:text-xs text-gray-300">سريع ومضمون</span>
                                 </div>
                             </div>
-
-                            <div className="absolute bottom-20 -right-10 bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-xl flex items-center gap-3 animate-bounce delay-1000">
-                                <div className="bg-yellow-100 p-2 rounded-full"><Star className="h-6 w-6 text-yellow-600" /></div>
-                                <div>
-                                    <p className="font-bold text-gray-900">منتجات أصلية</p>
-                                    <p className="text-xs text-gray-500">ضمان الجودة 100%</p>
+                            <div className="flex items-center gap-3 bg-white/5 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 hover:bg-white/10 transition-colors cursor-default">
+                                <div className="p-2 bg-green-400/20 rounded-full text-green-400">
+                                    <Shield className="h-5 w-5 md:h-6 md:w-6" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-xs md:text-sm font-bold text-white">الدفع عند الاستلام</span>
+                                    <span className="text-[10px] md:text-xs text-gray-300">تأكد من سلعتك أولاً</span>
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    {/* Empty div for grid balance */}
+                    <div className="hidden lg:block"></div>
+                </div>
+
+                {/* Scroll Indicator */}
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 animate-bounce hidden md:flex flex-col items-center gap-2 text-white/50">
+                    <span className="text-xs">اكتشف المزيد</span>
+                    <ArrowLeft className="h-5 w-5 -rotate-90" />
                 </div>
             </section>
 
@@ -506,153 +502,106 @@ const Home = () => {
                         </div>
 
                         {/* Flash Sale Carousel */}
-                        <Carousel className="w-full" opts={{ direction: 'rtl', align: 'start' }}>
+                        <Carousel
+                            opts={{
+                                align: "start",
+                                loop: true,
+                            }}
+                            plugins={[plugin.current]}
+                            className="w-full"
+                        >
                             <CarouselContent className="-ml-4">
                                 {loading ? (
-                                    [1, 2, 3, 4].map(i => (
+                                    [1, 2, 3, 4].map((i) => (
                                         <CarouselItem key={i} className="pl-4 md:basis-1/2 lg:basis-1/4">
-                                            <Skeleton className="h-80 w-full rounded-2xl bg-white/20" />
+                                            <Skeleton className="h-[400px] w-full rounded-2xl" />
                                         </CarouselItem>
                                     ))
                                 ) : (
-                                    (flashSaleProducts.length > 0 ? flashSaleProducts : newestProducts.slice(0, 6)).map((product) => (
-                                        <CarouselItem key={product.id} className="pl-4 basis-1/2 md:basis-1/3 lg:basis-1/4">
-                                            <div className="bg-white rounded-2xl p-2 h-full transform hover:-translate-y-2 transition-transform duration-300">
-                                                <ProductCard
-                                                    {...product}
-                                                    onQuickView={setQuickViewProduct}
-                                                />
-                                            </div>
+                                    flashSaleProducts.map((product) => (
+                                        <CarouselItem key={product.id} className="pl-4 md:basis-1/2 lg:basis-1/4">
+                                            <ProductCard
+                                                product={product}
+                                                onQuickView={setQuickViewProduct}
+                                            />
                                         </CarouselItem>
                                     ))
                                 )}
                             </CarouselContent>
-                            <CarouselPrevious className="hidden md:flex bg-white/20 hover:bg-white/40 border-none text-white" />
-                            <CarouselNext className="hidden md:flex bg-white/20 hover:bg-white/40 border-none text-white" />
+                            <CarouselPrevious className="hidden md:flex -left-4 bg-white hover:bg-gray-100 text-gray-900 border-none shadow-xl h-12 w-12" />
+                            <CarouselNext className="hidden md:flex -right-4 bg-white hover:bg-gray-100 text-gray-900 border-none shadow-xl h-12 w-12" />
                         </Carousel>
                     </div>
                 </section>
             )}
 
-            {/* 4. BENTO GRID CATEGORIES (Moved after Flash Sale) */}
-            <section className="py-20 container mx-auto px-4">
-                <div className="flex justify-between items-end mb-10">
-                    <div>
-                        <h2 className="text-3xl md:text-4xl font-bold mb-2">تصفح الأقسام</h2>
-                        <p className="text-gray-500">اختر القسم الذي يناسب اهتماماتك</p>
-                    </div>
-                    <Link to="/products" className="text-primary font-bold hover:underline flex items-center gap-1">
-                        عرض الكل <ArrowLeft className="h-4 w-4" />
-                    </Link>
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 h-[600px] md:h-[500px]">
-                    {loading ? (
-                        [1, 2, 3, 4].map(i => <Skeleton key={i} className="w-full h-full rounded-3xl" />)
-                    ) : mainCategories.length > 0 ? (
-                        mainCategories.slice(0, 5).map((cat, index) => (
-                            <Link
-                                key={cat.id}
-                                to={`/products?category=${cat.id}`}
-                                className={`group relative rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 ${index === 0 ? 'col-span-2 row-span-2' : 'col-span-1 row-span-1'
-                                    }`}
-                            >
-                                <img
-                                    src={cat.image_url || "/placeholder.svg"}
-                                    alt={cat.name || cat.name_ar}
-                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity"></div>
-                                <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                                    <h3 className={`${index === 0 ? 'text-3xl' : 'text-xl'} font-bold mb-1`}>{cat.name || cat.name_ar}</h3>
-                                    <span className="inline-flex items-center gap-1 text-sm opacity-0 group-hover:opacity-100 transition-all transform translate-y-4 group-hover:translate-y-0 duration-300">
-                                        تصفح الآن <ArrowLeft className="h-4 w-4" />
-                                    </span>
-                                </div>
+            {/* 4. BEST SELLERS */}
+            {settings.products_visible && (
+                <section className="py-24 bg-white">
+                    <div className="container mx-auto px-4">
+                        <div className="flex items-center justify-between mb-12">
+                            <div>
+                                <h2 className="text-3xl md:text-5xl font-black mb-2 flex items-center gap-3">
+                                    <TrendingUp className="text-primary h-8 w-8 md:h-12 md:w-12" />
+                                    الأكثر مبيعاً
+                                </h2>
+                                <p className="text-gray-500 text-lg">منتجات أحبها الآخرون هذا الأسبوع</p>
+                            </div>
+                            <Link to="/products?sort=best_selling">
+                                <Button variant="outline" className="rounded-full px-6 font-bold hover:bg-gray-100 border-2">
+                                    مشاهدة الكل
+                                </Button>
                             </Link>
-                        ))
-                    ) : (
-                        <div className="col-span-4 text-center py-20 text-gray-400">
-                            <p>لا توجد أقسام متاحة حالياً</p>
                         </div>
-                    )}
-                </div>
-            </section>
 
-            {/* 5. TRENDING PRODUCTS */}
-            {settings.trending_visible && (
-                <section className="py-20 container mx-auto px-4">
-                    <div className="flex items-center gap-2 mb-8">
-                        <TrendingUp className="h-8 w-8 text-primary" />
-                        <h2 className="text-3xl font-bold">الأكثر مبيعاً هذا الأسبوع</h2>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                            {loading
+                                ? [1, 2, 3, 4, 5].map((i) => (
+                                    <Skeleton key={i} className="h-[400px] rounded-2xl" />
+                                ))
+                                : bestSellers.map((product) => (
+                                    <ProductCard
+                                        key={product.id}
+                                        product={product}
+                                        onQuickView={setQuickViewProduct}
+                                    />
+                                ))}
+                        </div>
                     </div>
-
-                    <Carousel className="w-full" opts={{ direction: 'rtl', align: 'start' }}>
-                        <CarouselContent className="-ml-4">
-                            {loading ? (
-                                [1, 2, 3, 4].map(i => (
-                                    <CarouselItem key={i} className="pl-4 md:basis-1/3 lg:basis-1/5">
-                                        <Skeleton className="h-96 w-full rounded-2xl" />
-                                    </CarouselItem>
-                                ))
-                            ) : (
-                                bestSellers.map((product) => (
-                                    <CarouselItem key={product.id} className="pl-4 basis-1/2 md:basis-1/3 lg:basis-1/5">
-                                        <ProductCard
-                                            {...product}
-                                            onQuickView={setQuickViewProduct}
-                                        />
-                                    </CarouselItem>
-                                ))
-                            )}
-                        </CarouselContent>
-                        <CarouselPrevious className="hidden md:flex" />
-                        <CarouselNext className="hidden md:flex" />
-                    </Carousel>
                 </section>
             )}
 
-            {/* 6. NEWSLETTER & TRUST */}
-            {settings.newsletter_visible && (
-                <section className="py-24 container mx-auto px-4">
-                    <div className="bg-gray-900 rounded-[3rem] p-8 md:p-16 text-center text-white relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-full h-full bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
-                        <div className="absolute -top-24 -left-24 w-64 h-64 bg-primary rounded-full blur-[100px] opacity-50"></div>
-                        <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-secondary rounded-full blur-[100px] opacity-50"></div>
+            {/* 5. NEW ARRIVALS */}
+            {settings.products_visible && (
+                <section className="py-24 bg-[#FAFAFA]">
+                    <div className="container mx-auto px-4">
+                        <div className="text-center mb-16">
+                            <h2 className="text-3xl md:text-5xl font-black mb-4">وصل حديثاً</h2>
+                            <p className="text-gray-500 max-w-2xl mx-auto text-lg leading-relaxed">
+                                تصفح أحدث المنتجات المضافة إلى بازارنا. كن أول من يحصل عليها!
+                            </p>
+                        </div>
 
-                        <div className="relative z-10 max-w-3xl mx-auto">
-                            <h2 className="text-4xl md:text-5xl font-bold mb-6">انضم لعائلتنا</h2>
-                            <p className="text-gray-300 text-lg mb-10">اشترك في نشرتنا البريدية واحصل على خصم 10% على طلبك الأول، بالإضافة إلى آخر العروض والأخبار.</p>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                            {loading
+                                ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+                                    <Skeleton key={i} className="h-[400px] rounded-2xl" />
+                                ))
+                                : newestProducts.map((product) => (
+                                    <ProductCard
+                                        key={product.id}
+                                        product={product}
+                                        onQuickView={setQuickViewProduct}
+                                    />
+                                ))}
+                        </div>
 
-                            <form className="flex flex-col md:flex-row gap-4 max-w-lg mx-auto">
-                                <Input
-                                    type="email"
-                                    placeholder="أدخل بريدك الإلكتروني"
-                                    className="h-14 bg-white/10 border-white/20 text-white placeholder:text-gray-400 rounded-full px-6 text-lg focus:bg-white/20 transition-colors"
-                                />
-                                <Button size="lg" className="h-14 px-8 rounded-full bg-white text-black hover:bg-gray-100 font-bold text-lg">
-                                    اشترك الآن
+                        <div className="mt-16 text-center">
+                            <Link to="/products">
+                                <Button size="lg" className="rounded-full px-10 h-14 bg-black text-white hover:bg-gray-800 font-bold hover:scale-105 transition-transform shadow-xl">
+                                    تصفح جميع المنتجات
                                 </Button>
-                            </form>
-
-                            <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 opacity-70">
-                                <div className="flex flex-col items-center gap-2">
-                                    <Clock className="h-8 w-8" />
-                                    <span className="text-sm">دعم 24/7</span>
-                                </div>
-                                <div className="flex flex-col items-center gap-2">
-                                    <Shield className="h-8 w-8" />
-                                    <span className="text-sm">دفع آمن</span>
-                                </div>
-                                <div className="flex flex-col items-center gap-2">
-                                    <Truck className="h-8 w-8" />
-                                    <span className="text-sm">شحن سريع</span>
-                                </div>
-                                <div className="flex flex-col items-center gap-2">
-                                    <Store className="h-8 w-8" />
-                                    <span className="text-sm">متاجر موثوقة</span>
-                                </div>
-                            </div>
+                            </Link>
                         </div>
                     </div>
                 </section>
@@ -661,8 +610,8 @@ const Home = () => {
             {/* Quick View Modal */}
             <QuickViewModal
                 product={quickViewProduct}
-                open={!!quickViewProduct}
-                onOpenChange={(open) => !open && setQuickViewProduct(null)}
+                isOpen={!!quickViewProduct}
+                onClose={() => setQuickViewProduct(null)}
             />
         </div>
     );
