@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import SEO from "@/components/SEO";
 
 export default function Stores() {
     const [stores, setStores] = useState<any[]>([]);
@@ -44,6 +45,10 @@ export default function Stores() {
 
     return (
         <div className="container py-8">
+            <SEO
+                title="المتاجر"
+                description="تصفح أفضل المتاجر والعلامات التجارية في الجزائر على بازارنا. تسوق بثقة من محلات موثوقة."
+            />
             <h1 className="text-3xl md:text-4xl font-bold mb-8 text-primary">محلاتنا</h1>
 
             <Tabs defaultValue="all" className="w-full mb-8" onValueChange={setSelectedCategory}>

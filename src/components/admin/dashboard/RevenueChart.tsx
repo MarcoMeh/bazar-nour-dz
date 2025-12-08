@@ -1,29 +1,20 @@
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface RevenueChartProps {
-    data: {
-        date: string;
-        revenue: number;
-    }[];
+    data: any[];
 }
 
 export function RevenueChart({ data }: RevenueChartProps) {
     return (
         <Card className="col-span-4 lg:col-span-3">
             <CardHeader>
-                <CardTitle>الإيرادات (آخر 7 أيام)</CardTitle>
+                <CardTitle>نظرة عامة على الإيرادات (آخر 7 أيام)</CardTitle>
             </CardHeader>
             <CardContent className="pl-2">
-                <div className="h-[300px] w-full">
+                <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={data}>
-                            <defs>
-                                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
-                                    <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
-                                </linearGradient>
-                            </defs>
+                        <BarChart data={data}>
                             <XAxis
                                 dataKey="date"
                                 stroke="#888888"
@@ -38,19 +29,18 @@ export function RevenueChart({ data }: RevenueChartProps) {
                                 axisLine={false}
                                 tickFormatter={(value) => `${value} دج`}
                             />
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
                             <Tooltip
-                                contentStyle={{ backgroundColor: "#fff", borderRadius: "8px" }}
-                                formatter={(value: number) => [`${value} دج`, "الإيرادات"]}
+                                formatter={(value) => [`${value} دج`, 'الإيرادات']}
+                                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                             />
-                            <Area
-                                type="monotone"
+                            <Bar
                                 dataKey="revenue"
-                                stroke="#8884d8"
-                                fillOpacity={1}
-                                fill="url(#colorRevenue)"
+                                fill="currentColor"
+                                radius={[4, 4, 0, 0]}
+                                className="fill-primary"
+                                barSize={40}
                             />
-                        </AreaChart>
+                        </BarChart>
                     </ResponsiveContainer>
                 </div>
             </CardContent>

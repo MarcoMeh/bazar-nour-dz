@@ -42,13 +42,14 @@ export default function AdminDashboard() {
 
       // 2. Fetch All Orders for Calculations (Revenue & Status)
       // We need more than just count, so we fetch data.
-      // For performance in a real large app, we'd use RPCs or specific aggregate queries.
       let ordersQuery = supabase
         .from("orders")
         .select("id, total_price, status, created_at");
 
       if (isStoreOwner && storeId) {
         ordersQuery = ordersQuery.eq('store_id', storeId);
+      } else {
+        // If regular admin, we grab everything or based on logic (usually everything)
       }
 
       const { data: allOrders } = await ordersQuery;
@@ -136,59 +137,65 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="p-8 space-y-8 animate-fade-in">
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight text-primary">لوحة التحكم</h2>
       </div>
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">إجمالي الإيرادات</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.revenue.toLocaleString()} دج</div>
-            <p className="text-xs text-muted-foreground">+20.1% من الشهر الماضي</p>
+            <p className="text-xs text-muted-foreground mt-1">الإجمالي التراكمي</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">الطلبات</CardTitle>
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.orders}</div>
-            <p className="text-xs text-muted-foreground">+180 من الشهر الماضي</p>
+            <p className="text-xs text-muted-foreground mt-1">إجمالي الطلبات المستلمة</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">المنتجات</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.products}</div>
-            <p className="text-xs text-muted-foreground">+19 منتج جديد</p>
+            <p className="text-xs text-muted-foreground mt-1">عدد المنتجات النشطة</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">المحلات النشطة</CardTitle>
-            <Store className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.stores}</div>
-            <p className="text-xs text-muted-foreground">+2 منذ آخر ساعة</p>
-          </CardContent>
-        </Card>
+        {isAdmin && (
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">المحلات النشطة</CardTitle>
+              <Store className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.stores}</div>
+              <p className="text-xs text-muted-foreground mt-1">متاجر مسجلة في المنصة</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Charts Section */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <RevenueChart data={revenueData} />
-        <OrderStatusChart data={orderStatusData} />
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+        <div className="col-span-4 lg:col-span-4">
+          <RevenueChart data={revenueData} />
+        </div>
+        <div className="col-span-4 lg:col-span-3">
+          <OrderStatusChart data={orderStatusData} />
+        </div>
       </div>
 
       {/* Recent Orders Section */}

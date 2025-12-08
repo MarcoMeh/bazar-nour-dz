@@ -44,6 +44,8 @@ interface Category {
   parent_id?: string | null;
 }
 
+import SEO from "@/components/SEO";
+
 const Products = () => {
   const [searchParams] = useSearchParams();
 
@@ -287,6 +289,10 @@ const Products = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      <SEO
+        title="تصفح المنتجات"
+        description="اكتشف تشكيلة واسعة من المنتجات المميزة في بازارنا. تسوق الآن واحصل على أفضل العروض والأسعار."
+      />
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         {/* Header */}
