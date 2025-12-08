@@ -53,36 +53,29 @@ export default function StoreOwnerDashboard() {
                 .select("*", { count: "exact", head: true })
                 .eq('store_id', storeId);
 
-            // 2. Get orders data through order_items
-            const { data: orderItems } = await supabase
-                .from('order_items')
-                .select(`
-          order_id,
-          price,
-          quantity,
-          products!inner (
-            store_id
-          )
-        `)
-                .eq('products.store_id', storeId);
+            // 2. Get orders directly by store_id
+            const { data: storeOrders, count: ordersCount } = await supabase
+                .from('orders')
+                .select('*', { count: 'exact' })
+                .eq('store_id', storeId);
 
-            // Calculate unique orders and revenue
-            const uniqueOrderIds = new Set(orderItems?.map(item => item.order_id) || []);
-            const ordersCount = uniqueOrderIds.size;
-            const revenue = orderItems?.reduce((sum, item) => sum + (Number(item.price) * item.quantity), 0) || 0;
+            // Calculate revenue from orders
+            const revenue = storeOrders?.reduce((sum, order) => {
+                if (order.status !== 'cancelled') {
+                    return sum + (Number(order.total_price) || 0);
+                }
+                return sum;
+            }, 0) || 0;
 
             setStats({
                 products: productsCount || 0,
-                orders: ordersCount,
+                orders: ordersCount || 0,
                 revenue
             });
 
             // 3. Fetch full order details for charts and recent orders
-            if (uniqueOrderIds.size > 0) {
-                const { data: allOrders } = await supabase
-                    .from("orders")
-                    .select("id, total_price, status, created_at")
-                    .in('id', Array.from(uniqueOrderIds));
+            if (storeOrders && storeOrders.length > 0) {
+                const allOrders = storeOrders;
 
                 // Prepare Revenue Chart Data (Last 7 Days)
                 const last7Days = Array.from({ length: 7 }, (_, i) => {

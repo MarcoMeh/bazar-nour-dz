@@ -16,14 +16,23 @@ import {
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Eye, Loader2 } from "lucide-react";
+import { Eye, Loader2, Trash2, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 
-const OrdersTable = ({ orders, onView, getStatusBadge }: { orders: any[], onView: (order: any) => void, getStatusBadge: (status: string) => React.ReactNode }) => (
+interface OrdersTableProps {
+    orders: any[];
+    onView: (order: any) => void;
+    onDelete: (orderId: string) => void;
+    onConfirmDelivery: (orderId: string) => void;
+    getStatusBadge: (status: string) => React.ReactNode;
+}
+
+const OrdersTable = ({ orders, onView, onDelete, onConfirmDelivery, getStatusBadge }: OrdersTableProps) => (
     <Table>
         <TableHeader>
             <TableRow>
@@ -49,9 +58,31 @@ const OrdersTable = ({ orders, onView, getStatusBadge }: { orders: any[], onView
                         <TableCell>{format(new Date(order.created_at), "yyyy-MM-dd")}</TableCell>
                         <TableCell>{getStatusBadge(order.status)}</TableCell>
                         <TableCell>
-                            <Button variant="ghost" size="icon" onClick={() => onView(order)}>
-                                <Eye className="h-4 w-4" />
-                            </Button>
+                            <div className="flex gap-1">
+                                <Button variant="ghost" size="icon" onClick={() => onView(order)} title="عرض التفاصيل">
+                                    <Eye className="h-4 w-4" />
+                                </Button>
+                                {order.status !== 'delivered' && order.status !== 'cancelled' && (
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                                        onClick={() => onConfirmDelivery(order.id)}
+                                        title="تأكيد الوصول والدفع"
+                                    >
+                                        <CheckCircle className="h-4 w-4" />
+                                    </Button>
+                                )}
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    onClick={() => onDelete(order.id)}
+                                    title="حذف الطلب"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </div>
                         </TableCell>
                     </TableRow>
                 ))
@@ -68,6 +99,8 @@ export default function StoreOwnerOrders() {
     const [loadingItems, setLoadingItems] = useState(false);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [storeId, setStoreId] = useState<string | null>(null);
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+    const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
 
     useEffect(() => {
         fetchStoreId();
@@ -101,75 +134,48 @@ export default function StoreOwnerOrders() {
         if (!storeId) return;
         setLoading(true);
         try {
-            // Method 1: Check orders table store_ids array
-            let ordersFromArray: any[] = [];
-            let arrayError: any = null;
-            try {
-                const result1: any = await supabase
-                    .from('orders' as any)
-                    .select('id')
-                    .contains('store_ids', [storeId]);
-                ordersFromArray = result1.data || [];
-                arrayError = result1.error;
-            } catch (e) { arrayError = e; }
+            console.log("=== DEBUG Store Orders ===");
+            console.log("Looking for orders with store_id:", storeId);
 
-            // Method 2: Check order_items table store_id field
-            let ordersFromItems: any[] = [];
-            let itemsError: any = null;
-            try {
-                const result2: any = await supabase
-                    .from('order_items' as any)
-                    .select('order_id')
-                    .eq('store_id', storeId);
-                ordersFromItems = result2.data || [];
-                itemsError = result2.error;
-            } catch (e) { itemsError = e; }
+            // Query orders where:
+            // 1. store_id equals this storeId (single-store orders)
+            // 2. OR store_ids array contains this storeId (multi-store orders)
 
-            // Method 3: Check via products.store_id relation
-            let ordersFromProducts: any[] = [];
-            let productsError: any = null;
-            try {
-                const result3: any = await supabase
-                    .from('order_items' as any)
-                    .select('order_id, products!inner(store_id)')
-                    .eq('products.store_id', storeId);
-                ordersFromProducts = result3.data || [];
-                productsError = result3.error;
-            } catch (e) { productsError = e; }
-
-            // Combine all order IDs
-            const allOrderIds = new Set<string>();
-
-            if (ordersFromArray && !arrayError) {
-                ordersFromArray.forEach((o: any) => allOrderIds.add(o.id));
-            }
-            if (ordersFromItems && !itemsError) {
-                ordersFromItems.forEach((o: any) => allOrderIds.add(o.order_id));
-            }
-            if (ordersFromProducts && !productsError) {
-                ordersFromProducts.forEach((o: any) => allOrderIds.add(o.order_id));
-            }
-
-            const orderIds = Array.from(allOrderIds);
-
-            console.log("Store ID:", storeId);
-            console.log("Found order IDs:", orderIds);
-
-            if (orderIds.length === 0) {
-                setOrders([]);
-                setLoading(false);
-                return;
-            }
-
-            // Fetch full order details
-            const { data, error } = await supabase
+            // First, get orders where store_id matches directly
+            const { data: directOrders, error: directError } = await supabase
                 .from("orders")
                 .select("*, profiles:user_id(full_name), wilayas(name)")
-                .in('id', orderIds)
+                .eq('store_id', storeId)
                 .order("created_at", { ascending: false });
 
-            if (error) throw error;
-            setOrders(data || []);
+            if (directError) throw directError;
+
+            // Second, get orders where store_ids array contains this storeId
+            const { data: arrayOrders, error: arrayError } = await supabase
+                .from("orders")
+                .select("*, profiles:user_id(full_name), wilayas(name)")
+                .contains('store_ids', [storeId])
+                .order("created_at", { ascending: false });
+
+            if (arrayError) throw arrayError;
+
+            // Merge and deduplicate orders by ID
+            const allOrders = [...(directOrders || []), ...(arrayOrders || [])];
+            const uniqueOrders = allOrders.reduce((acc: any[], order) => {
+                if (!acc.find(o => o.id === order.id)) {
+                    acc.push(order);
+                }
+                return acc;
+            }, []);
+
+            // Sort by created_at descending
+            uniqueOrders.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+            console.log("Direct orders found:", directOrders?.length || 0);
+            console.log("Array orders found:", arrayOrders?.length || 0);
+            console.log("Total unique orders:", uniqueOrders.length);
+
+            setOrders(uniqueOrders);
         } catch (error: any) {
             console.error("Error fetching orders:", error);
             toast.error("فشل تحميل الطلبات");
@@ -184,19 +190,18 @@ export default function StoreOwnerOrders() {
         setLoadingItems(true);
 
         try {
-            // Fetch items for this order AND this store
+            // Fetch all items for this order (since this is the store's order)
             const { data, error } = await supabase
                 .from("order_items")
-                .select("*, products(name, image_url, store_id)")
+                .select("*, products(name, image_url)")
                 .eq("order_id", order.id);
 
             if (error) throw error;
 
-            // Filter items to show ONLY products from this store
-            const storeItems = data.filter((item: any) => item.products?.store_id === storeId);
+            console.log("Order items:", data);
 
-            // Format items
-            const formattedItems = storeItems.map((item: any) => ({
+            // Format items - show all items since order belongs to this store
+            const formattedItems = (data || []).map((item: any) => ({
                 ...item,
                 products: Array.isArray(item.products) ? item.products[0] : item.products
             }));
@@ -207,6 +212,74 @@ export default function StoreOwnerOrders() {
             toast.error("فشل تحميل تفاصيل الطلب");
         } finally {
             setLoadingItems(false);
+        }
+    };
+
+    const handleDeleteClick = (orderId: string) => {
+        setOrderToDelete(orderId);
+        setDeleteConfirmOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!orderToDelete) return;
+
+        try {
+            console.log("Deleting order:", orderToDelete);
+
+            // Delete order items first
+            const { error: itemsError } = await supabase
+                .from("order_items")
+                .delete()
+                .eq("order_id", orderToDelete);
+
+            if (itemsError) {
+                console.error("Error deleting order items:", itemsError);
+                throw itemsError;
+            }
+
+            // Delete the order
+            const { error: orderError, count } = await supabase
+                .from("orders")
+                .delete()
+                .eq("id", orderToDelete)
+                .select();
+
+            console.log("Delete result:", { orderError, count });
+
+            if (orderError) {
+                console.error("Error deleting order:", orderError);
+                throw orderError;
+            }
+
+            toast.success("تم حذف الطلب بنجاح");
+            // Remove from local state immediately
+            setOrders(prev => prev.filter(o => o.id !== orderToDelete));
+        } catch (error: any) {
+            console.error("Error deleting order:", error);
+            toast.error("فشل في حذف الطلب: " + (error.message || 'خطأ غير معروف'));
+        } finally {
+            setOrderToDelete(null);
+            setDeleteConfirmOpen(false);
+        }
+    };
+
+    const handleConfirmDelivery = async (orderId: string) => {
+        try {
+            const { error } = await supabase
+                .from("orders")
+                .update({ status: 'delivered' })
+                .eq("id", orderId);
+
+            if (error) throw error;
+
+            toast.success("تم تأكيد وصول الطلب ودفعه بنجاح");
+            // Update local state
+            setOrders(prev => prev.map(o =>
+                o.id === orderId ? { ...o, status: 'delivered' } : o
+            ));
+        } catch (error: any) {
+            console.error("Error confirming delivery:", error);
+            toast.error("فشل في تأكيد الطلب: " + (error.message || 'خطأ غير معروف'));
         }
     };
 
@@ -269,6 +342,8 @@ export default function StoreOwnerOrders() {
                                 <OrdersTable
                                     orders={orders.filter(o => ['pending', 'processing', 'shipped'].includes(o.status))}
                                     onView={handleViewOrder}
+                                    onDelete={handleDeleteClick}
+                                    onConfirmDelivery={handleConfirmDelivery}
                                     getStatusBadge={getStatusBadge}
                                 />
                             </div>
@@ -286,6 +361,8 @@ export default function StoreOwnerOrders() {
                                 <OrdersTable
                                     orders={orders.filter(o => ['delivered', 'cancelled'].includes(o.status))}
                                     onView={handleViewOrder}
+                                    onDelete={handleDeleteClick}
+                                    onConfirmDelivery={handleConfirmDelivery}
                                     getStatusBadge={getStatusBadge}
                                 />
                             </div>
@@ -386,6 +463,16 @@ export default function StoreOwnerOrders() {
                     )}
                 </DialogContent>
             </Dialog>
+
+            <ConfirmDialog
+                open={deleteConfirmOpen}
+                onOpenChange={setDeleteConfirmOpen}
+                onConfirm={confirmDelete}
+                title="حذف الطلب"
+                description="هل أنت متأكد من حذف هذا الطلب؟ لا يمكن التراجع عن هذا الإجراء."
+                confirmText="حذف"
+                variant="destructive"
+            />
         </div>
     );
 }
