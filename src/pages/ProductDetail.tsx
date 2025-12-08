@@ -15,17 +15,18 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
-import { ArrowRight, ShoppingCart, Truck, Shield, Home, Package } from 'lucide-react';
+import { ArrowRight, ShoppingCart, Truck, Shield, Home } from 'lucide-react';
 import { PostgrestError } from '@supabase/supabase-js';
+import SEO from '@/components/SEO';
 
 interface Product {
   id: string;
   name: string; // Changed from name_ar
-  description?: string; // Changed from description_ar (assuming DB uses description based on AdminProducts)
+  description?: string; // Changed from description_ar
   price: number;
   image_url?: string;
   additional_images?: string[];
-  images?: string[]; // Keep for backward compatibility if needed
+  images?: string[]; // Keep for backward compatibility
   category_id?: string;
 
   is_delivery_home_available: boolean;
@@ -202,6 +203,12 @@ const ProductDetail = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEO
+        title={product.name}
+        description={product.description || `تسوق ${product.name} الآن بسعر ${product.price} دج. أفضل جودة وتوصيل سريع.`}
+        image={product.image_url}
+        type="product"
+      />
 
       <main className="flex-1 container mx-auto px-4 py-8">
         <Button

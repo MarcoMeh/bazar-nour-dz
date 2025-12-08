@@ -108,13 +108,17 @@ export const ProductCard = ({
                 src={image_url}
                 alt={name_ar}
                 loading="lazy"
+                width={300}
+                height={300}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
               {additional_images && additional_images.length > 0 && (
                 <img
                   src={additional_images[0]}
-                  alt={name_ar}
+                  alt={`${name_ar} - صورة إضافية`}
                   loading="lazy"
+                  width={300}
+                  height={300}
                   className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                 />
               )}
@@ -133,6 +137,7 @@ export const ProductCard = ({
                 variant="secondary"
                 className="rounded-full shadow-lg hover:scale-110 transition-transform"
                 onClick={handleQuickView}
+                aria-label="نظرة سريعة"
               >
                 <Eye className="h-5 w-5" />
               </Button>
@@ -148,6 +153,7 @@ export const ProductCard = ({
           variant="ghost"
           className="absolute top-2 right-2 z-20 bg-white/80 hover:bg-white rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-300"
           onClick={handleWishlist}
+          aria-label="إضافة للمفضلة"
         >
           <Heart className={`h-5 w-5 ${isWishlisted ? "fill-red-500 text-red-500" : ""}`} />
         </Button>

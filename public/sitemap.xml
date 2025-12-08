@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Home Page -->
+  <url>
+    <loc>https://bazzarna-dz.com/</loc>
+    <lastmod>2023-12-08</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Products Listing -->
+  <url>
+    <loc>https://bazzarna-dz.com/products</loc>
+    <lastmod>2023-12-08</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Stores Listing -->
+  <url>
+    <loc>https://bazzarna-dz.com/stores</loc>
+    <lastmod>2023-12-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Categories (Static examples - ideally dynamic) -->
+  <url>
+    <loc>https://bazzarna-dz.com/products?category=electronics</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://bazzarna-dz.com/products?category=fashion</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://bazzarna-dz.com/products?category=home</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://bazzarna-dz.com/products?category=beauty</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Seller Registration -->
+  <url>
+    <loc>https://bazzarna-dz.com/seller-register</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+</urlset>

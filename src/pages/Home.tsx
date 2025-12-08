@@ -16,21 +16,19 @@ import { ProductCard } from "@/components/ProductCard";
 import { QuickViewModal } from "@/components/QuickViewModal";
 import {
     ArrowLeft,
-    ArrowRight,
     Search,
-    ShoppingBag,
-    Truck,
     Shield,
     Clock,
     Star,
     Zap,
     TrendingUp,
-    Store
+    Store,
+    Truck
 } from "lucide-react";
 import Autoplay from "embla-carousel-autoplay";
+import SEO from "@/components/SEO";
 
 // Assets
-import logo from "@/assets/bazzarna_logo_2.png";
 import heroBg from "@/assets/backround_5.jpeg";
 
 // Types
@@ -229,6 +227,11 @@ const Home = () => {
 
     return (
         <div className="min-h-screen flex flex-col bg-[#FAFAFA] text-gray-900 font-cairo overflow-x-hidden">
+            <SEO
+                title="الرئيسية"
+                description="بازارنا - وجهتك الأولى للتسوق الإلكتروني في الجزائر. اكتشف أفضل المتاجر والمنتجات بأسعار تنافسية وتوصيل لجميع الولايات."
+                image={heroBg}
+            />
 
             {/* 1. HERO SECTION */}
             <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden">
@@ -240,7 +243,6 @@ const Home = () => {
                         className="w-full h-full object-cover scale-105 animate-pulse-slow"
                     />
                     <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent"></div>
-                    <div className="absolute inset-0 bg-[url('/noise.png')] opacity-5 mix-blend-overlay"></div>
                 </div>
 
                 <div className="container mx-auto px-4 relative z-10 grid lg:grid-cols-2 gap-12 items-center">
@@ -474,7 +476,6 @@ const Home = () => {
             {/* 3. FLASH SALE SECTION (Moved after Stores) */}
             {settings.flash_sale_visible && (
                 <section className="py-16 bg-gradient-to-br from-red-500 to-orange-600 text-white overflow-hidden relative">
-                    <div className="absolute top-0 left-0 w-full h-full bg-[url('/noise.png')] opacity-10"></div>
                     <div className="container mx-auto px-4 relative z-10">
                         <div className="flex flex-col md:flex-row items-center justify-between mb-10 gap-6">
                             <div className="flex items-center gap-4">
