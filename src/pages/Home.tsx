@@ -234,7 +234,7 @@ const Home = () => {
             />
 
             {/* 1. HERO SECTION */}
-            <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden">
+            <section className="relative min-h-[65vh] md:min-h-[85vh] flex items-center justify-center overflow-hidden">
                 {/* Background with Overlay */}
                 <div className="absolute inset-0 z-0">
                     <img
@@ -242,28 +242,28 @@ const Home = () => {
                         alt="Hero Background"
                         className="w-full h-full object-cover scale-105 animate-pulse-slow"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-black/30 md:to-transparent"></div>
                 </div>
 
-                <div className="container mx-auto px-4 relative z-10 grid lg:grid-cols-2 gap-12 items-center">
+                <div className="container mx-auto px-4 relative z-10 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center pt-8 md:pt-0">
                     {/* Text Content */}
-                    <div className="text-white space-y-8 text-right order-2 lg:order-1">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 animate-fade-in">
-                            <span className="relative flex h-3 w-3">
+                    <div className="text-white space-y-6 md:space-y-8 text-right order-2 lg:order-1">
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 animate-fade-in">
+                            <span className="relative flex h-2.5 w-2.5 md:h-3 md:w-3">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-3 w-3 bg-yellow-400"></span>
+                                <span className="relative inline-flex rounded-full h-full w-full bg-yellow-400"></span>
                             </span>
-                            <span className="text-yellow-400 font-bold text-sm tracking-wide">أفضل متجر إلكتروني في الجزائر</span>
+                            <span className="text-yellow-400 font-bold text-xs md:text-sm tracking-wide">أفضل متجر إلكتروني في الجزائر</span>
                         </div>
 
-                        <h1 className="text-5xl lg:text-7xl font-black leading-tight animate-slide-up">
+                        <h1 className="text-3xl md:text-5xl lg:text-7xl font-black leading-tight animate-slide-up">
                             تسوق بذكاء <br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-l from-yellow-400 to-yellow-200">
                                 وعش برفاهية
                             </span>
                         </h1>
 
-                        <p className="text-xl text-gray-200 max-w-xl leading-relaxed animate-slide-up delay-100">
+                        <p className="text-base md:text-xl text-gray-200 max-w-xl leading-relaxed animate-slide-up delay-100">
                             اكتشف عالماً من المنتجات الحصرية بأسعار لا تقبل المنافسة. جودة مضمونة وتوصيل سريع لجميع الولايات.
                         </p>
 
@@ -271,32 +271,32 @@ const Home = () => {
                         <form onSubmit={handleSearch} className="relative max-w-lg animate-slide-up delay-200">
                             <div className="relative group">
                                 <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-                                <div className="relative flex bg-white rounded-full p-2 shadow-2xl">
+                                <div className="relative flex bg-white rounded-full p-1.5 md:p-2 shadow-2xl">
                                     <Input
                                         type="text"
                                         placeholder="عن ماذا تبحث اليوم؟"
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="flex-1 border-none shadow-none focus-visible:ring-0 text-gray-800 text-lg h-12 px-6 rounded-full bg-transparent"
+                                        className="flex-1 border-none shadow-none focus-visible:ring-0 text-gray-800 text-base md:text-lg h-10 md:h-12 px-4 md:px-6 rounded-full bg-transparent"
                                     />
                                     <Button
                                         type="submit"
                                         size="lg"
-                                        className="rounded-full px-8 bg-gray-900 hover:bg-gray-800 text-white h-12 transition-all duration-300 hover:scale-105"
+                                        className="rounded-full px-6 md:px-8 bg-gray-900 hover:bg-gray-800 text-white h-10 md:h-12 transition-all duration-300 hover:scale-105"
                                     >
-                                        <Search className="h-5 w-5" />
+                                        <Search className="h-4 w-4 md:h-5 md:w-5" />
                                     </Button>
                                 </div>
                             </div>
                         </form>
 
-                        <div className="flex flex-wrap gap-4 pt-4 animate-slide-up delay-300">
-                            <div className="flex items-center gap-2 text-sm font-medium bg-black/30 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10">
-                                <Truck className="text-yellow-400 h-5 w-5" />
+                        <div className="flex flex-wrap gap-3 md:gap-4 pt-2 md:pt-4 animate-slide-up delay-300">
+                            <div className="flex items-center gap-2 text-xs md:text-sm font-medium bg-black/30 backdrop-blur-sm px-3 py-1.5 md:px-4 md:py-2 rounded-lg border border-white/10">
+                                <Truck className="text-yellow-400 h-4 w-4 md:h-5 md:w-5" />
                                 <span>توصيل 58 ولاية</span>
                             </div>
-                            <div className="flex items-center gap-2 text-sm font-medium bg-black/30 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10">
-                                <Shield className="text-yellow-400 h-5 w-5" />
+                            <div className="flex items-center gap-2 text-xs md:text-sm font-medium bg-black/30 backdrop-blur-sm px-3 py-1.5 md:px-4 md:py-2 rounded-lg border border-white/10">
+                                <Shield className="text-yellow-400 h-4 w-4 md:h-5 md:w-5" />
                                 <span>دفع عند الاستلام</span>
                             </div>
                         </div>
