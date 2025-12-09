@@ -30,6 +30,7 @@ import AdminOrders from "./pages/admin/Orders";
 import AdminStores from "./pages/admin/Stores";
 import AdminDelivery from "./pages/admin/Delivery";
 import AdminControl from "./pages/admin/Control";
+import AdminReviews from "./pages/admin/Reviews";
 
 // Store Owner Pages
 import { StoreOwnerLayout } from "./components/layout/StoreOwnerLayout";
@@ -111,6 +112,7 @@ const App = () => (
                     <Route path="stores" element={<AdminStores />} />
                     <Route path="delivery" element={<AdminDelivery />} />
                     <Route path="control" element={<AdminControl />} />
+                    <Route path="reviews" element={<AdminReviews />} />
                   </Route>
 
                   {/* Store Owner Routes - Protected */}

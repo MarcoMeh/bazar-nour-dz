@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import { ArrowRight, ShoppingCart, Truck, Shield, Home } from 'lucide-react';
 import { PostgrestError } from '@supabase/supabase-js';
 import SEO from '@/components/SEO';
+import { ReviewsSection } from '@/components/reviews/ReviewsSection';
 
 interface Product {
   id: string;
@@ -396,6 +397,9 @@ const ProductDetail = () => {
             </div>
           </div>
         </div>
+
+        {/* Reviews Section */}
+        <ReviewsSection productId={product.id} />
       </main>
 
     </div>

@@ -1,4 +1,4 @@
-import { Container } from "@/components/ui/container";
+import { Container } from "@/components/ui/Container";
 import SEO from "@/components/SEO";
 import { ArrowLeft, Shield, Lock, Eye, Database, Globe } from "lucide-react";
 import { Link } from "react-router-dom";

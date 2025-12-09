@@ -12,16 +12,49 @@ export interface Category {
 }
 
 async function fetchCategories(): Promise<Category[]> {
-    const { data, error } = await supabase
+    // Fetch Main Categories
+    const { data: mainCats, error: mainError } = await supabase
         .from('categories')
         .select('*')
         .order('name');
 
-    if (error) {
-        throw new Error(error.message);
+    // Fetch Subcategories
+    const { data: subCats, error: subError } = await supabase
+        .from('subcategories')
+        .select('*')
+        .order('name');
+
+    if (mainError) {
+        console.error('Error fetching categories:', mainError);
+        throw new Error(mainError.message);
+    }
+    if (subError) {
+        console.error('Error fetching subcategories:', subError);
+        throw new Error(subError.message);
     }
 
-    return (data || []) as Category[];
+    // Normalize Data
+    const formattedMain = (mainCats || []).map((c: any) => ({
+        id: c.id,
+        name: c.name,
+        name_ar: c.name_ar || c.name, // Fallback
+        slug: c.slug,
+        image_url: c.image_url,
+        parent_id: null,
+        created_at: c.created_at
+    }));
+
+    const formattedSub = (subCats || []).map((c: any) => ({
+        id: c.id,
+        name: c.name,
+        name_ar: c.name_ar || c.name,
+        slug: c.slug,
+        image_url: c.image_url,
+        parent_id: c.category_id, // Map FK to parent_id
+        created_at: c.created_at
+    }));
+
+    return [...formattedMain, ...formattedSub];
 }
 
 export function useCategories() {
@@ -36,6 +69,7 @@ export function useCategories() {
 export function useMainCategories() {
     const { data: categories, ...rest } = useCategories();
 
+    // Filter mainly by parent_id being null or undefined
     const mainCategories = categories?.filter(cat => !cat.parent_id) || [];
 
     return {

@@ -1,4 +1,4 @@
-import { Container } from "@/components/ui/container";
+import { Container } from "@/components/ui/Container";
 import SEO from "@/components/SEO";
 import { ArrowLeft, FileText, Scale, AlertCircle, RefreshCw, CheckCircle2 } from "lucide-react";
 import { Link } from "react-router-dom";

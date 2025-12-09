@@ -89,28 +89,11 @@ const Products = () => {
   const mainCategories = categories.filter((c) => !c.parent_id);
   const subCategories = categories.filter((c) => c.parent_id === selectedMainCategory);
 
-  // Compute filters for useProducts
-  const targetCategoryIds = useMemo(() => {
-    // If a subcategory is selected, strictly filter by it
-    if (selectedSubCategory) {
-      return [selectedSubCategory];
-    }
-    // If a main category is selected, include it AND all its subcategories
-    if (selectedMainCategory) {
-      const childIds = categories
-        .filter(c => c.parent_id === selectedMainCategory)
-        .map(c => c.id);
-      return [selectedMainCategory, ...childIds];
-    }
-    // Otherwise invalid/undefined to fetch all
-    return undefined;
-  }, [selectedMainCategory, selectedSubCategory, categories]);
-
   const { data: productsData, isLoading: productsLoading } = useProducts({
     page: currentPage,
     pageSize,
-    // Pass categoryIds array instead of single categoryId
-    categoryIds: targetCategoryIds,
+    categoryId: selectedMainCategory || undefined,
+    subcategoryId: selectedSubCategory || undefined,
     storeId: selectedStore || undefined,
     search: debouncedSearch || undefined,
     minPrice: priceRange[0],

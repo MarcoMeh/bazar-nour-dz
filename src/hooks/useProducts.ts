@@ -85,7 +85,7 @@ async function fetchProducts(filters: ProductFilters = {}): Promise<ProductsResp
     if (filters.categoryIds && filters.categoryIds.length > 0) {
         query = query.in('category_id', filters.categoryIds);
     } else if (subcategoryId) {
-        query = query.eq('category_id', subcategoryId);
+        query = query.eq('subcategory_id', subcategoryId);
     } else if (categoryId) {
         query = query.eq('category_id', categoryId);
     }
