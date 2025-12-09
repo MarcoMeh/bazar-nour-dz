@@ -10,6 +10,7 @@ export interface Store {
     owner_id: string;
     is_active: boolean;
     created_at?: string;
+    subscription_end_date?: string | null;
 }
 
 async function fetchStores(): Promise<Store[]> {
@@ -17,6 +18,7 @@ async function fetchStores(): Promise<Store[]> {
         .from('stores')
         .select('*')
         .eq('is_active', true)
+        .gt('subscription_end_date', new Date().toISOString())
         .order('name');
 
     if (error) {
@@ -31,6 +33,8 @@ async function fetchStoreById(storeId: string): Promise<Store | null> {
         .from('stores')
         .select('*')
         .eq('id', storeId)
+        .eq('is_active', true)
+        .gt('subscription_end_date', new Date().toISOString())
         .single();
 
     if (error) {

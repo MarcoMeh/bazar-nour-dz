@@ -23,6 +23,7 @@ export default function Stores() {
             .from("stores")
             .select("*, store_categories(name)")
             .eq("is_active", true)
+            .gt("subscription_end_date", new Date().toISOString())
             .order("created_at", { ascending: false });
 
         const { data: categoriesData } = await supabase

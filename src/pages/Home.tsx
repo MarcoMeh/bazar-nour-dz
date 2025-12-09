@@ -119,6 +119,27 @@ const Home = () => {
             setLoading(false);
         };
         loadData();
+
+        // Realtime Subscription for Settings
+        const channel = supabase
+            .channel('schema-db-changes')
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'site_settings',
+                },
+                (payload) => {
+                    console.log("Settings updated:", payload.new);
+                    setSettings(payload.new as any);
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }, []);
 
     const fetchSettings = async () => {
@@ -132,7 +153,8 @@ const Home = () => {
             .from("categories")
             .select("*")
             .order("name")
-            .limit(5);
+            .order("name")
+            .limit(12);
 
         console.log("Fetched categories:", data, "Error:", error);
         if (data) setMainCategories(data);
@@ -146,7 +168,10 @@ const Home = () => {
     const fetchStores = async () => {
         // Fetch stores with their categories assuming category_id exists
         // If it fails, we will handle it.
-        const { data, error } = await supabase.from("stores").select("id, name, image_url, description, category_id");
+        const { data, error } = await supabase.from("stores")
+            .select("id, name, image_url, description, category_id")
+            .eq("is_active", true)
+            .gt("subscription_end_date", new Date().toISOString());
         if (data) setStores(data);
         if (error) console.error("Error fetching stores:", error);
     };
@@ -159,7 +184,8 @@ const Home = () => {
                 categories!inner(name, parent:parent_id(name))
             `)
             .order("created_at", { ascending: false })
-            .limit(20);
+            .order("created_at", { ascending: false })
+            .limit(8);
 
         if (data) {
             const formattedProducts = data.map((item: any) => ({
@@ -463,6 +489,52 @@ const Home = () => {
                                 <Button size="lg" className="rounded-full px-10 h-14 text-lg font-bold bg-gray-900 text-white hover:bg-gray-800 shadow-xl shadow-gray-900/10 hover:shadow-gray-900/20 transform hover:-translate-y-1 transition-all">
                                     افتح متجرك مجاناً
                                 </Button>
+                            </Link>
+                        </div>
+                    </div>
+                </section>
+            )}
+
+            {/* 2.5 CATEGORIES SECTION (Newly Added) */}
+            {settings.categories_visible && (
+                <section className="py-16 bg-white relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-64 h-64 bg-yellow-400/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+                    <div className="container mx-auto px-4 relative z-10">
+                        <div className="text-center mb-12 animate-fade-in">
+                            <h2 className="text-3xl md:text-5xl font-black mb-4 tracking-tight">تصفح حسب الفئة</h2>
+                            <p className="text-gray-500 text-lg">كل ما تبحث عنه في أقسامنا المتنوعة</p>
+                        </div>
+
+                        {loading ? (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                                {[1, 2, 3, 4, 5, 6].map(i => <Skeleton key={i} className="h-40 w-full rounded-2xl" />)}
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                                {mainCategories.map((cat) => (
+                                    <Link
+                                        key={cat.id}
+                                        to={`/products?categoryId=${cat.id}`}
+                                        className="group flex flex-col items-center gap-4 p-4 rounded-2xl hover:bg-gray-50 transition-all duration-300"
+                                    >
+                                        <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-gray-100 group-hover:border-primary/30 shadow-lg group-hover:shadow-2xl transition-all duration-300 relative bg-white">
+                                            {cat.image_url ? (
+                                                <img src={cat.image_url} alt={cat.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-300 group-hover:bg-primary/5 transition-colors">
+                                                    <span className="text-4xl group-hover:scale-125 transition-transform duration-300">📦</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <h3 className="font-bold text-lg text-gray-800 group-hover:text-primary transition-colors">{cat.name}</h3>
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
+
+                        <div className="mt-10 text-center md:hidden">
+                            <Link to="/products">
+                                <Button variant="outline" className="rounded-full w-full">شاهد كل الاقسام</Button>
                             </Link>
                         </div>
                     </div>

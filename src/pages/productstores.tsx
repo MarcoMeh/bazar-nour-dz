@@ -87,6 +87,8 @@ const ProductStores = () => {
           .from("stores")
           .select("*")
           .eq("id", supplierId)
+          .eq("is_active", true)
+          .gt("subscription_end_date", new Date().toISOString())
           .single();
 
         if (error) throw error;

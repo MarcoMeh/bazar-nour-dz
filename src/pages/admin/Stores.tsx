@@ -27,7 +27,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Pencil, Trash2, Loader2, Upload } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Upload, ToggleRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { createClient } from "@supabase/supabase-js";
@@ -56,6 +56,7 @@ interface Store {
     profiles?: Profile;
     category_id?: string;
     store_categories?: { name: string };
+    subscription_end_date?: string;
 }
 
 // Form data interface
@@ -537,6 +538,8 @@ export default function AdminStores() {
                                 <TableHead>صاحب المحل</TableHead>
                                 <TableHead>البريد الإلكتروني</TableHead>
                                 <TableHead>الهاتف</TableHead>
+                                <TableHead>الحالة</TableHead>
+                                <TableHead>الاشتراك</TableHead>
                                 <TableHead>الإجراءات</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -568,7 +571,78 @@ export default function AdminStores() {
                                         <TableCell dir="ltr" className="text-right">{store.profiles?.email}</TableCell>
                                         <TableCell dir="ltr" className="text-right">{store.profiles?.phone || "-"}</TableCell>
                                         <TableCell>
+                                            {(() => {
+                                                const isExpired = store.subscription_end_date && new Date(store.subscription_end_date) < new Date();
+                                                const isActive = store.is_active && !isExpired;
+                                                return (
+                                                    <span className={`px-2 py-1 rounded-full text-xs font-bold ${isActive ? "bg-green-100 text-green-700" :
+                                                        isExpired ? "bg-orange-100 text-orange-700" :
+                                                            "bg-red-100 text-red-700"
+                                                        }`}>
+                                                        {isActive ? "نشط" : isExpired ? "منتهي" : "متوقف"}
+                                                    </span>
+                                                );
+                                            })()}
+                                        </TableCell>
+                                        <TableCell>
+                                            {store.subscription_end_date ? (
+                                                <div className="text-xs">
+                                                    ينتهي في: <br />
+                                                    <span dir="ltr">{new Date(store.subscription_end_date).toLocaleDateString('en-GB')}</span>
+                                                </div>
+                                            ) : (
+                                                <span className="text-xs text-muted-foreground">-</span>
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
                                             <div className="flex gap-2">
+                                                <Button
+                                                    variant="outline"
+                                                    size="icon"
+                                                    className="text-green-600 hover:bg-green-50 border-green-200"
+                                                    title="تفعيل الاشتراك (30 يوم)"
+                                                    onClick={async () => {
+                                                        const endDate = new Date();
+                                                        endDate.setDate(endDate.getDate() + 30);
+                                                        const { error } = await supabase
+                                                            .from('stores')
+                                                            .update({
+                                                                is_active: true,
+                                                                subscription_end_date: endDate.toISOString()
+                                                            })
+                                                            .eq('id', store.id);
+
+                                                        if (error) toast.error("فشل التحديث");
+                                                        else {
+                                                            toast.success("تم تفعيل الاشتراك (3000 دج)");
+                                                            fetchStores();
+                                                        }
+                                                    }}
+                                                >
+                                                    <Upload className="h-4 w-4 rotate-180" /> {/* Simulate 'Update/Upgrade' icon */}
+                                                </Button>
+
+                                                <Button
+                                                    variant="outline"
+                                                    size="icon"
+                                                    className="text-orange-600 hover:bg-orange-50 border-orange-200"
+                                                    title="إيقاف الاشتراك"
+                                                    onClick={async () => {
+                                                        const { error } = await supabase
+                                                            .from('stores')
+                                                            .update({ is_active: false })
+                                                            .eq('id', store.id);
+
+                                                        if (error) toast.error("فشل التحديث");
+                                                        else {
+                                                            toast.success("تم إيقاف الاشتراك");
+                                                            fetchStores();
+                                                        }
+                                                    }}
+                                                >
+                                                    <ToggleRight className="h-4 w-4" />
+                                                </Button>
+
                                                 <Button variant="ghost" size="icon" onClick={() => handleEdit(store)}>
                                                     <Pencil className="h-4 w-4" />
                                                 </Button>
