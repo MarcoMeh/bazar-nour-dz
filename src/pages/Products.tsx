@@ -70,6 +70,10 @@ const Products = () => {
   const [inStockOnly, setInStockOnly] = useState(false);
   const [minRating, setMinRating] = useState<number | undefined>(undefined);
 
+  // Fashion Filters
+  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
+  const [selectedColors, setSelectedColors] = useState<string[]>([]);
+
   // Sort
   const [sortBy, setSortBy] = useState<"created_at" | "price" | "average_rating" | "view_count">("created_at");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
@@ -103,6 +107,8 @@ const Products = () => {
     isHomeDelivery: homeDeliveryFilter || undefined,
     inStockOnly,
     minRating,
+    sizes: selectedSizes.length > 0 ? selectedSizes : undefined,
+    colors: selectedColors.length > 0 ? selectedColors : undefined,
     sortBy,
     sortOrder,
   });
@@ -141,6 +147,8 @@ const Products = () => {
     selectedMainCategory,
     selectedSubCategory,
     priceRange[0] > 0 || priceRange[1] < 100000,
+    selectedSizes.length > 0,
+    selectedColors.length > 0,
   ].filter(Boolean).length;
 
   const clearAllFilters = () => {
@@ -152,6 +160,8 @@ const Products = () => {
     setMinRating(undefined);
     setPriceRange([0, 100000]);
     setSearchTerm("");
+    setSelectedSizes([]);
+    setSelectedColors([]);
   };
 
   const FiltersContent = () => (
@@ -225,6 +235,84 @@ const Products = () => {
             </label>
           </div>
         </div>
+      </div>
+
+      <Separator />
+
+      {/* Size Filter */}
+      <div>
+        <Label className="text-sm font-semibold mb-3 block">المقاس</Label>
+        <div className="flex flex-wrap gap-2">
+          {['XS', 'S', 'M', 'L', 'XL', 'XXL', '38', '39', '40', '41', '42', '43', '44'].map((size) => (
+            <Button
+              key={size}
+              variant={selectedSizes.includes(size) ? "default" : "outline"}
+              size="sm"
+              className="h-8 px-3"
+              onClick={() => {
+                setSelectedSizes(prev =>
+                  prev.includes(size)
+                    ? prev.filter(s => s !== size)
+                    : [...prev, size]
+                );
+                setCurrentPage(1);
+              }}
+            >
+              {size}
+            </Button>
+          ))}
+        </div>
+        {selectedSizes.length > 0 && (
+          <div className="mt-2 text-xs text-muted-foreground">
+            المختار: {selectedSizes.join(', ')}
+          </div>
+        )}
+      </div>
+
+      <Separator />
+
+      {/* Color Filter */}
+      <div>
+        <Label className="text-sm font-semibold mb-3 block">اللون</Label>
+        <div className="flex flex-wrap gap-2">
+          {[
+            { name: 'أحمر', value: 'أحمر', color: '#EF4444' },
+            { name: 'أزرق', value: 'أزرق', color: '#3B82F6' },
+            { name: 'أخضر', value: 'أخضر', color: '#10B981' },
+            { name: 'أصفر', value: 'أصفر', color: '#F59E0B' },
+            { name: 'أسود', value: 'أسود', color: '#000000' },
+            { name: 'أبيض', value: 'أبيض', color: '#FFFFFF' },
+            { name: 'رمادي', value: 'رمادي', color: '#6B7280' },
+            { name: 'بني', value: 'بني', color: '#92400E' },
+            { name: 'وردي', value: 'وردي', color: '#EC4899' },
+          ].map((color) => (
+            <Button
+              key={color.value}
+              variant={selectedColors.includes(color.value) ? "default" : "outline"}
+              size="sm"
+              className="h-8 px-3 gap-2"
+              onClick={() => {
+                setSelectedColors(prev =>
+                  prev.includes(color.value)
+                    ? prev.filter(c => c !== color.value)
+                    : [...prev, color.value]
+                );
+                setCurrentPage(1);
+              }}
+            >
+              <div
+                className="w-3 h-3 rounded-full border border-gray-300"
+                style={{ backgroundColor: color.color }}
+              />
+              {color.name}
+            </Button>
+          ))}
+        </div>
+        {selectedColors.length > 0 && (
+          <div className="mt-2 text-xs text-muted-foreground">
+            المختار: {selectedColors.join(', ')}
+          </div>
+        )}
       </div>
 
       <Separator />

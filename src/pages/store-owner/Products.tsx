@@ -26,6 +26,8 @@ export default function StoreOwnerProducts() {
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [productToDelete, setProductToDelete] = useState<string | null>(null);
     const [storeId, setStoreId] = useState<string | null>(null);
+    const [currentSize, setCurrentSize] = useState("");
+    const [currentColor, setCurrentColor] = useState("");
 
     const [formData, setFormData] = useState({
         name_ar: "",
@@ -39,6 +41,10 @@ export default function StoreOwnerProducts() {
         is_sold_out: false,
         is_free_delivery: false,
         additional_images: [] as string[],
+        sizes: [] as string[],
+        colors: [] as string[],
+        brand: "",
+        material: "",
     });
 
     useEffect(() => {
@@ -106,8 +112,14 @@ export default function StoreOwnerProducts() {
             is_sold_out: false,
             is_free_delivery: false,
             additional_images: [],
+            sizes: [],
+            colors: [],
+            brand: "",
+            material: "",
         });
         setEditingProduct(null);
+        setCurrentSize("");
+        setCurrentColor("");
     };
 
     const handleEdit = (product: any) => {
@@ -125,6 +137,10 @@ export default function StoreOwnerProducts() {
             is_sold_out: product.is_sold_out ?? false,
             is_free_delivery: product.is_free_delivery ?? false,
             additional_images: product.additional_images || [],
+            sizes: product.sizes || [],
+            colors: product.colors || [],
+            brand: product.brand || "",
+            material: product.material || "",
         });
 
         setIsDialogOpen(true);
@@ -249,6 +265,10 @@ export default function StoreOwnerProducts() {
             is_sold_out: formData.is_sold_out,
             is_free_delivery: formData.is_free_delivery,
             additional_images: formData.additional_images,
+            sizes: formData.sizes,
+            colors: formData.colors,
+            brand: formData.brand || null,
+            material: formData.material || null,
         };
 
         let error;
@@ -311,6 +331,98 @@ export default function StoreOwnerProducts() {
                                 <Label>الوصف</Label>
                                 <Textarea value={formData.description_ar} onChange={(e) => setFormData((prev) => ({ ...prev, description_ar: e.target.value }))} />
                             </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <Label>الماركة (Brand)</Label>
+                                    <Input value={formData.brand} onChange={(e) => setFormData((prev) => ({ ...prev, brand: e.target.value }))} placeholder="مثال: Zara, H&M" />
+                                </div>
+                                <div>
+                                    <Label>خامة الصنع (Material)</Label>
+                                    <Input value={formData.material} onChange={(e) => setFormData((prev) => ({ ...prev, material: e.target.value }))} placeholder="مثال: قطن 100%" />
+                                </div>
+                            </div>
+
+                            {/* Sizes & Colors */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-muted/30 p-4 rounded-lg">
+                                {/* Sizes */}
+                                <div>
+                                    <Label>المقاسات المتوفرة</Label>
+                                    <div className="flex gap-2 mb-2">
+                                        <Input
+                                            value={currentSize}
+                                            onChange={(e) => setCurrentSize(e.target.value)}
+                                            placeholder="S, M, 42..."
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    if (currentSize && !formData.sizes.includes(currentSize)) {
+                                                        setFormData(prev => ({ ...prev, sizes: [...prev.sizes, currentSize] }));
+                                                        setCurrentSize("");
+                                                    }
+                                                }
+                                            }}
+                                        />
+                                        <Button type="button" size="sm" onClick={() => {
+                                            if (currentSize && !formData.sizes.includes(currentSize)) {
+                                                setFormData(prev => ({ ...prev, sizes: [...prev.sizes, currentSize] }));
+                                                setCurrentSize("");
+                                            }
+                                        }}>إضافة</Button>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2 min-h-[40px] items-center">
+                                        {formData.sizes.map((s) => (
+                                            <Badge key={s} variant="secondary" className="flex items-center gap-1 cursor-default">
+                                                {s}
+                                                <X className="h-3 w-3 cursor-pointer hover:text-red-500" onClick={() => {
+                                                    setFormData(prev => ({ ...prev, sizes: prev.sizes.filter(x => x !== s) }));
+                                                }} />
+                                            </Badge>
+                                        ))}
+                                        {formData.sizes.length === 0 && <span className="text-xs text-muted-foreground">لا مقاسات مضافة</span>}
+                                    </div>
+                                </div>
+
+                                {/* Colors */}
+                                <div>
+                                    <Label>الألوان المتوفرة</Label>
+                                    <div className="flex gap-2 mb-2">
+                                        <Input
+                                            value={currentColor}
+                                            onChange={(e) => setCurrentColor(e.target.value)}
+                                            placeholder="أحمر, أزرق..."
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    if (currentColor && !formData.colors.includes(currentColor)) {
+                                                        setFormData(prev => ({ ...prev, colors: [...prev.colors, currentColor] }));
+                                                        setCurrentColor("");
+                                                    }
+                                                }
+                                            }}
+                                        />
+                                        <Button type="button" size="sm" onClick={() => {
+                                            if (currentColor && !formData.colors.includes(currentColor)) {
+                                                setFormData(prev => ({ ...prev, colors: [...prev.colors, currentColor] }));
+                                                setCurrentColor("");
+                                            }
+                                        }}>إضافة</Button>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2 min-h-[40px] items-center">
+                                        {formData.colors.map((c) => (
+                                            <Badge key={c} variant="outline" className="flex items-center gap-1 cursor-default">
+                                                <div className="w-2 h-2 rounded-full bg-primary" /> {/* Generic indicator */}
+                                                {c}
+                                                <X className="h-3 w-3 cursor-pointer hover:text-red-500" onClick={() => {
+                                                    setFormData(prev => ({ ...prev, colors: prev.colors.filter(x => x !== c) }));
+                                                }} />
+                                            </Badge>
+                                        ))}
+                                        {formData.colors.length === 0 && <span className="text-xs text-muted-foreground">لا ألوان مضافة</span>}
+                                    </div>
+                                </div>
+                            </div>
+
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>

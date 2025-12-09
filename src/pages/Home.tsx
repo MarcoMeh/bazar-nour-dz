@@ -29,7 +29,7 @@ import Autoplay from "embla-carousel-autoplay";
 import SEO from "@/components/SEO";
 
 // Assets
-import heroBg from "@/assets/backround_5.jpeg";
+import heroBg from "@/assets/backround_5.webp";
 
 // Types
 interface Category {
@@ -593,7 +593,7 @@ const Home = () => {
                                     flashSaleProducts.map((product) => (
                                         <CarouselItem key={product.id} className="pl-4 md:basis-1/2 lg:basis-1/4">
                                             <ProductCard
-                                                product={product}
+                                                {...product}
                                                 onQuickView={setQuickViewProduct}
                                             />
                                         </CarouselItem>
@@ -634,7 +634,7 @@ const Home = () => {
                                 : bestSellers.map((product) => (
                                     <ProductCard
                                         key={product.id}
-                                        product={product}
+                                        {...product}
                                         onQuickView={setQuickViewProduct}
                                     />
                                 ))}
@@ -662,7 +662,7 @@ const Home = () => {
                                 : newestProducts.map((product) => (
                                     <ProductCard
                                         key={product.id}
-                                        product={product}
+                                        {...product}
                                         onQuickView={setQuickViewProduct}
                                     />
                                 ))}
@@ -682,8 +682,8 @@ const Home = () => {
             {/* Quick View Modal */}
             <QuickViewModal
                 product={quickViewProduct}
-                isOpen={!!quickViewProduct}
-                onClose={() => setQuickViewProduct(null)}
+                open={!!quickViewProduct}
+                onOpenChange={(open) => !open && setQuickViewProduct(null)}
             />
         </div>
     );

@@ -15,10 +15,11 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
-import { ArrowRight, ShoppingCart, Truck, Shield, Home } from 'lucide-react';
+import { ArrowRight, ShoppingCart, Truck, Shield, Home, Ruler } from 'lucide-react';
 import { PostgrestError } from '@supabase/supabase-js';
 import SEO from '@/components/SEO';
 import { ReviewsSection } from '@/components/reviews/ReviewsSection';
+import { SizeGuideModal } from '@/components/SizeGuideModal';
 
 interface Product {
   id: string;
@@ -50,6 +51,7 @@ const ProductDetail = () => {
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [api, setApi] = useState<CarouselApi>();
+  const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -335,7 +337,18 @@ const ProductDetail = () => {
             {/* Size Selection */}
             {product.sizes && product.sizes.length > 0 && (
               <div className="mb-6">
-                <h3 className="font-semibold mb-3">المقاس:</h3>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold">المقاس:</h3>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSizeGuideOpen(true)}
+                    className="text-primary hover:text-primary/80 gap-2"
+                  >
+                    <Ruler className="h-4 w-4" />
+                    دليل المقاسات
+                  </Button>
+                </div>
                 <div className="flex flex-wrap gap-3">
                   {product.sizes.map((size) => (
                     <button
@@ -401,6 +414,13 @@ const ProductDetail = () => {
         {/* Reviews Section */}
         <ReviewsSection productId={product.id} />
       </main>
+
+      {/* Size Guide Modal */}
+      <SizeGuideModal
+        open={sizeGuideOpen}
+        onOpenChange={setSizeGuideOpen}
+        category="mens"
+      />
 
     </div>
   );

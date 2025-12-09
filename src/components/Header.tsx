@@ -5,12 +5,14 @@ import {
   Search,
   Menu,
   X,
+  Heart,
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/contexts/CartContext";
+import { useWishlist } from "@/contexts/WishlistContext";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/bazzarna-logo.jpeg";
 
@@ -23,6 +25,7 @@ interface Category {
 
 export const Header = () => {
   const { totalItems } = useCart() || { totalItems: 0 };
+  const { wishlistCount } = useWishlist();
   const [categories, setCategories] = useState<Category[]>([]);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openCategory, setOpenCategory] = useState<string | null>(null);
@@ -109,6 +112,21 @@ export const Header = () => {
                   {totalItems > 0 && (
                     <span className="absolute -top-2 -right-2 bg-green-600 text-white text-xs px-2 py-0.5 rounded-full">
                       {totalItems}
+                    </span>
+                  )}
+                </Button>
+              </Link>
+
+              <Link to="/wishlist" className="relative">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative text-green-700 hover:bg-green-100"
+                >
+                  <Heart className="h-5 w-5" />
+                  {wishlistCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                      {wishlistCount}
                     </span>
                   )}
                 </Button>

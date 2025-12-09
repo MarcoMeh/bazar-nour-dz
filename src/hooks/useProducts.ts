@@ -10,8 +10,8 @@ export interface ProductFilters {
     search?: string;
     minPrice?: number;
     maxPrice?: number;
-    color?: string;
-    size?: string;
+    colors?: string[];
+    sizes?: string[];
     categoryIds?: string[];
     // New filters
     isFreeDelivery?: boolean;
@@ -64,8 +64,8 @@ async function fetchProducts(filters: ProductFilters = {}): Promise<ProductsResp
         search,
         minPrice,
         maxPrice,
-        color,
-        size,
+        colors,
+        sizes,
         isFreeDelivery,
         isHomeDelivery,
         isDesktopDelivery,
@@ -102,12 +102,15 @@ async function fetchProducts(filters: ProductFilters = {}): Promise<ProductsResp
         query = query.lte('price', maxPrice);
     }
 
-    if (color) {
-        query = query.contains('colors', [color]);
+    // Filter by colors - if product has any of the selected colors
+    if (colors && colors.length > 0) {
+        // For array overlap: check if any color in the filter exists in product.colors
+        query = query.or(colors.map(c => `colors.cs.{${c}}`).join(','));
     }
 
-    if (size) {
-        query = query.contains('sizes', [size]);
+    // Filter by sizes - if product has any of the selected sizes
+    if (sizes && sizes.length > 0) {
+        query = query.or(sizes.map(s => `sizes.cs.{${s}}`).join(','));
     }
 
     // New delivery filters

@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { useCart } from '@/contexts/CartContext';
+import { useWishlist } from '@/contexts/WishlistContext';
 import { ShoppingCart, Eye, Heart } from 'lucide-react';
 import { useState } from 'react';
 
@@ -41,8 +42,9 @@ export const ProductCard = ({
   onAddToWishlist,
 }: ProductCardProps) => {
   const { addItem } = useCart();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const navigate = useNavigate();
-  const [isWishlisted, setIsWishlisted] = useState(false);
+  const isWishlisted = isInWishlist(id);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -68,6 +70,24 @@ export const ProductCard = ({
     }
   };
 
+  const handleWishlistToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (isWishlisted) {
+      removeFromWishlist(id);
+    } else {
+      addToWishlist({
+        id,
+        name_ar,
+        price,
+        image_url,
+        store_id,
+      });
+    }
+  };
+
+
   const handleQuickView = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -86,15 +106,6 @@ export const ProductCard = ({
         colors,
         sizes
       });
-    }
-  };
-
-  const handleWishlist = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsWishlisted(!isWishlisted);
-    if (onAddToWishlist) {
-      onAddToWishlist(id);
     }
   };
 
@@ -147,17 +158,15 @@ export const ProductCard = ({
       </Link>
 
       {/* Wishlist Button */}
-      {onAddToWishlist && (
-        <Button
-          size="icon"
-          variant="ghost"
-          className="absolute top-2 right-2 z-20 bg-white/80 hover:bg-white rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-300"
-          onClick={handleWishlist}
-          aria-label="إضافة للمفضلة"
-        >
-          <Heart className={`h-5 w-5 ${isWishlisted ? "fill-red-500 text-red-500" : ""}`} />
-        </Button>
-      )}
+      <Button
+        size="icon"
+        variant="ghost"
+        className="absolute top-2 right-2 z-20 bg-white/90 hover:bg-white rounded-full shadow-md hover:shadow-lg transition-all duration-300"
+        onClick={handleWishlistToggle}
+        aria-label={isWishlisted ? "إزالة من المفضلة" : "إضافة للمفضلة"}
+      >
+        <Heart className={`h-5 w-5 transition-all ${isWishlisted ? "fill-red-500 text-red-500 scale-110" : "text-gray-600"}`} />
+      </Button>
 
       {/* Badges for status and delivery */}
       <div className="absolute top-2 left-2 flex flex-col gap-1 z-10 pointer-events-none">
