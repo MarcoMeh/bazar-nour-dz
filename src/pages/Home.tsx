@@ -29,7 +29,7 @@ import Autoplay from "embla-carousel-autoplay";
 import SEO from "@/components/SEO";
 
 // Assets
-import heroBg from "@/assets/backround_5.webp";
+import heroBg from "@/assets/backround_5.png";
 
 // Types
 interface Category {

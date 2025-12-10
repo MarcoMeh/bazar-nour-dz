@@ -20,6 +20,7 @@ import Profile from "./pages/Profile";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Terms from "./pages/Terms";
 import Wishlist from "./pages/Wishlist";
+import SellerRegister from "./pages/SellerRegister";
 import ScrollToTop from "@/components/ScrollToTop";
 
 // Admin Pages (Nested Structure)
@@ -32,6 +33,7 @@ import AdminStores from "./pages/admin/Stores";
 import AdminDelivery from "./pages/admin/Delivery";
 import AdminControl from "./pages/admin/Control";
 import AdminReviews from "./pages/admin/Reviews";
+import AdminStoreRegistrations from "./pages/admin/StoreRegistrations";
 
 // Store Owner Pages
 import { StoreOwnerLayout } from "./components/layout/StoreOwnerLayout";
@@ -95,6 +97,7 @@ const App = () => (
                       <Route path="/profile" element={<Profile />} />
                       <Route path="/login" element={<Login />} />
                       <Route path="/about" element={<About />} />
+                      <Route path="/seller-register" element={<SellerRegister />} />
                       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                       <Route path="/terms-conditions" element={<Terms />} />
                     </Route>
@@ -117,6 +120,7 @@ const App = () => (
                       <Route path="delivery" element={<AdminDelivery />} />
                       <Route path="control" element={<AdminControl />} />
                       <Route path="reviews" element={<AdminReviews />} />
+                      <Route path="store-registrations" element={<AdminStoreRegistrations />} />
                     </Route>
 
                     {/* Store Owner Routes - Protected */}
