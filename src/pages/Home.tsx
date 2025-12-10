@@ -266,10 +266,10 @@ const Home = () => {
                     <img
                         src={heroBg}
                         alt="Hero Background"
-                        className="w-full h-full object-cover scale-105 animate-pulse-slow object-center"
+                        className="w-full h-full object-cover object-top md:object-center animate-pulse-slow"
                     />
-                    {/* Updated Gradient: More vibrant and trustworthy (Indigo/Slate) */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-indigo-950/80 to-black/40 md:to-transparent"></div>
+                    {/* Updated Gradient: Lighter on mobile to show more image */}
+                    <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-slate-950 via-indigo-950/60 to-transparent"></div>
                     {/* Optional: Subtle Pattern Overlay for texture */}
                     <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
                 </div>
@@ -285,7 +285,7 @@ const Home = () => {
                             <span className="text-indigo-100 font-bold text-xs md:text-sm tracking-wide">المنصة رقم #1 في الجزائر</span>
                         </div>
 
-                        <h1 className="text-4xl md:text-6xl lg:text-7xl font-black leading-tight animate-slide-up tracking-tight">
+                        <h1 className="text-4xl md:text-6xl lg:text-7xl font-black leading-normal md:leading-tight animate-slide-up tracking-wide mb-4">
                             بازارنا.. <br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-l from-yellow-300 via-amber-200 to-yellow-100 filter drop-shadow-sm">
                                 وجهتك الأولى للأناقة

@@ -422,6 +422,28 @@ const ProductDetail = () => {
         category="mens"
       />
 
+      {/* Mobile Sticky Add to Cart Bar */}
+      <div className="fixed bottom-[64px] left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-gray-200 md:hidden z-40 animate-slide-up">
+        {product.is_sold_out ? (
+          <Button
+            size="lg"
+            disabled
+            className="w-full bg-red-500 text-white cursor-not-allowed shadow-lg rounded-full"
+          >
+            نفد
+          </Button>
+        ) : (
+          <Button
+            size="lg"
+            onClick={handleAddToCart}
+            className="w-full shadow-lg hover:shadow-xl transition-all duration-300 rounded-full bg-gradient-to-r from-primary to-secondary"
+          >
+            <ShoppingCart className="ml-2 h-5 w-5" />
+            إضافة إلى السلة
+          </Button>
+        )}
+      </div>
+
     </div>
   );
 };

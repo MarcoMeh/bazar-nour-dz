@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Search, ShoppingCart, Menu, User, LogOut, Package, Settings } from "lucide-react";
+import { Search, ShoppingCart, Menu, User, LogOut, Package, Settings, LayoutDashboard, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -17,7 +17,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Navbar = () => {
     const { totalItems } = useCart();
@@ -25,6 +26,23 @@ export const Navbar = () => {
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState("");
     const [isSheetOpen, setIsSheetOpen] = useState(false);
+    const [userRole, setUserRole] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchUserRole = async () => {
+            if (!user) {
+                setUserRole(null);
+                return;
+            }
+            const { data } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', user.id)
+                .single();
+            if (data) setUserRole(data.role);
+        };
+        fetchUserRole();
+    }, [user]);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -37,6 +55,22 @@ export const Navbar = () => {
     const handleLogout = async () => {
         await signOut();
         navigate("/");
+    };
+
+    const DashboardIcon = () => {
+        if (!userRole || userRole === 'customer') return null;
+
+        const link = userRole === 'admin' ? '/admin' : '/store-dashboard';
+        const title = userRole === 'admin' ? 'لوحة التحكم' : 'لوحة المتجر';
+
+        return (
+            <Link to={link}>
+                <Button variant="ghost" size="icon" className="relative text-primary font-bold bg-primary/10 hover:bg-primary/20">
+                    <LayoutDashboard className="h-5 w-5" />
+                    <span className="sr-only">{title}</span>
+                </Button>
+            </Link>
+        );
     };
 
     return (
@@ -75,6 +109,16 @@ export const Navbar = () => {
                                 {user ? (
                                     <>
                                         <div className="h-px bg-border my-2" />
+                                        {(userRole === 'admin' || userRole === 'store_owner') && (
+                                            <Link
+                                                to={userRole === 'admin' ? '/admin' : '/store-dashboard'}
+                                                className="text-lg font-bold text-primary flex items-center gap-2 bg-primary/5 p-2 rounded-lg"
+                                                onClick={() => setIsSheetOpen(false)}
+                                            >
+                                                <LayoutDashboard className="h-5 w-5" />
+                                                {userRole === 'admin' ? 'لوحة التحكم' : 'لوحة المتجر'}
+                                            </Link>
+                                        )}
                                         <Link to="/my-orders" className="text-lg font-semibold hover:text-primary flex items-center gap-2" onClick={() => setIsSheetOpen(false)}>
                                             <Package className="h-5 w-5" />
                                             طلباتي
@@ -137,6 +181,9 @@ export const Navbar = () => {
 
                 {/* Actions */}
                 <div className="flex items-center gap-2">
+                    {/* Dashboard Icon - Clear but hidden (Only for authorized users) */}
+                    <DashboardIcon />
+
                     <Link to="/cart">
                         <Button variant="ghost" size="icon" className="relative">
                             <ShoppingCart className="h-5 w-5" />

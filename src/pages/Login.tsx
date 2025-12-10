@@ -26,22 +26,19 @@ export default function Login() {
 
             // Check if input is NOT an email
             if (!email.includes('@')) {
-                // Try to find email by username (store name)
-                const { data: profile, error: profileError } = await supabase
-                    .from("profiles")
-                    .select("email")
-                    .eq("username", email)
-                    .maybeSingle();
+                // Try to find email by store name or phone using our secure RPC function
+                const { data: foundEmail, error: lookupError } = await supabase
+                    .rpc('get_login_email', { identifier: email });
 
-                if (profileError) {
-                    console.error("Error looking up username:", profileError);
+                if (lookupError) {
+                    console.error("Error looking up identifier:", lookupError);
                 }
 
-                if (profile && profile.email) {
-                    loginEmail = profile.email;
+                if (foundEmail) {
+                    loginEmail = foundEmail;
                 } else {
                     usernameNotFound = true;
-                    throw new Error("اسم المتجر غير موجود");
+                    throw new Error("اسم المستخدم أو رقم الهاتف غير موجود");
                 }
             }
 
@@ -117,11 +114,11 @@ export default function Login() {
                     <form onSubmit={handleLogin} className="space-y-6">
                         <div className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="email">البريد الإلكتروني أو اسم المتجر</Label>
+                                <Label htmlFor="email">البريد الإلكتروني، اسم المتجر، أو رقم الهاتف</Label>
                                 <Input
                                     id="email"
                                     type="text"
-                                    placeholder="name@example.com or store name"
+                                    placeholder="example@mail.com, Store Name, or 055..."
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required

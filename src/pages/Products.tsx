@@ -569,7 +569,7 @@ const Products = () => {
           <div className="flex overflow-x-auto pb-4 gap-3 scrollbar-none items-center">
             <Button
               variant={!selectedMainCategory ? "default" : "outline"}
-              className={`rounded-full whitespace-nowrap px-6 h-10 ${!selectedMainCategory ? "bg-primary text-primary-foreground shadow-md" : "border-muted-foreground/30 hover:border-primary hover:text-primary bg-background"}`}
+              className={`rounded-full whitespace-nowrap px-6 h-auto py-2 shrink-0 ${!selectedMainCategory ? "bg-primary text-primary-foreground shadow-md" : "border-muted-foreground/30 hover:border-primary hover:text-primary bg-background"}`}
               onClick={() => {
                 setSelectedMainCategory(null);
                 setSelectedSubCategory(null);
@@ -581,7 +581,7 @@ const Products = () => {
               <Button
                 key={cat.id}
                 variant={selectedMainCategory === cat.id ? "default" : "outline"}
-                className={`rounded-full whitespace-nowrap px-6 h-10 transition-all duration-300 gap-2 ${selectedMainCategory === cat.id ? "bg-primary text-primary-foreground shadow-md scale-105 font-bold" : "border-muted-foreground/30 hover:border-primary hover:text-primary bg-background"}`}
+                className={`rounded-full whitespace-nowrap px-6 h-auto py-2 transition-all duration-300 gap-2 shrink-0 ${selectedMainCategory === cat.id ? "bg-primary text-primary-foreground shadow-md scale-105 font-bold" : "border-muted-foreground/30 hover:border-primary hover:text-primary bg-background"}`}
                 onClick={() => {
                   setSelectedMainCategory(cat.id === selectedMainCategory ? null : cat.id);
                   setSelectedSubCategory(null);
@@ -599,7 +599,7 @@ const Products = () => {
               <Button
                 variant={!selectedSubCategory ? "secondary" : "ghost"}
                 size="sm"
-                className={`rounded-full whitespace-nowrap h-8 px-4 ${!selectedSubCategory ? "bg-white shadow-sm font-semibold" : "text-muted-foreground hover:bg-white/50"}`}
+                className={`rounded-full h-auto py-1.5 px-4 whitespace-nowrap shrink-0 ${!selectedSubCategory ? "bg-white shadow-sm font-bold text-primary" : "text-muted-foreground hover:bg-white/50"}`}
                 onClick={() => setSelectedSubCategory(null)}
               >
                 الكل
@@ -609,7 +609,7 @@ const Products = () => {
                   key={sub.id}
                   variant={selectedSubCategory === sub.id ? "secondary" : "ghost"}
                   size="sm"
-                  className={`rounded-full whitespace-nowrap h-8 px-4 gap-2 transition-all ${selectedSubCategory === sub.id ? "bg-white shadow-sm font-semibold text-primary" : "text-muted-foreground hover:bg-white/50"}`}
+                  className={`rounded-full h-auto py-1.5 px-4 whitespace-nowrap shrink-0 ${selectedSubCategory === sub.id ? "bg-white shadow-sm font-bold text-primary" : "text-muted-foreground hover:bg-white/50"}`}
                   onClick={() => setSelectedSubCategory(sub.id === selectedSubCategory ? null : sub.id)}
                 >
                   {sub.image_url && <img src={sub.image_url} alt="" className="w-4 h-4 rounded-full object-cover" />}

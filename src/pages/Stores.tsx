@@ -19,26 +19,48 @@ export default function Stores() {
 
     const fetchData = async () => {
         setLoading(true);
-        const { data: storesData } = await supabase
+        // Correctly fetch stores with their categories via the junction table
+        const { data: storesData, error: storesError } = await supabase
             .from("stores")
-            .select("*, store_categories(name)")
+            .select(`
+                *,
+                store_categories (
+                    categories (
+                        id,
+                        name
+                    )
+                )
+            `)
             .eq("is_active", true)
             .gt("subscription_end_date", new Date().toISOString())
             .order("created_at", { ascending: false });
 
+        if (storesError) {
+            console.error("Error fetching stores:", storesError);
+        }
+
+        // Fetch actual categories for the tabs
         const { data: categoriesData } = await supabase
-            .from("store_categories")
+            .from("categories")
             .select("*")
             .order("name");
 
-        setStores(storesData || []);
+        // Process stores to flatten categories
+        const processedStores = (storesData || []).map((store: any) => ({
+            ...store,
+            categories: store.store_categories?.map((sc: any) => sc.categories) || []
+        }));
+
+        setStores(processedStores);
         setCategories(categoriesData || []);
         setLoading(false);
     };
 
     const filteredStores = selectedCategory === "all"
         ? stores
-        : stores.filter(store => String(store.category_id) === selectedCategory);
+        : stores.filter(store =>
+            store.categories?.some((cat: any) => String(cat.id) === selectedCategory)
+        );
 
     if (loading) {
         return <LoadingSpinner fullScreen />;
@@ -88,10 +110,14 @@ export default function Stores() {
                                         لا توجد صورة
                                     </div>
                                 )}
-                                {store.store_categories?.name && (
-                                    <span className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                                        {store.store_categories.name}
-                                    </span>
+                                {store.categories && store.categories.length > 0 && (
+                                    <div className="absolute top-2 right-2 flex flex-wrap gap-1 justify-end">
+                                        {store.categories.slice(0, 2).map((cat: any) => (
+                                            <span key={cat.id} className="bg-black/70 text-white text-xs px-2 py-1 rounded">
+                                                {cat.name}
+                                            </span>
+                                        ))}
+                                    </div>
                                 )}
                             </div>
                             <CardContent className="p-6">

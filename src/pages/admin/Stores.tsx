@@ -98,14 +98,23 @@ export default function AdminStores() {
 
     const fetchStores = async () => {
         setLoading(true);
-        // Join stores with profiles to get owner details
+        // Correct query for separate categories and joined data
+        const { data: cats } = await supabase.from("categories").select("*").order("name");
+        setCategories(cats || []);
+
         let query = supabase
             .from("stores")
-            .select("*, profiles:owner_id(*), store_categories(name)")
+            .select(`
+                *,
+                profiles:owner_id(*),
+                store_categories(
+                    categories(
+                        id,
+                        name
+                    )
+                )
+            `)
             .order("created_at", { ascending: false });
-
-        const { data: cats } = await supabase.from("store_categories").select("*").order("name");
-        setCategories(cats || []);
 
         if (isStoreOwner && storeId) {
             query = query.eq('id', storeId);
@@ -117,15 +126,16 @@ export default function AdminStores() {
             toast.error("فشل في تحميل المحلات");
             console.error(error);
         } else {
-            // Cast the data to match our interface, assuming the DB enforces the role constraint
-            const typedData = (data || []).map((item: any) => ({
-                ...item,
-                profiles: item.profiles ? {
-                    ...item.profiles,
-                    role: item.profiles.role as 'admin' | 'store_owner' | 'customer'
+            // Map to flatten categories for easier usage if needed, or update interface
+            const processedStores = (data || []).map((store: any) => ({
+                ...store,
+                categories: store.store_categories?.map((sc: any) => sc.categories) || [],
+                profiles: store.profiles ? {
+                    ...store.profiles,
+                    role: store.profiles.role as 'admin' | 'store_owner' | 'customer'
                 } : undefined
             })) as Store[];
-            setStores(typedData);
+            setStores(processedStores);
         }
         setLoading(false);
     };
@@ -535,6 +545,7 @@ export default function AdminStores() {
                             <TableRow>
                                 <TableHead>الصورة</TableHead>
                                 <TableHead>اسم المحل</TableHead>
+                                <TableHead>التصنيفات</TableHead>
                                 <TableHead>صاحب المحل</TableHead>
                                 <TableHead>البريد الإلكتروني</TableHead>
                                 <TableHead>الهاتف</TableHead>
@@ -567,6 +578,20 @@ export default function AdminStores() {
                                             )}
                                         </TableCell>
                                         <TableCell className="font-medium">{store.name}</TableCell>
+                                        <TableCell>
+                                            <div className="flex flex-wrap gap-1">
+                                                {store.categories?.slice(0, 3).map((cat: any) => (
+                                                    <span key={cat.id} className="text-[10px] bg-secondary/20 text-secondary-foreground px-1 py-0.5 rounded">
+                                                        {cat.name}
+                                                    </span>
+                                                ))}
+                                                {store.store_categories?.name && !store.categories?.length && (
+                                                    <span className="text-[10px] bg-secondary/20 text-secondary-foreground px-1 py-0.5 rounded">
+                                                        {store.store_categories.name}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </TableCell>
                                         <TableCell>{store.profiles?.full_name || "غير محدد"}</TableCell>
                                         <TableCell dir="ltr" className="text-right">{store.profiles?.email}</TableCell>
                                         <TableCell dir="ltr" className="text-right">{store.profiles?.phone || "-"}</TableCell>
