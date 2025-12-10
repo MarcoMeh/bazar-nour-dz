@@ -21,6 +21,10 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Terms from "./pages/Terms";
 import Wishlist from "./pages/Wishlist";
 import SellerRegister from "./pages/SellerRegister";
+import Brands from "./pages/Brands";
+import BrandProducts from "./pages/BrandProducts";
+import Sale from "./pages/Sale";
+import NewArrivals from "./pages/NewArrivals";
 import ScrollToTop from "@/components/ScrollToTop";
 
 // Admin Pages (Nested Structure)
@@ -92,6 +96,10 @@ const App = () => (
                       <Route path="/store/:id" element={<ProductStores />} />
                       <Route path="/cart" element={<Cart />} />
                       <Route path="/wishlist" element={<Wishlist />} />
+                      <Route path="/brands" element={<Brands />} />
+                      <Route path="/brands/:slug" element={<BrandProducts />} />
+                      <Route path="/sale" element={<Sale />} />
+                      <Route path="/new-arrivals" element={<NewArrivals />} />
                       <Route path="/checkout" element={<Checkout />} />
                       <Route path="/my-orders" element={<MyOrders />} />
                       <Route path="/profile" element={<Profile />} />

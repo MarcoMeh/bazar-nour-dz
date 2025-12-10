@@ -62,7 +62,7 @@ const StoreRegistrations = () => {
         setLoading(true);
         try {
             const { data, error } = await supabase
-                .from('store_registration_requests')
+                .from('store_registration_requests' as any)
                 .select('*')
                 .order('created_at', { ascending: false });
 
@@ -86,7 +86,7 @@ const StoreRegistrations = () => {
         setActionLoading(true);
         try {
             const { error } = await supabase
-                .from('store_registration_requests')
+                .from('store_registration_requests' as any)
                 .update({
                     status,
                     admin_notes: adminNotes || null,

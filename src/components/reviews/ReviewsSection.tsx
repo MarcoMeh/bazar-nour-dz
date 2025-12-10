@@ -47,7 +47,7 @@ export const ReviewsSection = ({ productId }: ReviewsSectionProps) => {
         if (error) {
             console.error("Error fetching reviews:", error);
         } else {
-            setReviews(data || []);
+            setReviews((data as Review[]) || []);
         }
         setLoading(false);
     };

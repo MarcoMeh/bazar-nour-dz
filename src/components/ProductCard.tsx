@@ -20,6 +20,7 @@ interface ProductCardProps {
   store_id: string;
   colors?: string[];
   sizes?: string[];
+  brand?: string;
   onQuickView?: (product: any) => void;
   onAddToWishlist?: (productId: string) => void;
 }
@@ -38,6 +39,7 @@ export const ProductCard = ({
   store_id,
   colors,
   sizes,
+  brand,
   onQuickView,
   onAddToWishlist,
 }: ProductCardProps) => {
@@ -227,4 +229,4 @@ export const ProductCard = ({
       </CardFooter>
     </Card>
   );
-};
+};export default ProductCard;

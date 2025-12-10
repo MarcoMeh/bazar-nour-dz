@@ -77,7 +77,7 @@ const SellerRegister = () => {
         try {
             // Insert into store_registration_requests table
             const { error } = await supabase
-                .from('store_registration_requests')
+                .from('store_registration_requests' as any)
                 .insert([
                     {
                         owner_name: formData.owner_name,
