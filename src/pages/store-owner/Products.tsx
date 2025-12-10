@@ -14,6 +14,8 @@ import { Plus, Edit, Trash2, Upload, X } from "lucide-react";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { ERROR_MESSAGES, SUCCESS_MESSAGES, getErrorMessage } from "@/lib/errorMessages";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { SizeSelector } from "@/components/SizeSelector";
+import { ColorSelector } from "@/components/ColorSelector";
 
 export default function StoreOwnerProducts() {
     const [products, setProducts] = useState<any[]>([]);
@@ -514,6 +516,46 @@ export default function StoreOwnerProducts() {
                                         ))}
                                     </div>
                                 )}
+                            </div>
+
+                            {/* Sizes Selection */}
+                            <div>
+                                <Label>المقاسات المتوفرة</Label>
+                                <SizeSelector
+                                    selectedSizes={formData.sizes}
+                                    onSizesChange={(sizes) => setFormData((prev) => ({ ...prev, sizes }))}
+                                />
+                            </div>
+
+                            {/* Colors Selection */}
+                            <div>
+                                <Label>الألوان المتوفرة</Label>
+                                <ColorSelector
+                                    selectedColors={formData.colors}
+                                    onColorsChange={(colors) => setFormData((prev) => ({ ...prev, colors }))}
+                                />
+                            </div>
+
+                            {/* Brand & Material */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <Label htmlFor="brand">العلامة التجارية (اختياري)</Label>
+                                    <Input
+                                        id="brand"
+                                        value={formData.brand}
+                                        onChange={(e) => setFormData((prev) => ({ ...prev, brand: e.target.value }))}
+                                        placeholder="مثال: Nike, Adidas"
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="material">المادة (اختياري)</Label>
+                                    <Input
+                                        id="material"
+                                        value={formData.material}
+                                        onChange={(e) => setFormData((prev) => ({ ...prev, material: e.target.value }))}
+                                        placeholder="مثال: قطن، بوليستر"
+                                    />
+                                </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
