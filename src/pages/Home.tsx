@@ -288,13 +288,12 @@ const Home = () => {
                         <h1 className="text-4xl md:text-6xl lg:text-7xl font-black leading-tight animate-slide-up tracking-tight">
                             بازارنا.. <br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-l from-yellow-300 via-amber-200 to-yellow-100 filter drop-shadow-sm">
-                                كل ما تحتاجه
+                                وجهتك الأولى للأناقة
                             </span>
-                            <br className="md:hidden" /> في مكان واحد
                         </h1>
 
                         <p className="text-base md:text-xl text-gray-200/90 max-w-xl leading-relaxed animate-slide-up delay-100 font-medium">
-                            أضخم تشكيلة من المنتجات الأصلية والمحلات الموثوقة.
+                            أحدث صيحات الموضة من أفضل الماركات والمحلات الجزائرية.
                             أسعار تنافسية، وتوصيل سريع <span className="text-yellow-400 font-bold">لـ 58 ولاية</span> مع الدفع عند الاستلام.
                         </p>
 
@@ -305,7 +304,7 @@ const Home = () => {
                                 <div className="relative flex bg-white rounded-full p-1.5 md:p-2 shadow-2xl items-center">
                                     <Input
                                         type="text"
-                                        placeholder="ابحث عن هاتف، ملابس، ديكور..."
+                                        placeholder="ابحث عن فستان، قميص، حذاء رياضي..."
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                         className="flex-1 border-none shadow-none focus-visible:ring-0 text-gray-900 text-base md:text-lg h-10 md:h-12 px-4 md:px-6 rounded-full bg-transparent placeholder:text-gray-400"
