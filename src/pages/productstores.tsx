@@ -52,7 +52,7 @@ interface StoreDetails {
 }
 
 const ProductStores = () => {
-  const { id: supplierId } = useParams();
+  const { slug } = useParams();
   const navigate = useNavigate();
 
   // Store Details
@@ -86,7 +86,7 @@ const ProductStores = () => {
   // Fetch Store Details
   useEffect(() => {
     const fetchStore = async () => {
-      if (!supplierId) return;
+      if (!slug) return;
       try {
         const { data, error } = await supabase
           .from("stores")
@@ -98,7 +98,7 @@ const ProductStores = () => {
             tiktok,
             profiles:owner_id(phone, email, address)
           `)
-          .eq("id", supplierId)
+          .eq("slug", slug)
           .eq("is_active", true)
           .or(`subscription_end_date.gt.${new Date().toISOString()},subscription_end_date.is.null`)
           .single();
@@ -123,7 +123,7 @@ const ProductStores = () => {
     };
 
     fetchStore();
-  }, [supplierId]);
+  }, [slug]);
 
   // Debounce search
   useEffect(() => {
@@ -138,7 +138,7 @@ const ProductStores = () => {
   const { data: productsData, isLoading: productsLoading } = useProducts({
     page: currentPage,
     pageSize,
-    storeId: supplierId || undefined,
+    storeId: store?.id || undefined,
     search: debouncedSearch || undefined,
     minPrice: priceRange[0],
     maxPrice: priceRange[1],

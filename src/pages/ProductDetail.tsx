@@ -20,6 +20,7 @@ import { PostgrestError } from '@supabase/supabase-js';
 import SEO from '@/components/SEO';
 import { ReviewsSection } from '@/components/reviews/ReviewsSection';
 import { SizeGuideModal } from '@/components/SizeGuideModal';
+import { getColorHex, isPearlColor } from '@/lib/colors';
 
 interface Product {
   id: string;
@@ -236,11 +237,11 @@ const ProductDetail = () => {
                 <CarouselContent>
                   {allImages.map((image, index) => (
                     <CarouselItem key={index}>
-                      <Card className="overflow-hidden border-muted">
+                      <Card className="overflow-hidden border-muted bg-gray-50">
                         <img
                           src={image}
                           alt={`${product.name} - ${index + 1}`}
-                          className="w-full h-96 object-cover"
+                          className="w-full aspect-[3/4] object-contain"
                         />
                       </Card>
                     </CarouselItem>
@@ -250,11 +251,11 @@ const ProductDetail = () => {
                 <CarouselNext />
               </Carousel>
             ) : (
-              <Card className="overflow-hidden border-muted">
+              <Card className="overflow-hidden border-muted bg-gray-50">
                 <img
                   src={product.image_url || '/placeholder.svg'}
                   alt={product.name}
-                  className="w-full h-96 object-cover"
+                  className="w-full aspect-[3/4] object-contain"
                 />
               </Card>
             )}
@@ -321,11 +322,12 @@ const ProductDetail = () => {
                     <button
                       key={color}
                       onClick={() => setSelectedColor(color)}
-                      className={`w-8 h-8 rounded-full border-2 transition-all ${selectedColor === color
-                        ? 'border-primary ring-2 ring-primary ring-offset-2'
-                        : 'border-gray-300 hover:border-gray-400'
+                      className={`w-8 h-8 rounded-full transition-all ${isPearlColor(color) ? 'border-2 border-gray-300' : 'border-2'
+                        } ${selectedColor === color
+                          ? 'border-primary ring-2 ring-primary ring-offset-2'
+                          : 'border-gray-300 hover:border-gray-400'
                         }`}
-                      style={{ backgroundColor: color }}
+                      style={{ backgroundColor: getColorHex(color) }}
                       title={color}
                     />
                   ))}

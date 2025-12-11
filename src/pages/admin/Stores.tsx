@@ -56,6 +56,7 @@ interface Store {
     profiles?: Profile;
     category_id?: string;
     store_categories?: { name: string };
+    categories?: { id: string; name: string }[];
     subscription_end_date?: string;
     whatsapp?: string | null;
     facebook?: string | null;

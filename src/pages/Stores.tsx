@@ -129,7 +129,7 @@ export default function Stores() {
                                             {store.description || "لا يوجد وصف"}
                                         </p>
                                         <Button asChild className="w-full">
-                                            <Link to={`/store/${store.id}`}>زيارة المحل</Link>
+                                            <Link to={`/store/${store.slug || store.id}`}>زيارة المحل</Link>
                                         </Button>
 
                                         {/* Social Links */}

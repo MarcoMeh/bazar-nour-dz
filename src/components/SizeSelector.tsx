@@ -1,9 +1,10 @@
+import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
 
-// Common sizes for clothing
-const COMMON_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
+const LETTER_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
+const NUMERIC_SIZES = ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45', '46'];
 
 interface SizeSelectorProps {
     selectedSizes: string[];
@@ -11,6 +12,8 @@ interface SizeSelectorProps {
 }
 
 export const SizeSelector = ({ selectedSizes, onSizesChange }: SizeSelectorProps) => {
+    const [activeTab, setActiveTab] = useState<'letters' | 'numbers'>('letters');
+
     const toggleSize = (size: string) => {
         if (selectedSizes.includes(size)) {
             onSizesChange(selectedSizes.filter((s) => s !== size));
@@ -23,10 +26,35 @@ export const SizeSelector = ({ selectedSizes, onSizesChange }: SizeSelectorProps
         onSizesChange(selectedSizes.filter((s) => s !== size));
     };
 
+    const currentSizes = activeTab === 'letters' ? LETTER_SIZES : NUMERIC_SIZES;
+
     return (
         <div className="space-y-3">
+            <div className="flex bg-muted p-1 rounded-lg w-fit mb-2">
+                <button
+                    type="button"
+                    onClick={() => setActiveTab('letters')}
+                    className={`px-3 py-1 text-sm font-medium rounded-md transition-all ${activeTab === 'letters'
+                            ? 'bg-background text-foreground shadow-sm'
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                >
+                    أحرف
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setActiveTab('numbers')}
+                    className={`px-3 py-1 text-sm font-medium rounded-md transition-all ${activeTab === 'numbers'
+                            ? 'bg-background text-foreground shadow-sm'
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                >
+                    أرقام
+                </button>
+            </div>
+
             <div className="flex flex-wrap gap-2">
-                {COMMON_SIZES.map((size) => (
+                {currentSizes.map((size) => (
                     <Button
                         key={size}
                         type="button"

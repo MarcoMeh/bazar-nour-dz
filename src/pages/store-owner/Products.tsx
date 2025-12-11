@@ -456,27 +456,7 @@ export default function StoreOwnerProducts() {
                                 />
                             </div>
 
-                            {/* Brand & Material */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <Label htmlFor="brand">العلامة التجارية (اختياري)</Label>
-                                    <Input
-                                        id="brand"
-                                        value={formData.brand}
-                                        onChange={(e) => setFormData((prev) => ({ ...prev, brand: e.target.value }))}
-                                        placeholder="مثال: Nike, Adidas"
-                                    />
-                                </div>
-                                <div>
-                                    <Label htmlFor="material">المادة (اختياري)</Label>
-                                    <Input
-                                        id="material"
-                                        value={formData.material}
-                                        onChange={(e) => setFormData((prev) => ({ ...prev, material: e.target.value }))}
-                                        placeholder="مثال: قطن، بوليستر"
-                                    />
-                                </div>
-                            </div>
+
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="flex items-center justify-between">

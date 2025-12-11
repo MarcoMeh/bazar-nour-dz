@@ -4,18 +4,19 @@ import { supabase } from '@/integrations/supabase/client';
 export interface Store {
     id: string;
     name: string;
-    description?: string | null;
-    image_url?: string | null;
-    category_id?: string;
-    owner_id: string;
+    slug?: string;
+    description: string | null;
+    image_url: string | null;
     is_active: boolean;
-    created_at?: string;
+    category_id: string | null;
+    owner_id: string;
+    created_at: string;
     subscription_end_date?: string | null;
-    categories?: { id: string; name: string }[];
     whatsapp?: string | null;
     facebook?: string | null;
     instagram?: string | null;
     tiktok?: string | null;
+    categories?: { id: string; name: string }[];
 }
 
 export interface StoreFilters {
@@ -43,37 +44,32 @@ async function fetchStores(filters: StoreFilters = {}): Promise<StoresResponse> 
     let query = supabase
         .from('stores')
         .select(`
-            *,
-            store_categories!inner (
-                categories (
-                    id,
-                    name
-                )
-            )
+    *,
+    store_categories!inner(
+        categories(
+            id,
+            name
+        )
+    )
         `, { count: 'exact' })
         .eq('is_active', true)
         .or(`subscription_end_date.gt.${new Date().toISOString()},subscription_end_date.is.null`);
 
     // Apply filters
     if (categoryId && categoryId !== 'all') {
-        // We use !inner on store_categories in select to ensure we only get stores that have the category
-        // But we need to filter on the joined table column
         query = query.eq('store_categories.category_id', categoryId);
     } else {
-        // If no category filter (or 'all'), we want ALL stores regardless of having a category.
-        // So we redefine the query to use a standard LEFT JOIN (no !inner).
-
         query = supabase
             .from('stores')
             .select(`
-                *,
-                store_categories (
-                    categories (
-                        id,
-                        name
-                    )
-                )
-            `, { count: 'exact' })
+    *,
+    store_categories(
+        categories(
+            id,
+            name
+        )
+    )
+        `, { count: 'exact' })
             .eq('is_active', true)
             .or(`subscription_end_date.gt.${new Date().toISOString()},subscription_end_date.is.null`);
     }
@@ -129,6 +125,23 @@ async function fetchStoreById(storeId: string): Promise<Store | null> {
     return data as Store;
 }
 
+async function fetchStoreBySlug(slug: string): Promise<Store | null> {
+    const { data, error } = await supabase
+        .from('stores')
+        .select('*')
+        .eq('slug', slug)
+        .eq('is_active', true)
+        .or(`subscription_end_date.gt.${new Date().toISOString()},subscription_end_date.is.null`)
+        .single();
+
+    if (error) {
+        if (error.code === 'PGRST116') return null;
+        throw new Error(error.message);
+    }
+
+    return data as Store;
+}
+
 export function useStores(filters: StoreFilters = {}) {
     return useQuery({
         queryKey: ['stores', filters],
@@ -143,6 +156,15 @@ export function useStore(storeId?: string | null) {
         queryKey: ['store', storeId],
         queryFn: () => fetchStoreById(storeId!),
         enabled: !!storeId,
+        staleTime: 5 * 60 * 1000,
+    });
+}
+
+export function useStoreBySlug(slug?: string | null) {
+    return useQuery({
+        queryKey: ['store-slug', slug],
+        queryFn: () => fetchStoreBySlug(slug!),
+        enabled: !!slug,
         staleTime: 5 * 60 * 1000,
     });
 }
