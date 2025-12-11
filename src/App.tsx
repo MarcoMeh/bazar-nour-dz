@@ -57,6 +57,13 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { OfflineIndicator } from "./components/OfflineIndicator";
 
+import { useOrderNotifications } from "./hooks/useOrderNotifications";
+
+const OrderNotificationListener = () => {
+  useOrderNotifications();
+  return null;
+};
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -83,6 +90,7 @@ const App = () => (
               <CartProvider>
                 <Toaster />
                 <Sonner />
+                <OrderNotificationListener />
                 <BrowserRouter>
                   <OfflineIndicator />
                   <ScrollToTop />
