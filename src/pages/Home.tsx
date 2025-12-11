@@ -166,14 +166,35 @@ const Home = () => {
     };
 
     const fetchStores = async () => {
-        // Fetch stores with their categories assuming category_id exists
-        // If it fails, we will handle it.
+        // Fetch stores with their categories via the junction table
         const { data, error } = await supabase.from("stores")
-            .select("id, name, image_url, description, category_id")
+            .select(`
+                id, 
+                name, 
+                image_url, 
+                description,
+                store_categories (
+                    category_id
+                )
+            `)
             .eq("is_active", true)
-            .gt("subscription_end_date", new Date().toISOString());
-        if (data) setStores(data);
-        if (error) console.error("Error fetching stores:", error);
+            .or(`subscription_end_date.gt.${new Date().toISOString()},subscription_end_date.is.null`)
+            .limit(8);
+
+        if (error) {
+            console.error("Error fetching stores:", error);
+            return;
+        }
+
+        if (data) {
+            // Map the nested store_categories to a flat array of category IDs for filtering
+            const formattedStores = data.map((store: any) => ({
+                ...store,
+                // We map this to allow filtering by checking if the category exists in this array
+                category_ids: store.store_categories?.map((sc: any) => sc.category_id) || []
+            }));
+            setStores(formattedStores);
+        }
     };
 
     const fetchProducts = async () => {
@@ -413,7 +434,7 @@ const Home = () => {
                                 ))
                             ) : (
                                 stores
-                                    .filter(store => selectedStoreCategory === "all" || store.category_id === selectedStoreCategory)
+                                    .filter(store => selectedStoreCategory === "all" || (store as any).category_ids?.includes(selectedStoreCategory))
                                     .slice(0, 8) // Limit displayed stores
                                     .map((store, index) => (
                                         <Link

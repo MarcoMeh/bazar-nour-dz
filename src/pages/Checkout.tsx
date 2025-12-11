@@ -41,7 +41,7 @@ const Checkout = () => {
     phone: "",
     address: "",
     wilayaId: "", // store as string for Select; convert to number on submit
-    deliveryType: "home" as "home" | "office"
+    deliveryType: "home" as "home" | "desktop"
   });
 
   useEffect(() => {
@@ -217,7 +217,7 @@ const Checkout = () => {
                 </div>
               )}
 
-              <RadioGroup value={formData.deliveryType} onValueChange={(v) => setFormData({ ...formData, deliveryType: v as "home" | "office" })}>
+              <RadioGroup value={formData.deliveryType} onValueChange={(v) => setFormData({ ...formData, deliveryType: v as "home" | "desktop" })}>
                 <div className="flex items-center justify-between p-4 border rounded mb-3">
                   <div>
                     <RadioGroupItem value="home" id="home" />
@@ -234,7 +234,7 @@ const Checkout = () => {
 
                 <div className="flex items-center justify-between p-4 border rounded">
                   <div>
-                    <RadioGroupItem value="office" id="office" />
+                    <RadioGroupItem value="desktop" id="office" />
                     <Label htmlFor="office" className="ml-2">استلام من المكتب</Label>
                   </div>
                   <div className="font-bold">

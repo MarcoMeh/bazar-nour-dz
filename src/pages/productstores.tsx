@@ -88,7 +88,7 @@ const ProductStores = () => {
           .select("*")
           .eq("id", supplierId)
           .eq("is_active", true)
-          .gt("subscription_end_date", new Date().toISOString())
+          .or(`subscription_end_date.gt.${new Date().toISOString()},subscription_end_date.is.null`)
           .single();
 
         if (error) throw error;
