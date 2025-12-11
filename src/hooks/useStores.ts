@@ -12,6 +12,10 @@ export interface Store {
     created_at?: string;
     subscription_end_date?: string | null;
     categories?: { id: string; name: string }[];
+    whatsapp?: string | null;
+    facebook?: string | null;
+    instagram?: string | null;
+    tiktok?: string | null;
 }
 
 export interface StoreFilters {

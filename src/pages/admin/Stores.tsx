@@ -57,6 +57,10 @@ interface Store {
     category_id?: string;
     store_categories?: { name: string };
     subscription_end_date?: string;
+    whatsapp?: string | null;
+    facebook?: string | null;
+    instagram?: string | null;
+    tiktok?: string | null;
 }
 
 // Form data interface
@@ -70,6 +74,10 @@ interface StoreFormData {
     image_url: string;
     description: string;
     category_id: string;
+    whatsapp: string;
+    facebook: string;
+    instagram: string;
+    tiktok: string;
 }
 
 export default function AdminStores() {
@@ -87,6 +95,10 @@ export default function AdminStores() {
         image_url: "",
         description: "",
         category_id: "",
+        whatsapp: "",
+        facebook: "",
+        instagram: "",
+        tiktok: "",
     });
     const [categories, setCategories] = useState<any[]>([]);
     const [uploading, setUploading] = useState(false);
@@ -166,6 +178,10 @@ export default function AdminStores() {
             image_url: store.image_url || "",
             description: store.description || "",
             category_id: store.category_id || "",
+            whatsapp: store.whatsapp || "",
+            facebook: store.facebook || "",
+            instagram: store.instagram || "",
+            tiktok: store.tiktok || "",
         });
         setOpen(true);
     };
@@ -221,6 +237,10 @@ export default function AdminStores() {
                         image_url: formData.image_url,
                         description: formData.description,
                         category_id: formData.category_id || null,
+                        whatsapp: formData.whatsapp || null,
+                        facebook: formData.facebook || null,
+                        instagram: formData.instagram || null,
+                        tiktok: formData.tiktok || null,
                     })
                     .eq("id", editingStore.id);
 
@@ -332,6 +352,10 @@ export default function AdminStores() {
                         image_url: formData.image_url,
                         is_active: true,
                         category_id: formData.category_id || null,
+                        whatsapp: formData.whatsapp || null,
+                        facebook: formData.facebook || null,
+                        instagram: formData.instagram || null,
+                        tiktok: formData.tiktok || null,
                     });
 
                 if (storeError) throw storeError;
@@ -350,6 +374,10 @@ export default function AdminStores() {
                 image_url: "",
                 description: "",
                 category_id: "",
+                whatsapp: "",
+                facebook: "",
+                instagram: "",
+                tiktok: "",
             });
             fetchStores();
 
@@ -378,6 +406,10 @@ export default function AdminStores() {
                             image_url: "",
                             description: "",
                             category_id: "",
+                            whatsapp: "",
+                            facebook: "",
+                            instagram: "",
+                            tiktok: "",
                         });
                     }
                 }}>
@@ -523,6 +555,49 @@ export default function AdminStores() {
                                         ))}
                                     </SelectContent>
                                 </UISelect>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="whatsapp">WhatsApp</Label>
+                                    <Input
+                                        id="whatsapp"
+                                        value={formData.whatsapp}
+                                        onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
+                                        placeholder="رقم أو رابط"
+                                        dir="ltr"
+                                    />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="facebook">Facebook</Label>
+                                    <Input
+                                        id="facebook"
+                                        value={formData.facebook}
+                                        onChange={(e) => setFormData({ ...formData, facebook: e.target.value })}
+                                        placeholder="رابط فيسبوك"
+                                        dir="ltr"
+                                    />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="instagram">Instagram</Label>
+                                    <Input
+                                        id="instagram"
+                                        value={formData.instagram}
+                                        onChange={(e) => setFormData({ ...formData, instagram: e.target.value })}
+                                        placeholder="رابط انستغرام"
+                                        dir="ltr"
+                                    />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="tiktok">TikTok</Label>
+                                    <Input
+                                        id="tiktok"
+                                        value={formData.tiktok}
+                                        onChange={(e) => setFormData({ ...formData, tiktok: e.target.value })}
+                                        placeholder="رابط تيك توك"
+                                        dir="ltr"
+                                    />
+                                </div>
                             </div>
                         </div>
                         <DialogFooter>
@@ -692,6 +767,6 @@ export default function AdminStores() {
                 description="هل أنت متأكد من أنك تريد حذف هذا المحل؟ لا يمكن التراجع عن هذا الإجراء."
                 variant="destructive"
             />
-        </div>
+        </div >
     );
 }
