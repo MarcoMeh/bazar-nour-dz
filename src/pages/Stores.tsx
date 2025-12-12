@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Card, CardContent } from "@/components/ui/card";
+// Card import is no longer needed for the new design, but Button is
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { Skeleton } from "@/components/ui/skeleton"; // Added Skeleton for consistent loading state
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SEO from "@/components/SEO";
 import { useStores } from "@/hooks/useStores";
 import { useCategories } from "@/hooks/useCategories";
 import { Pagination } from "@/components/Pagination";
+import { ArrowLeft, Store } from "lucide-react"; // Added Icons
 
 export default function Stores() {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -61,13 +63,17 @@ export default function Stores() {
                 title="المتاجر"
                 description="تصفح أفضل المتاجر والعلامات التجارية في الجزائر على بازارنا. تسوق بثقة من محلات موثوقة."
             />
-            <h1 className="text-3xl md:text-4xl font-bold mb-8 text-primary">محلاتنا</h1>
 
-            <Tabs value={selectedCategory} className="w-full mb-8" onValueChange={handleCategoryChange}>
-                <TabsList className="flex flex-wrap h-auto gap-2 bg-transparent justify-start p-0">
+            <div className="text-center mb-12">
+                <h1 className="text-3xl md:text-5xl font-black mb-4 tracking-tight text-primary">محلاتنا</h1>
+                <p className="text-gray-500 text-lg">اكتشف نخبة المتاجر والعلامات التجارية في الجزائر</p>
+            </div>
+
+            <Tabs value={selectedCategory} className="w-full mb-12" onValueChange={handleCategoryChange}>
+                <TabsList className="flex flex-wrap h-auto gap-3 bg-transparent justify-center p-0">
                     <TabsTrigger
                         value="all"
-                        className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border bg-muted/50 px-4 py-2 rounded-full"
+                        className="px-6 py-2 rounded-full border border-gray-200 data-[state=active]:bg-gray-900 data-[state=active]:text-white data-[state=active]:border-gray-900 transition-all"
                     >
                         الكل
                     </TabsTrigger>
@@ -75,7 +81,7 @@ export default function Stores() {
                         <TabsTrigger
                             key={cat.id}
                             value={String(cat.id)}
-                            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border bg-muted/50 px-4 py-2 rounded-full"
+                            className="px-6 py-2 rounded-full border border-gray-200 data-[state=active]:bg-gray-900 data-[state=active]:text-white data-[state=active]:border-gray-900 transition-all"
                         >
                             {cat.name}
                         </TabsTrigger>
@@ -84,85 +90,114 @@ export default function Stores() {
             </Tabs>
 
             {storesLoading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                     {[1, 2, 3, 4, 5, 6].map((i) => (
-                        <Card key={i} className="overflow-hidden">
-                            <div className="aspect-video bg-muted animate-pulse" />
-                            <CardContent className="p-6 space-y-3">
-                                <div className="h-6 bg-muted rounded w-3/4 animate-pulse" />
-                                <div className="h-4 bg-muted rounded w-full animate-pulse" />
-                            </CardContent>
-                        </Card>
+                        <div key={i} className="space-y-4">
+                            <Skeleton className="h-[400px] w-full rounded-[2.5rem]" />
+                            <div className="space-y-2">
+                                <Skeleton className="h-4 w-2/3 mx-auto" />
+                                <Skeleton className="h-3 w-1/2 mx-auto" />
+                            </div>
+                        </div>
                     ))}
                 </div>
             ) : (
                 <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                         {storesData?.stores.length === 0 ? (
-                            <div className="col-span-full text-center py-12 text-muted-foreground">
-                                لا توجد محلات في هذه الفئة حالياً
+                            <div className="col-span-full text-center py-20 opacity-50">
+                                <Store className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                                <p className="text-xl text-muted-foreground">لا توجد محلات في هذه الفئة حالياً</p>
                             </div>
                         ) : (
                             storesData?.stores.map((store) => (
-                                <Card key={store.id} className="overflow-hidden hover:shadow-lg transition-shadow bg-white">
-                                    <div className="aspect-video bg-muted relative group">
-                                        {store.image_url ? (
-                                            <img src={store.image_url} alt={store.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-gray-100">
-                                                لا توجد صورة
+                                <div
+                                    key={store.id}
+                                    className="group relative flex flex-col items-center"
+                                >
+                                    <div className="relative w-full aspect-[4/5] rounded-[2.5rem] overflow-hidden bg-white shadow-2xl transition-all duration-500 group-hover:shadow-[0_20px_50px_rgba(0,0,0,0.15)] group-hover:-translate-y-2 border border-gray-100">
+
+                                        {/* ✅ 1. Background Link - Makes the whole card clickable */}
+                                        <Link
+                                            to={`/store/${store.slug || store.id}`}
+                                            className="absolute inset-0 z-0"
+                                        >
+                                            {/* Background Image */}
+                                            <div className="absolute inset-0 bg-gray-100">
+                                                {store.image_url ? (
+                                                    <img
+                                                        src={store.image_url}
+                                                        alt={store.name}
+                                                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-200">
+                                                        <Store className="h-20 w-20" />
+                                                    </div>
+                                                )}
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-500"></div>
                                             </div>
-                                        )}
+                                        </Link>
+
+                                        {/* Categories Tags (Top Right) - Optional but nice to keep from old design */}
                                         {store.categories && store.categories.length > 0 && (
-                                            <div className="absolute top-2 right-2 flex flex-wrap gap-1 justify-end">
-                                                {store.categories.slice(0, 2).map((cat: any) => (
-                                                    <span key={cat.id} className="bg-black/70 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full">
+                                            <div className="absolute top-4 left-4 flex flex-wrap gap-1 z-10 pointer-events-none">
+                                                {store.categories.slice(0, 1).map((cat: any) => (
+                                                    <span key={cat.id} className="bg-white/20 backdrop-blur-md border border-white/20 text-white text-xs px-3 py-1 rounded-full">
                                                         {cat.name}
                                                     </span>
                                                 ))}
                                             </div>
                                         )}
-                                    </div>
-                                    <CardContent className="p-6">
-                                        <h3 className="font-semibold text-xl mb-2">{store.name}</h3>
-                                        <p className="text-sm text-muted-foreground mb-4 line-clamp-2 min-h-[40px]">
-                                            {store.description || "لا يوجد وصف"}
-                                        </p>
-                                        <Button asChild className="w-full">
-                                            <Link to={`/store/${store.slug || store.id}`}>زيارة المحل</Link>
-                                        </Button>
 
-                                        {/* Social Links */}
-                                        <div className="flex gap-2 justify-center mt-3 pt-3 border-t">
-                                            {store.whatsapp && (
-                                                <a href={store.whatsapp.startsWith('http') ? store.whatsapp : `https://wa.me/${store.whatsapp}`} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-[#25D366] transition-colors">
-                                                    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" /></svg>
-                                                </a>
-                                            )}
-                                            {store.facebook && (
-                                                <a href={store.facebook} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-[#1877F2] transition-colors">
-                                                    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current"><path d="M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103a8.68 8.68 0 0 1 1.141.195v3.325a8.623 8.623 0 0 0-.653-.036c-2.148 0-2.971.956-2.971 3.594v.376h3.558l-.46 3.667h-3.098v7.98h-4.843Z" /></svg>
-                                                </a>
-                                            )}
-                                            {store.instagram && (
-                                                <a href={store.instagram} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-[#E4405F] transition-colors">
-                                                    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" /></svg>
-                                                </a>
-                                            )}
-                                            {store.tiktok && (
-                                                <a href={store.tiktok} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-black transition-colors">
-                                                    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.03 5.84-.02 8.75-.08 1.46-.54 2.94-1.34 4.14-1.32 1.97-3.54 3.07-5.96 2.96-2.42-.11-4.58-1.6-5.64-3.83-1.06-2.23-.67-4.94.97-6.82 1.64-1.89 4.34-2.52 6.6-1.54V6.03c-2.84-.99-6.15-.37-8.4 1.63-2.25 2-3.12 5.25-2.2 8.11.92 2.86 3.65 4.92 6.63 5.02 2.99.1 5.8-1.69 7.07-4.5 1.27-2.81 1.08-6.1-.49-8.75V.02h-1.29c-.01 0-.01 0 0 0" /></svg>
-                                                </a>
-                                            )}
+                                        {/* ✅ 2. Store Info Overlay */}
+                                        <div className="absolute bottom-0 left-0 right-0 p-8 text-center text-white transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 z-10 pointer-events-none">
+
+                                            {/* Store Logo/Avatar */}
+                                            <div className="relative mx-auto w-16 h-16 mb-4">
+                                                <div className="absolute inset-0 bg-white/20 backdrop-blur-md rounded-full animate-pulse-slow"></div>
+                                                <div className="relative w-full h-full rounded-full bg-white border-2 border-white/50 overflow-hidden flex items-center justify-center shadow-lg">
+                                                    {store.image_url ? (
+                                                        <img src={store.image_url} alt={store.name} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <span className="text-xl font-bold text-gray-800">{store.name.charAt(0)}</span>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <h3 className="text-2xl font-bold mb-2 tracking-tight group-hover:text-primary-foreground transition-colors">
+                                                {store.name}
+                                            </h3>
+                                            <p className="text-sm text-gray-300 line-clamp-2 mb-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100">
+                                                {store.description || "متجر مميز يقدم أفضل المنتجات والخدمات"}
+                                            </p>
+
+                                            {/* ✅ 3. Button - Re-enable pointer events */}
+                                            <div className="pointer-events-auto">
+                                                <Button
+                                                    asChild
+                                                    size="sm"
+                                                    className="w-full rounded-full bg-white/10 hover:bg-white text-white hover:text-black backdrop-blur-md border border-white/20 transition-all duration-300 font-bold group-hover:scale-105"
+                                                >
+                                                    <Link to={`/store/${store.slug || store.id}`}>
+                                                        زيارة المتجر
+                                                    </Link>
+                                                </Button>
+                                            </div>
                                         </div>
-                                    </CardContent>
-                                </Card>
+
+                                        {/* Quick Action Helper */}
+                                        <div className="absolute top-6 right-6 bg-white/10 backdrop-blur-md rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-x-4 group-hover:translate-x-0 z-10 pointer-events-none">
+                                            <ArrowLeft className="h-5 w-5 text-white transform rotate-45" />
+                                        </div>
+                                    </div>
+                                </div>
                             ))
                         )}
                     </div>
 
                     {storesData && storesData.totalPages > 1 && (
-                        <div className="mt-8">
+                        <div className="mt-16">
                             <Pagination
                                 currentPage={page}
                                 totalPages={storesData.totalPages}
