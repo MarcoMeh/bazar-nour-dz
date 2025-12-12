@@ -439,7 +439,7 @@ const Home = () => {
                                     .map((store, index) => (
                                         <Link
                                             key={store.id}
-                                            to={`/products?store=${store.id}`}
+                                            to={`/store/${(store as any).slug || store.id}`}
                                             className="group relative flex flex-col items-center"
                                         >
                                             <div className="relative w-full aspect-[4/5] rounded-[2.5rem] overflow-hidden bg-white shadow-2xl transition-all duration-500 group-hover:shadow-[0_20px_50px_rgba(0,0,0,0.15)] group-hover:-translate-y-2 border border-gray-100">
