@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,7 +10,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Edit, Trash2, Upload, X } from "lucide-react";
+import { Plus, Edit, Trash2, Upload, X, ImageIcon } from "lucide-react";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { ERROR_MESSAGES, SUCCESS_MESSAGES, getErrorMessage } from "@/lib/errorMessages";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
@@ -490,51 +498,103 @@ export default function StoreOwnerProducts() {
             </div>
 
             {/* Products List */}
-            <div className="grid gap-4">
-                {products.length === 0 ? (
-                    <Card className="p-12 text-center">
-                        <p className="text-muted-foreground mb-4">لا توجد منتجات بعد</p>
-                        <Button onClick={() => setIsDialogOpen(true)}>
-                            <Plus className="ml-2 h-4 w-4" />
-                            أضف منتجك الأول
-                        </Button>
-                    </Card>
-                ) : (
-                    products.map((product) => (
-                        <Card key={product.id} className="p-4 flex justify-between items-center">
-                            <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <h3 className="font-bold text-lg">{product.name}</h3>
-                                    {product.is_sold_out && <Badge variant="destructive">نفد</Badge>}
-                                </div>
-                                <p className="text-sm font-medium text-primary">{product.price} دج</p>
-                                {product.categories?.name && (
-                                    <p className="text-xs text-muted-foreground">
-                                        {product.categories.name}
-                                        {product.subcategories?.name && ` / ${product.subcategories.name}`}
-                                    </p>
-                                )}
-                                {product.description && <p className="text-sm text-muted-foreground mt-1">{product.description}</p>}
+            <Card>
+                <CardHeader className="py-4">
+                    <div className="flex justify-between items-center">
+                        <CardTitle className="text-lg">قائمة المنتجات</CardTitle>
+                        <Badge variant="secondary" className="px-3">{products.length} منتج</Badge>
+                    </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead className="w-[80px] text-right">الصورة</TableHead>
+                                <TableHead className="text-right">الاسم</TableHead>
+                                <TableHead className="text-right">السعر</TableHead>
+                                <TableHead className="text-right">التصنيف</TableHead>
+                                <TableHead className="text-center">الحالة</TableHead>
+                                <TableHead className="text-left w-[100px]">الإجراءات</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {products.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={6} className="text-center py-12">
+                                        <div className="flex flex-col items-center gap-3 text-muted-foreground">
+                                            <div className="p-4 bg-muted rounded-full">
+                                                <Plus className="h-6 w-6" />
+                                            </div>
+                                            <p>لا توجد منتجات بعد</p>
+                                            <Button variant="link" onClick={() => setIsDialogOpen(true)}>
+                                                أضف منتجك الأول
+                                            </Button>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            ) : (
+                                products.map((product) => (
+                                    <TableRow key={product.id}>
+                                        <TableCell>
+                                            {product.image_url ? (
+                                                <img
+                                                    src={product.image_url}
+                                                    alt={product.name}
+                                                    className="w-12 h-12 object-cover rounded-md border"
+                                                />
+                                            ) : (
+                                                <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center border text-muted-foreground">
+                                                    <ImageIcon className="h-5 w-5" />
+                                                </div>
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="font-medium">
+                                            {product.name}
+                                            {product.brand && <span className="block text-xs text-muted-foreground mt-1">{product.brand}</span>}
+                                        </TableCell>
+                                        <TableCell>
+                                            <span className="font-bold text-primary">{product.price}</span> <span className="text-xs text-muted-foreground">دج</span>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="text-sm">
+                                                {product.categories?.name}
+                                            </div>
+                                            {product.subcategories?.name && (
+                                                <div className="text-xs text-muted-foreground mt-0.5">
+                                                    {product.subcategories.name}
+                                                </div>
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="text-center">
+                                            <div className="flex flex-col gap-1 items-center">
+                                                {product.is_sold_out ? (
+                                                    <Badge variant="destructive" className="w-fit">نفد</Badge>
+                                                ) : (
+                                                    <Badge variant="outline" className="w-fit bg-green-50 text-green-700 border-green-200 hover:bg-green-100">متوفر</Badge>
+                                                )}
 
-                                <div className="mt-3 flex flex-wrap gap-2">
-                                    {product.is_free_delivery && <Badge variant="secondary">توصيل مجاني</Badge>}
-                                    {product.home_delivery && <Badge variant="outline">توصيل منزل</Badge>}
-                                    {product.office_delivery && <Badge variant="outline">توصيل مكتب</Badge>}
-                                </div>
-                            </div>
-
-                            <div className="flex gap-2">
-                                <Button variant="outline" size="icon" onClick={() => handleEdit(product)}>
-                                    <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button variant="destructive" size="icon" onClick={() => handleDelete(product.id)}>
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        </Card>
-                    ))
-                )}
-            </div>
+                                                {product.is_free_delivery && (
+                                                    <span className="text-[10px] text-blue-600 font-medium">توصيل مجاني</span>
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex gap-1 justify-end">
+                                                <Button variant="ghost" size="icon" onClick={() => handleEdit(product)} title="تعديل">
+                                                    <Edit className="h-4 w-4 text-blue-600" />
+                                                </Button>
+                                                <Button variant="ghost" size="icon" onClick={() => handleDelete(product.id)} title="حذف">
+                                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                                </Button>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
 
             <ConfirmDialog
                 open={deleteConfirmOpen}
