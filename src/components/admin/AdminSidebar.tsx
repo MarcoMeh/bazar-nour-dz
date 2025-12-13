@@ -12,6 +12,7 @@ import {
   Tags,
   Star,
   UserPlus,
+  ImageIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,6 +37,7 @@ export const AdminSidebar = () => {
     { name: "المحلات", href: "/admin/stores", icon: Store, show: true },
     { name: "طلبات تسجيل المحلات", href: "/admin/store-registrations", icon: UserPlus, show: isAdmin },
     { name: "رسوم التوصيل", href: "/admin/delivery", icon: Truck, show: isAdmin },
+    { name: "خلفيات الصفحات", href: "/admin/backgrounds", icon: ImageIcon, show: isAdmin },
     { name: "التحكم", href: "/admin/control", icon: Settings, show: isAdmin },
   ];
 

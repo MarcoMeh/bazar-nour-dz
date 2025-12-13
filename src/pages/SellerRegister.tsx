@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Store, User, Phone, Mail, MapPin, FileText, Loader2 } from 'lucide-react';
 import SEO from '@/components/SEO';
+import { PageBackground } from "@/type_defs";
 
 // الولايات الجزائرية
 const WILAYAS = [
@@ -48,6 +49,24 @@ const SellerRegister = () => {
             wilaya: value,
         });
     };
+
+    const [registerBackground, setRegisterBackground] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchBackground = async () => {
+            const { data } = await supabase
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .from("page_backgrounds" as any)
+                .select("image_url")
+                .eq("page_key", "register_hero")
+                .single();
+
+            if ((data as unknown as PageBackground)?.image_url) {
+                setRegisterBackground((data as unknown as PageBackground).image_url!);
+            }
+        };
+        fetchBackground();
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -117,199 +136,211 @@ const SellerRegister = () => {
         }
     };
 
+    const containerStyle = registerBackground ? {
+        backgroundImage: `url(${registerBackground})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+    } : {};
+
     return (
-        <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 py-12">
-            <SEO
-                title="سجل محلك - انضم إلينا"
-                description="سجل محلك في بازارنا وابدأ البيع عبر الإنترنت اليوم"
-            />
+        <div className={`min-h-screen py-12 ${!registerBackground ? 'bg-gradient-to-br from-green-50 via-white to-blue-50' : 'relative'}`} style={containerStyle}>
+            {registerBackground && (
+                <div className="absolute inset-0 bg-white/90 backdrop-blur-[2px] z-0"></div>
+            )}
+            <div className="relative z-10">
+                <SEO
+                    title="سجل محلك - انضم إلينا"
+                    description="سجل محلك في بازارنا وابدأ البيع عبر الإنترنت اليوم"
+                />
 
-            <div className="container mx-auto px-4 max-w-3xl">
-                {/* Header */}
-                <div className="text-center mb-10">
-                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-green-500 to-green-600 mb-4">
-                        <Store className="h-10 w-10 text-white" />
+                <div className="container mx-auto px-4 max-w-3xl">
+                    {/* Header */}
+                    <div className="text-center mb-10">
+                        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-green-500 to-green-600 mb-4">
+                            <Store className="h-10 w-10 text-white" />
+                        </div>
+                        <h1 className="text-4xl md:text-5xl font-black mb-3 bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+                            افتح متجرك معنا
+                        </h1>
+                        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                            انضم إلى منصة بازارنا واعرض منتجاتك لآلاف العملاء في جميع أنحاء الجزائر
+                        </p>
                     </div>
-                    <h1 className="text-4xl md:text-5xl font-black mb-3 bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
-                        افتح متجرك معنا
-                    </h1>
-                    <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                        انضم إلى منصة بازارنا واعرض منتجاتك لآلاف العملاء في جميع أنحاء الجزائر
-                    </p>
-                </div>
 
-                {/* Form Card */}
-                <Card className="p-8 md:p-10 shadow-xl border-2 border-green-100">
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Owner Name */}
-                        <div>
-                            <Label htmlFor="owner_name" className="text-lg flex items-center gap-2 mb-2">
-                                <User className="h-5 w-5 text-green-600" />
-                                اسمك الكامل <span className="text-red-500">*</span>
-                            </Label>
-                            <Input
-                                id="owner_name"
-                                name="owner_name"
-                                type="text"
-                                value={formData.owner_name}
-                                onChange={handleChange}
-                                placeholder="مثال: أحمد بن علي"
-                                className="h-12 text-lg"
-                                required
-                            />
-                        </div>
+                    {/* Form Card */}
+                    <Card className="p-8 md:p-10 shadow-xl border-2 border-green-100">
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            {/* Owner Name */}
+                            <div>
+                                <Label htmlFor="owner_name" className="text-lg flex items-center gap-2 mb-2">
+                                    <User className="h-5 w-5 text-green-600" />
+                                    اسمك الكامل <span className="text-red-500">*</span>
+                                </Label>
+                                <Input
+                                    id="owner_name"
+                                    name="owner_name"
+                                    type="text"
+                                    value={formData.owner_name}
+                                    onChange={handleChange}
+                                    placeholder="مثال: أحمد بن علي"
+                                    className="h-12 text-lg"
+                                    required
+                                />
+                            </div>
 
-                        {/* Store Name */}
-                        <div>
-                            <Label htmlFor="store_name" className="text-lg flex items-center gap-2 mb-2">
-                                <Store className="h-5 w-5 text-green-600" />
-                                اسم المحل <span className="text-red-500">*</span>
-                            </Label>
-                            <Input
-                                id="store_name"
-                                name="store_name"
-                                type="text"
-                                value={formData.store_name}
-                                onChange={handleChange}
-                                placeholder="مثال: محل الأناقة للألبسة"
-                                className="h-12 text-lg"
-                                required
-                            />
-                        </div>
+                            {/* Store Name */}
+                            <div>
+                                <Label htmlFor="store_name" className="text-lg flex items-center gap-2 mb-2">
+                                    <Store className="h-5 w-5 text-green-600" />
+                                    اسم المحل <span className="text-red-500">*</span>
+                                </Label>
+                                <Input
+                                    id="store_name"
+                                    name="store_name"
+                                    type="text"
+                                    value={formData.store_name}
+                                    onChange={handleChange}
+                                    placeholder="مثال: محل الأناقة للألبسة"
+                                    className="h-12 text-lg"
+                                    required
+                                />
+                            </div>
 
-                        {/* Phone */}
-                        <div>
-                            <Label htmlFor="phone" className="text-lg flex items-center gap-2 mb-2">
-                                <Phone className="h-5 w-5 text-green-600" />
-                                رقم الهاتف <span className="text-red-500">*</span>
-                            </Label>
-                            <Input
-                                id="phone"
-                                name="phone"
-                                type="tel"
-                                value={formData.phone}
-                                onChange={handleChange}
-                                placeholder="مثال: 0555123456"
-                                className="h-12 text-lg"
-                                dir="ltr"
-                                required
-                            />
-                            <p className="text-sm text-muted-foreground mt-1">
-                                يرجى استخدام رقم جزائري صالح (05، 06، أو 07)
-                            </p>
-                        </div>
+                            {/* Phone */}
+                            <div>
+                                <Label htmlFor="phone" className="text-lg flex items-center gap-2 mb-2">
+                                    <Phone className="h-5 w-5 text-green-600" />
+                                    رقم الهاتف <span className="text-red-500">*</span>
+                                </Label>
+                                <Input
+                                    id="phone"
+                                    name="phone"
+                                    type="tel"
+                                    value={formData.phone}
+                                    onChange={handleChange}
+                                    placeholder="مثال: 0555123456"
+                                    className="h-12 text-lg"
+                                    dir="ltr"
+                                    required
+                                />
+                                <p className="text-sm text-muted-foreground mt-1">
+                                    يرجى استخدام رقم جزائري صالح (05، 06، أو 07)
+                                </p>
+                            </div>
 
-                        {/* Email */}
-                        <div>
-                            <Label htmlFor="email" className="text-lg flex items-center gap-2 mb-2">
-                                <Mail className="h-5 w-5 text-green-600" />
-                                البريد الإلكتروني <span className="text-red-500">*</span>
-                            </Label>
-                            <Input
-                                id="email"
-                                name="email"
-                                type="email"
-                                value={formData.email}
-                                onChange={handleChange}
-                                placeholder="example@email.com"
-                                className="h-12 text-lg"
-                                dir="ltr"
-                                required
-                            />
-                        </div>
+                            {/* Email */}
+                            <div>
+                                <Label htmlFor="email" className="text-lg flex items-center gap-2 mb-2">
+                                    <Mail className="h-5 w-5 text-green-600" />
+                                    البريد الإلكتروني <span className="text-red-500">*</span>
+                                </Label>
+                                <Input
+                                    id="email"
+                                    name="email"
+                                    type="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    placeholder="example@email.com"
+                                    className="h-12 text-lg"
+                                    dir="ltr"
+                                    required
+                                />
+                            </div>
 
-                        {/* Wilaya */}
-                        <div>
-                            <Label htmlFor="wilaya" className="text-lg flex items-center gap-2 mb-2">
-                                <MapPin className="h-5 w-5 text-green-600" />
-                                الولاية <span className="text-red-500">*</span>
-                            </Label>
-                            <Select value={formData.wilaya} onValueChange={handleWilayaChange}>
-                                <SelectTrigger className="h-12 text-lg">
-                                    <SelectValue placeholder="اختر الولاية" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {WILAYAS.map((wilaya) => (
-                                        <SelectItem key={wilaya} value={wilaya}>
-                                            {wilaya}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
+                            {/* Wilaya */}
+                            <div>
+                                <Label htmlFor="wilaya" className="text-lg flex items-center gap-2 mb-2">
+                                    <MapPin className="h-5 w-5 text-green-600" />
+                                    الولاية <span className="text-red-500">*</span>
+                                </Label>
+                                <Select value={formData.wilaya} onValueChange={handleWilayaChange}>
+                                    <SelectTrigger className="h-12 text-lg">
+                                        <SelectValue placeholder="اختر الولاية" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {WILAYAS.map((wilaya) => (
+                                            <SelectItem key={wilaya} value={wilaya}>
+                                                {wilaya}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
 
-                        {/* Description (Optional) */}
-                        <div>
-                            <Label htmlFor="description" className="text-lg flex items-center gap-2 mb-2">
-                                <FileText className="h-5 w-5 text-green-600" />
-                                نبذة عن المحل (اختياري)
-                            </Label>
-                            <Textarea
-                                id="description"
-                                name="description"
-                                value={formData.description}
-                                onChange={handleChange}
-                                placeholder="اكتب وصفاً مختصراً عن محلك ونوع المنتجات التي تبيعها..."
-                                className="min-h-[120px] text-lg resize-none"
-                                rows={4}
-                            />
-                        </div>
+                            {/* Description (Optional) */}
+                            <div>
+                                <Label htmlFor="description" className="text-lg flex items-center gap-2 mb-2">
+                                    <FileText className="h-5 w-5 text-green-600" />
+                                    نبذة عن المحل (اختياري)
+                                </Label>
+                                <Textarea
+                                    id="description"
+                                    name="description"
+                                    value={formData.description}
+                                    onChange={handleChange}
+                                    placeholder="اكتب وصفاً مختصراً عن محلك ونوع المنتجات التي تبيعها..."
+                                    className="min-h-[120px] text-lg resize-none"
+                                    rows={4}
+                                />
+                            </div>
 
-                        {/* Info Box */}
-                        <Card className="p-4 bg-blue-50 border-blue-200">
-                            <p className="text-sm text-blue-800">
-                                <strong>ملاحظة:</strong> بعد إرسال الطلب، سيقوم فريقنا بمراجعة معلوماتك
-                                والتواصل معك خلال 24-48 ساعة لإكمال عملية التسجيل.
+                            {/* Info Box */}
+                            <Card className="p-4 bg-blue-50 border-blue-200">
+                                <p className="text-sm text-blue-800">
+                                    <strong>ملاحظة:</strong> بعد إرسال الطلب، سيقوم فريقنا بمراجعة معلوماتك
+                                    والتواصل معك خلال 24-48 ساعة لإكمال عملية التسجيل.
+                                </p>
+                            </Card>
+
+                            {/* Submit Button */}
+                            <Button
+                                type="submit"
+                                size="lg"
+                                className="w-full h-14 text-lg font-bold bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 shadow-lg hover:shadow-xl transition-all"
+                                disabled={loading}
+                            >
+                                {loading ? (
+                                    <>
+                                        <Loader2 className="ml-2 h-5 w-5 animate-spin" />
+                                        جاري الإرسال...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Store className="ml-2 h-5 w-5" />
+                                        إرسال الطلب
+                                    </>
+                                )}
+                            </Button>
+                        </form>
+                    </Card>
+
+                    {/* Benefits Section */}
+                    <div className="mt-12 grid md:grid-cols-3 gap-6 text-center">
+                        <Card className="p-6 hover:shadow-lg transition-shadow">
+                            <div className="text-4xl mb-3">🚀</div>
+                            <h3 className="font-bold text-lg mb-2">ابدأ بسرعة</h3>
+                            <p className="text-sm text-muted-foreground">
+                                سجل محلك اليوم وابدأ البيع خلال أيام
                             </p>
                         </Card>
 
-                        {/* Submit Button */}
-                        <Button
-                            type="submit"
-                            size="lg"
-                            className="w-full h-14 text-lg font-bold bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 shadow-lg hover:shadow-xl transition-all"
-                            disabled={loading}
-                        >
-                            {loading ? (
-                                <>
-                                    <Loader2 className="ml-2 h-5 w-5 animate-spin" />
-                                    جاري الإرسال...
-                                </>
-                            ) : (
-                                <>
-                                    <Store className="ml-2 h-5 w-5" />
-                                    إرسال الطلب
-                                </>
-                            )}
-                        </Button>
-                    </form>
-                </Card>
+                        <Card className="p-6 hover:shadow-lg transition-shadow">
+                            <div className="text-4xl mb-3">💰</div>
+                            <h3 className="font-bold text-lg mb-2">بدون عمولات</h3>
+                            <p className="text-sm text-muted-foreground">
+                                اشتراك شهري بسيط بدون عمولات على المبيعات
+                            </p>
+                        </Card>
 
-                {/* Benefits Section */}
-                <div className="mt-12 grid md:grid-cols-3 gap-6 text-center">
-                    <Card className="p-6 hover:shadow-lg transition-shadow">
-                        <div className="text-4xl mb-3">🚀</div>
-                        <h3 className="font-bold text-lg mb-2">ابدأ بسرعة</h3>
-                        <p className="text-sm text-muted-foreground">
-                            سجل محلك اليوم وابدأ البيع خلال أيام
-                        </p>
-                    </Card>
-
-                    <Card className="p-6 hover:shadow-lg transition-shadow">
-                        <div className="text-4xl mb-3">💰</div>
-                        <h3 className="font-bold text-lg mb-2">بدون عمولات</h3>
-                        <p className="text-sm text-muted-foreground">
-                            اشتراك شهري بسيط بدون عمولات على المبيعات
-                        </p>
-                    </Card>
-
-                    <Card className="p-6 hover:shadow-lg transition-shadow">
-                        <div className="text-4xl mb-3">📈</div>
-                        <h3 className="font-bold text-lg mb-2">وصول أوسع</h3>
-                        <p className="text-sm text-muted-foreground">
-                            اعرض منتجاتك لآلاف العملاء في كل الجزائر
-                        </p>
-                    </Card>
+                        <Card className="p-6 hover:shadow-lg transition-shadow">
+                            <div className="text-4xl mb-3">📈</div>
+                            <h3 className="font-bold text-lg mb-2">وصول أوسع</h3>
+                            <p className="text-sm text-muted-foreground">
+                                اعرض منتجاتك لآلاف العملاء في كل الجزائر
+                            </p>
+                        </Card>
+                    </div>
                 </div>
             </div>
         </div>

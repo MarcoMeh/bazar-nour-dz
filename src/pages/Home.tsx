@@ -30,6 +30,7 @@ import SEO from "@/components/SEO";
 
 // Assets
 import heroBg from "@/assets/backround_5.png";
+import { PageBackground } from "@/type_defs";
 
 // Types
 interface Category {
@@ -88,6 +89,7 @@ const Home = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [quickViewProduct, setQuickViewProduct] = useState<any>(null);
     const [timeLeft, setTimeLeft] = useState({ hours: 12, minutes: 0, seconds: 0 });
+    const [heroBackground, setHeroBackground] = useState(heroBg);
 
     // Countdown Timer Logic
     useEffect(() => {
@@ -115,6 +117,7 @@ const Home = () => {
                 fetchStores(),
                 fetchProducts(),
                 fetchFlashSaleProducts(),
+                fetchHeroBackground(), // Add this
             ]);
             setLoading(false);
         };
@@ -142,6 +145,19 @@ const Home = () => {
         };
     }, []);
 
+    const fetchHeroBackground = async () => {
+        const { data } = await supabase
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .from("page_backgrounds" as any)
+            .select("image_url")
+            .eq("page_key", "home_hero")
+            .single();
+
+        if ((data as unknown as PageBackground)?.image_url) {
+            setHeroBackground((data as unknown as PageBackground).image_url!);
+        }
+    };
+
     const fetchSettings = async () => {
         const { data } = await supabase.from("site_settings" as any).select("*").single();
         if (data) setSettings(data as any);
@@ -152,7 +168,6 @@ const Home = () => {
         const { data, error } = await supabase
             .from("categories")
             .select("*")
-            .order("name")
             .order("name")
             .limit(12);
 
@@ -173,6 +188,7 @@ const Home = () => {
                 name, 
                 image_url, 
                 description,
+                slug,
                 store_categories (
                     category_id
                 )
@@ -204,7 +220,6 @@ const Home = () => {
                 *,
                 categories!inner(name, parent:parent_id(name))
             `)
-            .order("created_at", { ascending: false })
             .order("created_at", { ascending: false })
             .limit(8);
 
@@ -285,13 +300,11 @@ const Home = () => {
                 {/* Background with Overlay */}
                 <div className="absolute inset-0 z-0">
                     <img
-                        src={heroBg}
+                        src={heroBackground}
                         alt="Hero Background"
-                        className="w-full h-full object-cover object-top md:object-center animate-pulse-slow"
+                        className="w-full h-full object-cover object-top md:object-center animate-pulse-slow active:animate-none transition-all duration-700"
                     />
-                    {/* Updated Gradient: Lighter on mobile to show more image */}
                     <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-slate-950 via-indigo-950/60 to-transparent"></div>
-                    {/* Optional: Subtle Pattern Overlay for texture */}
                     <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
                 </div>
 
@@ -435,33 +448,40 @@ const Home = () => {
                             ) : (
                                 stores
                                     .filter(store => selectedStoreCategory === "all" || (store as any).category_ids?.includes(selectedStoreCategory))
-                                    .slice(0, 8) // Limit displayed stores
+                                    .slice(0, 8)
                                     .map((store, index) => (
-                                        <Link
+                                        <div
                                             key={store.id}
-                                            to={`/products?store=${store.id}`}
                                             className="group relative flex flex-col items-center"
                                         >
                                             <div className="relative w-full aspect-[4/5] rounded-[2.5rem] overflow-hidden bg-white shadow-2xl transition-all duration-500 group-hover:shadow-[0_20px_50px_rgba(0,0,0,0.15)] group-hover:-translate-y-2 border border-gray-100">
-                                                {/* Background Image / Cover */}
-                                                <div className="absolute inset-0 bg-gray-100">
-                                                    {store.image_url ? (
-                                                        <img
-                                                            src={store.image_url}
-                                                            alt={store.name}
-                                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                                        />
-                                                    ) : (
-                                                        <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-200">
-                                                            <Store className="h-20 w-20" />
-                                                        </div>
-                                                    )}
-                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-500"></div>
-                                                </div>
 
-                                                {/* Store Info Overlay */}
-                                                <div className="absolute bottom-0 left-0 right-0 p-8 text-center text-white transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-                                                    {/* Store Logo/Avatar (Floating) */}
+                                                {/* ✅ 1. Background Link - Makes the whole card clickable */}
+                                                <Link
+                                                    to={`/store/${(store as any).slug || store.id}`}
+                                                    className="absolute inset-0 z-0"
+                                                >
+                                                    {/* Background Image */}
+                                                    <div className="absolute inset-0 bg-gray-100">
+                                                        {store.image_url ? (
+                                                            <img
+                                                                src={store.image_url}
+                                                                alt={store.name}
+                                                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                                            />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-200">
+                                                                <Store className="h-20 w-20" />
+                                                            </div>
+                                                        )}
+                                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-500"></div>
+                                                    </div>
+                                                </Link>
+
+                                                {/* ✅ 2. Store Info Overlay - pointer-events-none lets clicks pass to background */}
+                                                <div className="absolute bottom-0 left-0 right-0 p-8 text-center text-white transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 z-10 pointer-events-none">
+
+                                                    {/* Store Logo/Avatar */}
                                                     <div className="relative mx-auto w-16 h-16 mb-4">
                                                         <div className="absolute inset-0 bg-white/20 backdrop-blur-md rounded-full animate-pulse-slow"></div>
                                                         <div className="relative w-full h-full rounded-full bg-white border-2 border-white/50 overflow-hidden flex items-center justify-center shadow-lg">
@@ -473,25 +493,33 @@ const Home = () => {
                                                         </div>
                                                     </div>
 
-                                                    <h3 className="text-2xl font-bold mb-2 tracking-tight group-hover:text-primary-foreground transition-colors">{store.name}</h3>
+                                                    <h3 className="text-2xl font-bold mb-2 tracking-tight group-hover:text-primary-foreground transition-colors">
+                                                        {store.name}
+                                                    </h3>
                                                     <p className="text-sm text-gray-300 line-clamp-2 mb-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100">
                                                         {store.description || "متجر مميز يقدم أفضل المنتجات والخدمات"}
                                                     </p>
 
-                                                    <Button
-                                                        size="sm"
-                                                        className="w-full rounded-full bg-white/10 hover:bg-white text-white hover:text-black backdrop-blur-md border border-white/20 transition-all duration-300 font-bold group-hover:scale-105"
-                                                    >
-                                                        زيارة المتجر
-                                                    </Button>
+                                                    {/* ✅ 3. Button - Re-enable pointer events so hover effects work */}
+                                                    <div className="pointer-events-auto">
+                                                        <Button
+                                                            asChild
+                                                            size="sm"
+                                                            className="w-full rounded-full bg-white/10 hover:bg-white text-white hover:text-black backdrop-blur-md border border-white/20 transition-all duration-300 font-bold group-hover:scale-105"
+                                                        >
+                                                            <Link to={`/store/${(store as any).slug || store.id}`}>
+                                                                زيارة المتجر
+                                                            </Link>
+                                                        </Button>
+                                                    </div>
                                                 </div>
 
                                                 {/* Quick Action Helper */}
-                                                <div className="absolute top-4 right-4 bg-white/10 backdrop-blur-md rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-x-4 group-hover:translate-x-0">
+                                                <div className="absolute top-4 right-4 bg-white/10 backdrop-blur-md rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-x-4 group-hover:translate-x-0 z-10 pointer-events-none">
                                                     <ArrowLeft className="h-5 w-5 text-white transform rotate-45" />
                                                 </div>
                                             </div>
-                                        </Link>
+                                        </div>
                                     ))
                             )}
                         </div>

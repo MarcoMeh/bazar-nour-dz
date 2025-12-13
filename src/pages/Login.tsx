@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowRight, ShoppingBag, Loader2 } from "lucide-react";
+import { PageBackground } from "@/type_defs";
 
 export default function Login() {
     const [email, setEmail] = useState("");
@@ -15,6 +16,24 @@ export default function Login() {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const { toast } = useToast();
+
+    const [authBackground, setAuthBackground] = useState("https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=2070&auto=format&fit=crop");
+
+    useEffect(() => {
+        const fetchAuthBackground = async () => {
+            const { data } = await supabase
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .from("page_backgrounds" as any)
+                .select("image_url")
+                .eq("page_key", "auth_bg")
+                .single();
+
+            if ((data as unknown as PageBackground)?.image_url) {
+                setAuthBackground((data as unknown as PageBackground).image_url!);
+            }
+        };
+        fetchAuthBackground();
+    }, []);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -164,7 +183,7 @@ export default function Login() {
             <div className="hidden lg:flex w-1/2 bg-muted relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/90 to-secondary/90 z-10 mix-blend-multiply" />
                 <img
-                    src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=2070&auto=format&fit=crop"
+                    src={authBackground}
                     alt="Login Background"
                     className="absolute inset-0 w-full h-full object-cover animate-scale-slow"
                 />
