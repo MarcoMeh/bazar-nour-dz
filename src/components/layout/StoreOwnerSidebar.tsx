@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
     LayoutDashboard,
@@ -11,13 +11,23 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-export const StoreOwnerSidebar = () => {
+// تعريف الواجهة لاستقبال دالة الإغلاق
+interface StoreOwnerSidebarProps {
+    onLinkClick?: () => void;
+}
+
+export const StoreOwnerSidebar = ({ onLinkClick }: StoreOwnerSidebarProps) => {
     const location = useLocation();
+    const navigate = useNavigate();
 
     const handleLogout = async () => {
-        await supabase.auth.signOut();
-        toast.success("تم تسجيل الخروج بنجاح");
-        window.location.href = "/";
+        try {
+            await supabase.auth.signOut();
+            toast.success("تم تسجيل الخروج بنجاح");
+            navigate("/"); // إعادة التوجيه للصفحة الرئيسية
+        } catch (error) {
+            toast.error("حدث خطأ أثناء تسجيل الخروج");
+        }
     };
 
     const navItems = [
@@ -32,19 +42,26 @@ export const StoreOwnerSidebar = () => {
             <div className="flex h-14 md:h-16 items-center border-b px-4 md:px-6">
                 <h2 className="text-lg md:text-xl font-bold text-primary">لوحة إدارة المتجر</h2>
             </div>
+
             <nav className="flex-1 space-y-1 p-3 md:p-4">
                 {navItems.map((item) => {
                     const Icon = item.icon;
-                    const isActive = location.pathname === item.href;
+                    // تحسين منطق الرابط النشط ليشمل الصفحات الفرعية
+                    const isActive =
+                        item.href === "/store-dashboard"
+                            ? location.pathname === item.href
+                            : location.pathname.startsWith(item.href);
+
                     return (
                         <Link
                             key={item.href}
                             to={item.href}
+                            onClick={onLinkClick} // تنفيذ دالة الإغلاق عند الضغط
                             className={cn(
-                                "flex items-center gap-3 rounded-lg px-3 py-3 md:py-2 text-base md:text-sm font-medium transition-colors",
+                                "flex items-center gap-3 rounded-lg px-3 py-3 md:py-2 text-base md:text-sm font-medium transition-all duration-200",
                                 isActive
-                                    ? "bg-primary text-primary-foreground"
-                                    : "hover:bg-accent hover:text-accent-foreground"
+                                    ? "bg-primary text-primary-foreground shadow-sm"
+                                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                             )}
                         >
                             <Icon className="h-5 w-5" />
@@ -53,8 +70,13 @@ export const StoreOwnerSidebar = () => {
                     );
                 })}
             </nav>
-            <div className="border-t p-3 md:p-4">
-                <Button variant="ghost" className="w-full justify-start gap-3 text-base md:text-sm py-3 md:py-2" onClick={handleLogout}>
+
+            <div className="border-t p-3 md:p-4 mt-auto">
+                <Button
+                    variant="ghost"
+                    className="w-full justify-start gap-3 text-base md:text-sm py-3 md:py-2 text-red-500 hover:text-red-600 hover:bg-red-50"
+                    onClick={handleLogout}
+                >
                     <LogOut className="h-5 w-5" />
                     تسجيل الخروج
                 </Button>

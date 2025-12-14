@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Edit, Trash2, Upload, X, ImageIcon } from "lucide-react";
+import { Plus, Edit, Trash2, Upload, X, ImageIcon, ImagePlus, Loader2 } from "lucide-react";
 import {
     Table,
     TableBody,
@@ -26,6 +26,7 @@ import { SizeSelector } from "@/components/SizeSelector";
 import { ColorSelector } from "@/components/ColorSelector";
 
 export default function StoreOwnerProducts() {
+    // ... (نفس الـ States والـ useEffects السابقة لم تتغير) ...
     const [products, setProducts] = useState<any[]>([]);
     const [categories, setCategories] = useState<any[]>([]);
     const [subcategories, setSubcategories] = useState<any[]>([]);
@@ -36,8 +37,6 @@ export default function StoreOwnerProducts() {
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [productToDelete, setProductToDelete] = useState<string | null>(null);
     const [storeId, setStoreId] = useState<string | null>(null);
-    const [currentSize, setCurrentSize] = useState("");
-    const [currentColor, setCurrentColor] = useState("");
 
     const [formData, setFormData] = useState({
         name_ar: "",
@@ -71,29 +70,19 @@ export default function StoreOwnerProducts() {
     const fetchStoreId = async () => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
-
-        const { data: store } = await supabase
-            .from("stores")
-            .select("id")
-            .eq("owner_id", user.id)
-            .single();
-
+        const { data: store } = await supabase.from("stores").select("id").eq("owner_id", user.id).single();
         setStoreId(store?.id || null);
     };
 
     const fetchCategories = async () => {
-        // Fetch categories (main categories)
         const { data: cats } = await supabase.from("categories").select("*").order("name");
-        // Fetch subcategories (separate table like admin page)
         const { data: subcats } = await supabase.from("subcategories").select("*").order("name");
-
         setCategories(cats || []);
         setSubcategories(subcats || []);
     };
 
     const fetchProducts = async () => {
         if (!storeId) return;
-
         setLoading(true);
         const { data, error } = await supabase
             .from("products")
@@ -101,11 +90,8 @@ export default function StoreOwnerProducts() {
             .eq("store_id", storeId)
             .order("created_at", { ascending: false });
 
-        if (error) {
-            toast.error(getErrorMessage(error));
-        } else {
-            setProducts(data || []);
-        }
+        if (error) toast.error(getErrorMessage(error));
+        else setProducts(data || []);
         setLoading(false);
     };
 
@@ -128,13 +114,10 @@ export default function StoreOwnerProducts() {
             material: "",
         });
         setEditingProduct(null);
-        setCurrentSize("");
-        setCurrentColor("");
     };
 
     const handleEdit = (product: any) => {
         setEditingProduct(product);
-
         setFormData({
             name_ar: product.name || "",
             description_ar: product.description || "",
@@ -152,7 +135,6 @@ export default function StoreOwnerProducts() {
             brand: product.brand || "",
             material: product.material || "",
         });
-
         setIsDialogOpen(true);
     };
 
@@ -163,39 +145,31 @@ export default function StoreOwnerProducts() {
 
     const confirmDelete = async () => {
         if (!productToDelete) return;
-
         const { error } = await supabase.from("products").delete().eq("id", productToDelete);
-
-        if (error) {
-            toast.error(getErrorMessage(error));
-        } else {
+        if (error) toast.error(getErrorMessage(error));
+        else {
             toast.success(SUCCESS_MESSAGES.PRODUCTS.DELETED);
             fetchProducts();
         }
         setProductToDelete(null);
     };
 
+    // --- UPLOAD HANDLERS ---
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
         setUploading(true);
-
         const fileExt = file.name.split(".").pop();
         const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
-
-        const { error: uploadError } = await supabase.storage
-            .from("product-images")
-            .upload(fileName, file);
-
+        const { error: uploadError } = await supabase.storage.from("product-images").upload(fileName, file);
         if (uploadError) {
             toast.error("فشل رفع الصورة");
             setUploading(false);
             return;
         }
-
         const { data: { publicUrl } } = supabase.storage.from("product-images").getPublicUrl(fileName);
         setFormData((prev) => ({ ...prev, image_url: publicUrl }));
-        toast.success("تم رفع الصورة");
+        toast.success("تم رفع الصورة الرئيسية");
         setUploading(false);
     };
 
@@ -203,32 +177,23 @@ export default function StoreOwnerProducts() {
         const files = e.target.files;
         if (!files || files.length === 0) return;
         setUploading(true);
-
         const newImages: string[] = [];
-
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
             const fileExt = file.name.split(".").pop();
             const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
-
-            const { error: uploadError } = await supabase.storage
-                .from("product-images")
-                .upload(fileName, file);
-
+            const { error: uploadError } = await supabase.storage.from("product-images").upload(fileName, file);
             if (uploadError) {
                 toast.error(`فشل رفع الصورة ${file.name}`);
                 continue;
             }
-
             const { data: { publicUrl } } = supabase.storage.from("product-images").getPublicUrl(fileName);
             newImages.push(publicUrl);
         }
-
         setFormData((prev) => ({
             ...prev,
             additional_images: [...(prev.additional_images || []), ...newImages]
         }));
-
         toast.success("تم رفع الصور الإضافية");
         setUploading(false);
     };
@@ -240,23 +205,18 @@ export default function StoreOwnerProducts() {
         }));
     };
 
-    // Filter subcategories based on selected category (same logic as admin page)
     const filteredSubcategories = subcategories.filter(sub => sub.category_id === formData.category_id);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
         if (!formData.name_ar || !formData.price || !formData.category_id) {
             toast.error("الرجاء ملء الاسم، السعر، والفئة الرئيسية");
             return;
         }
-
-        // Subcategory is required if there are subcategories for the selected category
         if (filteredSubcategories.length > 0 && !formData.subcategory_id) {
             toast.error("الرجاء اختيار الفئة الفرعية");
             return;
         }
-
         if (!storeId) {
             toast.error("لم يتم العثور على معرّف المحل");
             return;
@@ -298,294 +258,224 @@ export default function StoreOwnerProducts() {
         }
     };
 
-    if (loading) {
-        return <LoadingSpinner fullScreen message="جاري تحميل المنتجات..." />;
-    }
-
-    if (!storeId) {
-        return (
-            <Card className="p-8 text-center">
-                <p className="text-muted-foreground">لا يوجد محل مرتبط بحسابك</p>
-            </Card>
-        );
-    }
+    if (loading) return <LoadingSpinner fullScreen message="جاري تحميل المنتجات..." />;
+    if (!storeId) return <Card className="p-8 text-center"><p>لا يوجد محل مرتبط بحسابك</p></Card>;
 
     return (
-        <div className="p-4 md:p-8 space-y-4 md:space-y-6">
+        <div className="p-4 md:p-8 space-y-6 bg-slate-50 min-h-screen">
             <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3">
                 <div>
                     <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">إدارة المنتجات</h1>
-                    <p className="text-sm md:text-base text-muted-foreground mt-1">إضافة وتعديل منتجات محلك</p>
+                    <p className="text-sm text-muted-foreground mt-1">قائمة منتجات المتجر</p>
                 </div>
 
                 <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
                     <DialogTrigger asChild>
-                        <Button className="w-full md:w-auto">
-                            <Plus className="ml-2 h-4 w-4" />
-                            إضافة منتج
+                        <Button className="w-full md:w-auto shadow-md">
+                            <Plus className="ml-2 h-4 w-4" /> إضافة منتج
                         </Button>
                     </DialogTrigger>
 
-                    <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                        <DialogHeader>
-                            <DialogTitle>{editingProduct ? "تعديل المنتج" : "إضافة منتج جديد"}</DialogTitle>
+                    <DialogContent className="max-w-xl max-h-[95vh] overflow-y-auto p-0 gap-0 bg-white rounded-2xl">
+                        <DialogHeader className="p-6 pb-2 border-b">
+                            <DialogTitle>{editingProduct ? "تعديل بيانات المنتج" : "إضافة منتج جديد"}</DialogTitle>
                         </DialogHeader>
 
-                        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-                            <div>
-                                <Label>الاسم بالعربية *</Label>
-                                <Input value={formData.name_ar} onChange={(e) => setFormData((prev) => ({ ...prev, name_ar: e.target.value }))} required />
+                        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+
+                            {/* 1. القسم الأساسي: الصورة والاسم */}
+                            <div className="space-y-4">
+                                <div>
+                                    <Label className="block mb-2 text-sm font-semibold">صورة المنتج الرئيسية *</Label>
+                                    <div className={`relative border-2 border-dashed rounded-xl transition-all ${formData.image_url ? 'border-primary/50 bg-primary/5' : 'border-gray-300 hover:border-primary hover:bg-gray-50'}`}>
+                                        <input id="main-image-upload" type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                                        <label htmlFor="main-image-upload" className="flex flex-col items-center justify-center w-full h-48 cursor-pointer">
+                                            {uploading ? (
+                                                <div className="flex flex-col items-center text-muted-foreground">
+                                                    <Loader2 className="w-8 h-8 animate-spin mb-2" />
+                                                    <span className="text-xs">جاري الرفع...</span>
+                                                </div>
+                                            ) : formData.image_url ? (
+                                                <>
+                                                    <img src={formData.image_url} alt="Main" className="absolute inset-0 w-full h-full object-contain rounded-xl p-2" />
+                                                    <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm flex items-center">
+                                                        <Edit className="w-3 h-3 ml-1" /> تغيير الصورة
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <div className="flex flex-col items-center text-muted-foreground">
+                                                    <div className="bg-gray-100 p-3 rounded-full mb-3">
+                                                        <Upload className="w-6 h-6 text-gray-500" />
+                                                    </div>
+                                                    <span className="text-sm font-medium">اضغط هنا لرفع الصورة الرئيسية</span>
+                                                    <span className="text-xs text-gray-400 mt-1">يفضل أن تكون بأبعاد 1:1 أو 4:5</span>
+                                                </div>
+                                            )}
+                                        </label>
+                                    </div>
+                                </div>
+
+                                {/* 2. الصور الثانوية: تظهر فقط إذا تم رفع الرئيسية */}
+                                {formData.image_url && (
+                                    <div className="animate-in fade-in slide-in-from-top-4 p-4 bg-gray-50 rounded-xl border">
+                                        <Label className="block mb-3 text-sm font-semibold">صور إضافية (المعرض)</Label>
+                                        <div className="grid grid-cols-4 gap-3">
+                                            {formData.additional_images.map((img, index) => (
+                                                <div key={index} className="relative aspect-square group">
+                                                    <img src={img} className="w-full h-full object-cover rounded-lg border bg-white" />
+                                                    <button type="button" onClick={() => removeAdditionalImage(index)} className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 shadow-md">
+                                                        <X className="w-3 h-3" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            <input id="gallery-upload" type="file" accept="image/*" multiple onChange={handleAdditionalImageUpload} className="hidden" />
+                                            <label htmlFor="gallery-upload" className="aspect-square flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors bg-white">
+                                                <ImagePlus className="w-5 h-5 text-gray-400 mb-1" />
+                                                <span className="text-[10px] text-gray-500">أضف</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>اسم المنتج *</Label>
+                                        <Input
+                                            placeholder="مثال: فستان صيفي مزهر"
+                                            value={formData.name_ar}
+                                            onChange={(e) => setFormData((prev) => ({ ...prev, name_ar: e.target.value }))}
+                                            className="h-11"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>السعر (دج) *</Label>
+                                        <Input
+                                            type="number"
+                                            placeholder="00.00"
+                                            value={formData.price}
+                                            onChange={(e) => setFormData((prev) => ({ ...prev, price: e.target.value }))}
+                                            className="h-11 font-mono text-left"
+                                        />
+                                    </div>
+                                </div>
                             </div>
 
-                            <div>
-                                <Label>الوصف</Label>
-                                <Textarea value={formData.description_ar} onChange={(e) => setFormData((prev) => ({ ...prev, description_ar: e.target.value }))} />
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <Label>الماركة (Brand)</Label>
-                                    <Input value={formData.brand} onChange={(e) => setFormData((prev) => ({ ...prev, brand: e.target.value }))} placeholder="مثال: Zara, H&M" />
-                                </div>
-                                <div>
-                                    <Label>خامة الصنع (Material)</Label>
-                                    <Input value={formData.material} onChange={(e) => setFormData((prev) => ({ ...prev, material: e.target.value }))} placeholder="مثال: قطن 100%" />
-                                </div>
-                            </div>
-
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <Label>السعر (دج) *</Label>
-                                    <Input type="number" step="0.01" value={formData.price} onChange={(e) => setFormData((prev) => ({ ...prev, price: e.target.value }))} required />
-                                </div>
-
-                                <div className="space-y-4">
-                                    {/* Main Category */}
+                            {/* 3. التصنيفات */}
+                            <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100 space-y-4">
+                                <h3 className="font-semibold text-sm text-blue-800 mb-2">التصنيف</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <Label>التصنيف الرئيسي *</Label>
-                                        <Select
-                                            value={formData.category_id}
-                                            onValueChange={(v) => setFormData(prev => ({ ...prev, category_id: v, subcategory_id: "" }))}
-                                        >
-                                            <SelectTrigger><SelectValue placeholder="اختر التصنيف" /></SelectTrigger>
+                                        <Label className="text-xs text-gray-500 mb-1.5 block">القسم الرئيسي</Label>
+                                        <Select value={formData.category_id} onValueChange={(v) => setFormData(prev => ({ ...prev, category_id: v, subcategory_id: "" }))}>
+                                            <SelectTrigger className="bg-white"><SelectValue placeholder="اختر القسم" /></SelectTrigger>
                                             <SelectContent>
-                                                {categories.map((cat) => (
-                                                    <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                                                ))}
+                                                {categories.map((cat) => <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>)}
                                             </SelectContent>
                                         </Select>
                                     </div>
-
-                                    {/* Subcategory - shows when main category is selected */}
                                     {formData.category_id && (
-                                        <div className="animate-in fade-in slide-in-from-top-2">
-                                            <Label>التصنيف الفرعي {filteredSubcategories.length > 0 ? "*" : "(اختياري)"}</Label>
+                                        <div className="animate-in fade-in">
+                                            <Label className="text-xs text-gray-500 mb-1.5 block">القسم الفرعي</Label>
                                             {filteredSubcategories.length > 0 ? (
-                                                <Select
-                                                    value={formData.subcategory_id}
-                                                    onValueChange={(v) => setFormData((prev) => ({ ...prev, subcategory_id: v }))}
-                                                >
-                                                    <SelectTrigger><SelectValue placeholder="اختر التصنيف الفرعي" /></SelectTrigger>
+                                                <Select value={formData.subcategory_id} onValueChange={(v) => setFormData((prev) => ({ ...prev, subcategory_id: v }))}>
+                                                    <SelectTrigger className="bg-white"><SelectValue placeholder="اختر الفرع" /></SelectTrigger>
                                                     <SelectContent>
-                                                        {filteredSubcategories.map((subcat) => (
-                                                            <SelectItem key={subcat.id} value={subcat.id}>{subcat.name}</SelectItem>
-                                                        ))}
+                                                        {filteredSubcategories.map((sub) => <SelectItem key={sub.id} value={sub.id}>{sub.name}</SelectItem>)}
                                                     </SelectContent>
                                                 </Select>
-                                            ) : (
-                                                <p className="text-sm text-muted-foreground p-2 border rounded-md bg-muted">
-                                                    لا توجد تصنيفات فرعية لهذا التصنيف
-                                                </p>
-                                            )}
+                                            ) : <p className="text-xs text-muted-foreground pt-2">لا توجد فروع لهذا القسم</p>}
                                         </div>
                                     )}
                                 </div>
                             </div>
 
-                            <div>
-                                <Label>صورة المنتج الرئيسية</Label>
-                                <div className="flex items-center gap-3">
-                                    <input id="image-upload" type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-                                    <label htmlFor="image-upload">
-                                        <Button type="button" variant="outline" asChild>
-                                            <span><Upload className="ml-2 h-4 w-4" />{uploading ? "جاري الرفع..." : "رفع صورة"}</span>
-                                        </Button>
-                                    </label>
-                                    <Input placeholder="أو ضع رابط الصورة" value={formData.image_url} onChange={(e) => setFormData((prev) => ({ ...prev, image_url: e.target.value }))} />
-                                </div>
-                                {formData.image_url && <img src={formData.image_url} alt="preview" className="h-32 w-32 object-cover rounded mt-2 border" />}
-                            </div>
+                            {/* 4. تفاصيل إضافية */}
+                            <div className="space-y-4">
+                                <Label>الوصف</Label>
+                                <Textarea placeholder="اكتب تفاصيل المنتج..." className="min-h-[80px]" value={formData.description_ar} onChange={(e) => setFormData((prev) => ({ ...prev, description_ar: e.target.value }))} />
 
-                            <div>
-                                <Label>صور إضافية (للمعرض)</Label>
-                                <div className="flex items-center gap-3 mb-2">
-                                    <input id="additional-images-upload" type="file" accept="image/*" multiple onChange={handleAdditionalImageUpload} className="hidden" />
-                                    <label htmlFor="additional-images-upload">
-                                        <Button type="button" variant="secondary" asChild>
-                                            <span><Plus className="ml-2 h-4 w-4" />{uploading ? "جاري الرفع..." : "إضافة صور"}</span>
-                                        </Button>
-                                    </label>
-                                </div>
-
-                                {formData.additional_images && formData.additional_images.length > 0 && (
-                                    <div className="grid grid-cols-4 gap-2 mt-2">
-                                        {formData.additional_images.map((img, index) => (
-                                            <div key={index} className="relative group">
-                                                <img src={img} alt={`additional-${index}`} className="h-20 w-full object-cover rounded border" />
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeAdditionalImage(index)}
-                                                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                >
-                                                    <X className="h-3 w-3" />
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Sizes Selection */}
-                            <div>
-                                <Label>المقاسات المتوفرة</Label>
-                                <SizeSelector
-                                    selectedSizes={formData.sizes}
-                                    onSizesChange={(sizes) => setFormData((prev) => ({ ...prev, sizes }))}
-                                />
-                            </div>
-
-                            {/* Colors Selection */}
-                            <div>
-                                <Label>الألوان المتوفرة</Label>
-                                <ColorSelector
-                                    selectedColors={formData.colors}
-                                    onColorsChange={(colors) => setFormData((prev) => ({ ...prev, colors }))}
-                                />
-                            </div>
-
-
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="flex items-center justify-between">
-                                    <Label>التوصيل للمنزل</Label>
-                                    <Switch checked={formData.home_delivery} onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, home_delivery: checked }))} />
-                                </div>
-
-                                <div className="flex items-center justify-between">
-                                    <Label>التوصيل للمكتب</Label>
-                                    <Switch checked={formData.office_delivery} onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, office_delivery: checked }))} />
-                                </div>
-
-                                <div className="flex items-center justify-between">
-                                    <Label>توصيل مجاني</Label>
-                                    <Switch checked={formData.is_free_delivery} onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, is_free_delivery: checked }))} />
-                                </div>
-
-                                <div className="flex items-center justify-between">
-                                    <Label>نفد من المخزون</Label>
-                                    <Switch checked={formData.is_sold_out} onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, is_sold_out: checked }))} />
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div><Label className="mb-2 block">المقاسات</Label><SizeSelector selectedSizes={formData.sizes} onSizesChange={(sizes) => setFormData((prev) => ({ ...prev, sizes }))} /></div>
+                                    <div><Label className="mb-2 block">الألوان</Label><ColorSelector selectedColors={formData.colors} onColorsChange={(colors) => setFormData((prev) => ({ ...prev, colors }))} /></div>
                                 </div>
                             </div>
 
-                            <div className="flex gap-2 justify-end pt-4">
-                                <Button type="button" variant="outline" onClick={() => { setIsDialogOpen(false); resetForm(); }}>إلغاء</Button>
-                                <Button type="submit">{editingProduct ? "تحديث" : "إضافة"}</Button>
+                            {/* 5. الإعدادات (Switches Grid) */}
+                            <div className="grid grid-cols-2 gap-3 pt-2">
+                                <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer" onClick={() => setFormData(prev => ({ ...prev, home_delivery: !prev.home_delivery }))}>
+                                    <span className="text-sm font-medium">توصيل منزل</span>
+                                    <Switch checked={formData.home_delivery} onCheckedChange={(c) => setFormData(prev => ({ ...prev, home_delivery: c }))} />
+                                </div>
+                                <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer" onClick={() => setFormData(prev => ({ ...prev, office_delivery: !prev.office_delivery }))}>
+                                    <span className="text-sm font-medium">توصيل مكتب</span>
+                                    <Switch checked={formData.office_delivery} onCheckedChange={(c) => setFormData(prev => ({ ...prev, office_delivery: c }))} />
+                                </div>
+                                <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer" onClick={() => setFormData(prev => ({ ...prev, is_free_delivery: !prev.is_free_delivery }))}>
+                                    <span className="text-sm font-medium text-green-600">توصيل مجاني</span>
+                                    <Switch checked={formData.is_free_delivery} onCheckedChange={(c) => setFormData(prev => ({ ...prev, is_free_delivery: c }))} />
+                                </div>
+                                <div className="flex items-center justify-between p-3 border rounded-lg bg-red-50/50 hover:bg-red-50 cursor-pointer" onClick={() => setFormData(prev => ({ ...prev, is_sold_out: !prev.is_sold_out }))}>
+                                    <span className="text-sm font-medium text-red-600">نفد المخزون</span>
+                                    <Switch checked={formData.is_sold_out} onCheckedChange={(c) => setFormData(prev => ({ ...prev, is_sold_out: c }))} />
+                                </div>
+                            </div>
+
+                            <div className="sticky bottom-0 pt-4 pb-2 bg-white border-t mt-4 flex gap-3">
+                                <Button type="submit" className="flex-1 h-12 text-lg font-bold shadow-lg" disabled={uploading}>
+                                    {editingProduct ? "حفظ التعديلات" : "نشر المنتج"}
+                                </Button>
+                                <Button type="button" variant="outline" className="h-12 w-24" onClick={() => { setIsDialogOpen(false); resetForm(); }}>
+                                    إلغاء
+                                </Button>
                             </div>
                         </form>
                     </DialogContent>
                 </Dialog>
             </div>
 
-            {/* Products List */}
-            <Card>
-                <CardHeader className="py-4">
-                    <div className="flex justify-between items-center">
-                        <CardTitle className="text-lg">قائمة المنتجات</CardTitle>
-                        <Badge variant="secondary" className="px-3">{products.length} منتج</Badge>
-                    </div>
+            {/* جدول المنتجات */}
+            <Card className="overflow-hidden border-0 shadow-sm">
+                <CardHeader className="bg-white border-b py-4">
+                    <CardTitle className="text-base flex justify-between items-center">
+                        <span>المنتجات الحالية</span>
+                        <Badge variant="secondary" className="font-normal">{products.length}</Badge>
+                    </CardTitle>
                 </CardHeader>
-                <CardContent className="p-0">
+                <div className="overflow-x-auto">
                     <Table>
                         <TableHeader>
-                            <TableRow>
+                            <TableRow className="bg-gray-50/50">
                                 <TableHead className="w-[80px] text-right">الصورة</TableHead>
                                 <TableHead className="text-right">الاسم</TableHead>
                                 <TableHead className="text-right">السعر</TableHead>
-                                <TableHead className="text-right">التصنيف</TableHead>
                                 <TableHead className="text-center">الحالة</TableHead>
-                                <TableHead className="text-left w-[100px]">الإجراءات</TableHead>
+                                <TableHead className="text-left">تحكم</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {products.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={6} className="text-center py-12">
-                                        <div className="flex flex-col items-center gap-3 text-muted-foreground">
-                                            <div className="p-4 bg-muted rounded-full">
-                                                <Plus className="h-6 w-6" />
-                                            </div>
-                                            <p>لا توجد منتجات بعد</p>
-                                            <Button variant="link" onClick={() => setIsDialogOpen(true)}>
-                                                أضف منتجك الأول
-                                            </Button>
-                                        </div>
+                                    <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                                        لا توجد منتجات. ابدأ بإضافة منتجك الأول!
                                     </TableCell>
                                 </TableRow>
                             ) : (
                                 products.map((product) => (
-                                    <TableRow key={product.id}>
+                                    <TableRow key={product.id} className="hover:bg-gray-50/50">
                                         <TableCell>
                                             {product.image_url ? (
-                                                <img
-                                                    src={product.image_url}
-                                                    alt={product.name}
-                                                    className="w-12 h-12 object-cover rounded-md border"
-                                                />
-                                            ) : (
-                                                <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center border text-muted-foreground">
-                                                    <ImageIcon className="h-5 w-5" />
-                                                </div>
-                                            )}
+                                                <img src={product.image_url} className="w-10 h-10 rounded-md object-cover border" />
+                                            ) : <div className="w-10 h-10 bg-gray-100 rounded-md flex items-center justify-center"><ImageIcon className="w-4 h-4 text-gray-400" /></div>}
                                         </TableCell>
-                                        <TableCell className="font-medium">
-                                            {product.name}
-                                            {product.brand && <span className="block text-xs text-muted-foreground mt-1">{product.brand}</span>}
-                                        </TableCell>
-                                        <TableCell>
-                                            <span className="font-bold text-primary">{product.price}</span> <span className="text-xs text-muted-foreground">دج</span>
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="text-sm">
-                                                {product.categories?.name}
-                                            </div>
-                                            {product.subcategories?.name && (
-                                                <div className="text-xs text-muted-foreground mt-0.5">
-                                                    {product.subcategories.name}
-                                                </div>
-                                            )}
-                                        </TableCell>
+                                        <TableCell className="font-medium text-sm line-clamp-1 max-w-[150px]">{product.name}</TableCell>
+                                        <TableCell className="font-bold text-sm">{product.price}</TableCell>
                                         <TableCell className="text-center">
-                                            <div className="flex flex-col gap-1 items-center">
-                                                {product.is_sold_out ? (
-                                                    <Badge variant="destructive" className="w-fit">نفد</Badge>
-                                                ) : (
-                                                    <Badge variant="outline" className="w-fit bg-green-50 text-green-700 border-green-200 hover:bg-green-100">متوفر</Badge>
-                                                )}
-
-                                                {product.is_free_delivery && (
-                                                    <span className="text-[10px] text-blue-600 font-medium">توصيل مجاني</span>
-                                                )}
-                                            </div>
+                                            {product.is_sold_out ? <Badge variant="destructive" className="text-[10px]">نفد</Badge> : <Badge variant="outline" className="text-[10px] bg-green-50 text-green-700 border-green-200">نشط</Badge>}
                                         </TableCell>
                                         <TableCell>
-                                            <div className="flex gap-1 justify-end">
-                                                <Button variant="ghost" size="icon" onClick={() => handleEdit(product)} title="تعديل">
-                                                    <Edit className="h-4 w-4 text-blue-600" />
-                                                </Button>
-                                                <Button variant="ghost" size="icon" onClick={() => handleDelete(product.id)} title="حذف">
-                                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                                </Button>
+                                            <div className="flex justify-end gap-1">
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:bg-blue-50" onClick={() => handleEdit(product)}><Edit className="w-4 h-4" /></Button>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600 hover:bg-red-50" onClick={() => handleDelete(product.id)}><Trash2 className="w-4 h-4" /></Button>
                                             </div>
                                         </TableCell>
                                     </TableRow>
@@ -593,18 +483,10 @@ export default function StoreOwnerProducts() {
                             )}
                         </TableBody>
                     </Table>
-                </CardContent>
+                </div>
             </Card>
 
-            <ConfirmDialog
-                open={deleteConfirmOpen}
-                onOpenChange={setDeleteConfirmOpen}
-                onConfirm={confirmDelete}
-                title="حذف المنتج"
-                description="هل أنت متأكد من حذف هذا المنتج؟ لن تتمكن من التراجع عن هذا الإجراء."
-                confirmText="حذف"
-                variant="destructive"
-            />
+            <ConfirmDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen} onConfirm={confirmDelete} title="حذف المنتج" description="لا يمكن التراجع عن هذا الإجراء." confirmText="حذف" variant="destructive" />
         </div>
     );
 }
