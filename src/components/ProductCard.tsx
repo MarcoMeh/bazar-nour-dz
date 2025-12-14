@@ -1,10 +1,9 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { useCart } from '@/contexts/CartContext';
 import { useWishlist } from '@/contexts/WishlistContext';
-import { ShoppingCart, Eye, Heart } from 'lucide-react';
-import { useState } from 'react';
+import { ShoppingBag, Eye, Heart, Plus } from 'lucide-react';
+import { cn } from "@/lib/utils";
 
 interface ProductCardProps {
   id: string;
@@ -23,17 +22,15 @@ interface ProductCardProps {
   brand?: string;
   onQuickView?: (product: any) => void;
   onAddToWishlist?: (productId: string) => void;
+  className?: string;
 }
 
 export const ProductCard = ({
   id,
   name_ar,
-  description_ar,
   price,
   image_url,
   additional_images,
-  is_delivery_home_available,
-  is_delivery_desktop_available,
   is_sold_out,
   is_free_delivery,
   store_id,
@@ -41,7 +38,7 @@ export const ProductCard = ({
   sizes,
   brand,
   onQuickView,
-  onAddToWishlist,
+  className,
 }: ProductCardProps) => {
   const { addItem } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
@@ -51,182 +48,105 @@ export const ProductCard = ({
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
-    // If product has options, redirect to detail page
     if ((colors && colors.length > 0) || (sizes && sizes.length > 0)) {
       navigate(`/product/${id}`);
       return;
     }
-
-    // Only allow adding to cart if not sold out
     if (!is_sold_out) {
-      console.log("Adding from card with store_id:", store_id);
-      addItem({
-        id,
-        name_ar,
-        price,
-        image_url,
-        ownerId: store_id,
-        is_free_delivery,
-      });
+      addItem({ id, name_ar, price, image_url, ownerId: store_id, is_free_delivery });
     }
   };
 
   const handleWishlistToggle = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
-    if (isWishlisted) {
-      removeFromWishlist(id);
-    } else {
-      addToWishlist({
-        id,
-        name_ar,
-        price,
-        image_url,
-        store_id,
-      });
-    }
+    if (isWishlisted) removeFromWishlist(id);
+    else addToWishlist({ id, name_ar, price, image_url, store_id });
   };
-
 
   const handleQuickView = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (onQuickView) {
-      onQuickView({
-        id,
-        name: name_ar,
-        description: description_ar,
-        price,
-        image_url,
-        is_delivery_home_available,
-        is_delivery_desktop_available,
-        is_sold_out,
-        is_free_delivery,
-        store_id,
-        colors,
-        sizes
-      });
+      onQuickView({ id, name: name_ar, price, image_url, is_sold_out, store_id });
     }
   };
 
   return (
-    <Card className="card-3d overflow-hidden hover:shadow-xl transition-all duration-300 group border-muted hover:border-accent/30 relative">
-      <Link to={`/product/${id}`}>
-        <div className="aspect-square overflow-hidden bg-gradient-to-br from-muted to-muted/50 relative">
+    <div className={cn("group flex flex-col space-y-3 relative", className)}>
+      <Link to={`/product/${id}`} className="block relative group-hover:-translate-y-1 transition-transform duration-300">
+        <div className="relative aspect-[4/5] md:aspect-square w-full overflow-hidden rounded-2xl bg-gray-50 border border-gray-100 shadow-sm">
+
           {image_url ? (
-            <>
-              <img
-                src={image_url}
-                alt={name_ar}
-                loading="lazy"
-                width={300}
-                height={300}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              {additional_images && additional_images.length > 0 && (
-                <img
-                  src={additional_images[0]}
-                  alt={`${name_ar} - صورة إضافية`}
-                  loading="lazy"
-                  width={300}
-                  height={300}
-                  className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                />
-              )}
-            </>
+            <img
+              src={image_url}
+              alt={name_ar}
+              loading="lazy"
+              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+            />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-accent/10">
-              <span className="text-6xl opacity-20">📦</span>
+            <div className="flex h-full w-full items-center justify-center text-gray-200">
+              <ShoppingBag className="h-10 w-10" />
             </div>
           )}
 
-          {/* Quick Actions Overlay */}
-          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
-            {onQuickView && (
-              <Button
-                size="icon"
-                variant="secondary"
-                className="rounded-full shadow-lg hover:scale-110 transition-transform"
-                onClick={handleQuickView}
-                aria-label="نظرة سريعة"
-              >
-                <Eye className="h-5 w-5" />
-              </Button>
+          {/* STATUS BADGES */}
+          <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5 z-10">
+            {is_sold_out ? (
+              <span className="bg-red-500/90 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-full">
+                نفد
+              </span>
+            ) : is_free_delivery && (
+              <span className="bg-emerald-500/90 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-full">
+                توصيل مجاني
+              </span>
             )}
           </div>
+
+          {/* WISHLIST BUTTON - FIXED CENTERING */}
+          <button
+            onClick={handleWishlistToggle}
+            className="absolute top-2.5 right-2.5 h-9 w-9 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-sm text-gray-400 hover:text-red-500 hover:bg-white shadow-sm border border-gray-100/50 transition-all active:scale-95 z-20"
+          >
+            {/* لاحظ هنا: fill-current للتحكم الكامل في اللون */}
+            <Heart
+              className={cn("h-5 w-5 transition-transform", isWishlisted && "fill-red-500 text-red-500 scale-110")}
+              strokeWidth={isWishlisted ? 0 : 2}
+            />
+          </button>
         </div>
       </Link>
 
-      {/* Wishlist Button */}
-      <Button
-        size="icon"
-        variant="ghost"
-        className="absolute top-2 right-2 z-20 bg-white/90 hover:bg-white rounded-full shadow-md hover:shadow-lg transition-all duration-300"
-        onClick={handleWishlistToggle}
-        aria-label={isWishlisted ? "إزالة من المفضلة" : "إضافة للمفضلة"}
-      >
-        <Heart className={`h-5 w-5 transition-all ${isWishlisted ? "fill-red-500 text-red-500 scale-110" : "text-gray-600"}`} />
-      </Button>
+      {/* PRODUCT INFO */}
+      <div className="px-1 space-y-1">
+        <div className="flex justify-between items-start gap-2">
+          <Link to={`/product/${id}`}>
+            <h3 className="font-bold text-gray-800 text-sm leading-snug line-clamp-2 min-h-[2.5em] hover:text-black transition-colors">
+              {name_ar}
+            </h3>
+          </Link>
 
-      {/* Badges for status and delivery */}
-      <div className="absolute top-2 left-2 flex flex-col gap-1 z-10 pointer-events-none">
-        {is_free_delivery && (
-          <span className="bg-green-600 text-white text-xs px-2 py-1 rounded-full shadow-md">
-            توصيل مجاني
-          </span>
-        )}
-        {is_delivery_home_available && (
-          <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full shadow-md">
-            توصيل للمنزل
-          </span>
-        )}
-        {is_delivery_desktop_available && (
-          <span className="bg-purple-600 text-white text-xs px-2 py-1 rounded-full shadow-md">
-            استلام من المكتب
-          </span>
-        )}
-      </div>
-
-      {is_sold_out && (
-        <div className="absolute top-2 right-2 bg-red-600 text-white text-sm px-3 py-1 rounded-full shadow-lg z-10">
-          نفد
-        </div>
-      )}
-
-      <CardContent className="p-4">
-        <Link to={`/product/${id}`}>
-          <h3 className="font-bold text-lg mb-1 line-clamp-1 hover:text-primary transition-colors">{name_ar}</h3>
-        </Link>
-        {description_ar && (
-          <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-            {description_ar}
-          </p>
-        )}
-        <p className="text-accent font-bold text-xl">
-          {price.toFixed(2)} <span className="text-sm">دج</span>
-        </p>
-      </CardContent>
-
-      <CardFooter className="p-4 pt-0">
-        {is_sold_out ? (
+          {/* ADD BUTTON */}
           <Button
-            disabled
-            className="w-full bg-red-500 text-black cursor-not-allowed button-3d"
-          >
-            Sold out
-          </Button>
-        ) : (
-          <Button
+            size="icon"
+            disabled={is_sold_out}
             onClick={handleAddToCart}
-            className="button-3d w-full bg-secondary hover:bg-secondary/90 hover:shadow-lg transition-all duration-300"
+            className={cn(
+              "h-8 w-8 rounded-full shrink-0 shadow-sm transition-all active:scale-90",
+              is_sold_out ? "bg-gray-100 text-gray-300" : "bg-black text-white hover:bg-gray-800 hover:shadow-md"
+            )}
           >
-            <ShoppingCart className="ml-2 h-4 w-4" />
-            إضافة إلى السلة
+            {is_sold_out ? <span className="text-xs font-bold">×</span> : <Plus className="h-4 w-4" />}
           </Button>
-        )}
-      </CardFooter>
-    </Card>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="font-black text-gray-900 text-base">
+            {price.toLocaleString()} <span className="text-[10px] font-normal text-gray-500">دج</span>
+          </span>
+          {brand && <span className="text-[9px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-md">{brand}</span>}
+        </div>
+      </div>
+    </div>
   );
-};export default ProductCard;
+};
