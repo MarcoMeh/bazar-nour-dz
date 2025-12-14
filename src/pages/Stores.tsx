@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
-import heroBg from "@/assets/backround_5.png";
 import { PageBackground } from "@/type_defs";
 
 // Types
@@ -60,7 +59,7 @@ export default function Stores() {
     const [categories, setCategories] = useState<CategoryType[]>([]);
     const [loading, setLoading] = useState(true);
     const [totalStores, setTotalStores] = useState(0);
-    const [backgroundImg, setBackgroundImg] = useState(heroBg);
+    const [backgroundImg, setBackgroundImg] = useState<string>("");
 
     const pageSize = 12;
 

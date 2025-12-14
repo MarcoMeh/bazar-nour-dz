@@ -29,7 +29,6 @@ import Autoplay from "embla-carousel-autoplay";
 import SEO from "@/components/SEO";
 
 // Assets
-import heroBg from "@/assets/backround_5.png";
 import { PageBackground } from "@/type_defs";
 
 // Types
@@ -89,7 +88,7 @@ const Home = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [quickViewProduct, setQuickViewProduct] = useState<any>(null);
     const [timeLeft, setTimeLeft] = useState({ hours: 12, minutes: 0, seconds: 0 });
-    const [heroBackground, setHeroBackground] = useState(heroBg);
+    const [heroBackground, setHeroBackground] = useState<string>("");
 
     // Countdown Timer Logic
     useEffect(() => {
@@ -292,7 +291,7 @@ const Home = () => {
             <SEO
                 title="بازارنا - متجر الأزياء الإلكتروني الأول في الجزائر"
                 description="اكتشف أحدث صيحات الموضة في بازارنا! ملابس رجالية، نسائية، أطفال، أحذية وإكسسوارات. تسوق من أفضل المحلات مع توصيل سريع لجميع الولايات. مقاسات وألوان متنوعة."
-                image={heroBg}
+                image={heroBackground || '/og-image.png'}
             />
 
             {/* 1. HERO SECTION */}
