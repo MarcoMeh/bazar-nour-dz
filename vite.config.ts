@@ -11,67 +11,65 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    plugins: [
-      react(),
-      VitePWA({
-        registerType: 'autoUpdate',
-        includeAssets: ['favicon.ico', 'robots.txt', 'sitemap.xml'],
-        manifest: {
-          name: 'Bazarna - بازارنا',
-          short_name: 'Bazarna',
-          description: 'وجهتك الأولى للتسوق الإلكتروني في الجزائر',
-          theme_color: '#ffffff',
-          background_color: '#ffffff',
-          display: 'standalone',
-          orientation: 'portrait',
-          icons: [
-            {
-              src: 'pwa-192x192.png',
-              sizes: '192x192',
-              type: 'image/png'
-            },
-            {
-              src: 'pwa-512x512.png',
-              sizes: '512x512',
-              type: 'image/png'
-            },
-            {
-              src: 'pwa-512x512.png',
-              sizes: '512x512',
-              type: 'image/png',
-              purpose: 'any maskable'
-            }
-          ],
-          start_url: "/",
-          scope: "/",
-          lang: "ar",
-          dir: "rtl"
-        }
-      })
-    ].filter(Boolean),
-    resolve: {
-      alias: {
-        "@": path.resolve(__dirname, "./src"),
-      },
-    },
-    build: {
-      target: "esnext",
-      minify: "esbuild",
-      cssMinify: true,
-      sourcemap: false,
-      chunkSizeWarningLimit: 1000,
-      rollupOptions: {
-        output: {
-          manualChunks: {
-            'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-            'vendor-ui': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', 'lucide-react'],
-            'vendor-supabase': ['@supabase/supabase-js'],
-            'vendor-utils': ['date-fns', 'clsx', 'tailwind-merge'],
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['favicon.ico', 'robots.txt', 'sitemap.xml'],
+      manifest: {
+        name: 'Bazarna - بازارنا',
+        short_name: 'Bazarna',
+        description: 'وجهتك الأولى للتسوق الإلكتروني في الجزائر',
+        theme_color: '#ffffff',
+        background_color: '#ffffff',
+        display: 'standalone',
+        orientation: 'portrait',
+        icons: [
+          {
+            src: 'pwa-192x192.png',
+            sizes: '192x192',
+            type: 'image/png'
           },
-          entryFileNames: 'assets/[name]-[hash].js',
-          chunkFileNames: 'assets/[name]-[hash].js',
-          assetFileNames: 'assets/[name]-[hash].[ext]',
+          {
+            src: 'pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png'
+          },
+          {
+            src: 'pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable'
+          }
+        ],
+        start_url: "/",
+        scope: "/",
+        lang: "ar",
+        dir: "rtl"
+      }
+    })
+  ].filter(Boolean),
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
+  build: {
+    target: "esnext",
+    minify: "esbuild",
+    cssMinify: true,
+    sourcemap: false,
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-ui': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', 'lucide-react'],
+          'vendor-supabase': ['@supabase/supabase-js'],
+          'vendor-utils': ['date-fns', 'clsx', 'tailwind-merge'],
         },
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
       },
     },
+  },
 }));
