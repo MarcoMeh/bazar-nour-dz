@@ -1,4 +1,4 @@
-import { Container } from "@/components/ui/container";
+// 1. حذفنا استيراد Container المسبب للخطأ
 import SEO from "@/components/SEO";
 import { ArrowLeft, Shield, Lock, Eye, Database, Globe } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 
 export default function PrivacyPolicy() {
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-slate-50 font-cairo text-right" dir="rtl">
             <SEO
                 title="سياسة الخصوصية | بازارنا"
                 description="صفحة سياسة الخصوصية لمنصة بازارنا. تعرف على كيفية جمعنا واستخدامنا لبياناتك الشخصية."
@@ -17,7 +17,8 @@ export default function PrivacyPolicy() {
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
                 <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
 
-                <Container className="relative z-10 flex flex-col items-center text-center">
+                {/* 2. استبدلنا Container بـ div عادي مع كلاسات التنسيق */}
+                <div className="container mx-auto px-4 relative z-10 flex flex-col items-center text-center">
                     <div className="inline-flex items-center justify-center p-3 bg-white/10 rounded-2xl mb-6 backdrop-blur-sm border border-white/10">
                         <Shield className="w-8 h-8 text-indigo-400" />
                     </div>
@@ -25,11 +26,12 @@ export default function PrivacyPolicy() {
                     <p className="text-lg text-slate-300 max-w-2xl mx-auto">
                         نحن في بازارنا نلتزم بحماية خصوصيتك وضمان أمان بياناتك الشخصية. توضح هذه الوثيقة كيفية تعاملنا مع معلوماتك.
                     </p>
-                </Container>
+                </div>
             </div>
 
             {/* Content Section */}
-            <Container className="py-16">
+            {/* 3. استبدلنا Container هنا أيضاً */}
+            <div className="container mx-auto px-4 py-16">
                 <div className="max-w-4xl mx-auto bg-white rounded-3xl shadow-sm border border-slate-100 p-8 md:p-12">
                     <div className="max-w-none font-sans">
 
@@ -109,7 +111,7 @@ export default function PrivacyPolicy() {
                         </Link>
                     </div>
                 </div>
-            </Container>
+            </div>
         </div>
     );
 }
