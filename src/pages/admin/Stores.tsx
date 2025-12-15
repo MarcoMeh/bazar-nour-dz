@@ -68,6 +68,7 @@ interface Store {
         };
     }[];
     categories?: { id: string; name: string }[];
+    is_manually_suspended?: boolean; // Added field
     cover_image_url?: string | null;
 }
 
@@ -113,6 +114,11 @@ export default function AdminStores() {
     const [categories, setCategories] = useState<any[]>([]);
     const [uploading, setUploading] = useState(false);
     const [deleteId, setDeleteId] = useState<string | null>(null);
+
+    // Subscription Renewal State
+    const [renewDialog, setRenewDialog] = useState<{ open: boolean; storeId: string | null }>({ open: false, storeId: null });
+    const [renewData, setRenewData] = useState({ months: "custom", days: "30", amount: "3000", notes: "" });
+    const [renewLoading, setRenewLoading] = useState(false);
 
     useEffect(() => {
         fetchStores();
@@ -432,6 +438,62 @@ export default function AdminStores() {
         }
     };
 
+    const handleRenewSubscription = async () => {
+        if (!renewDialog.storeId) return;
+        setRenewLoading(true);
+
+        const days = parseInt(renewData.days);
+        const amount = parseFloat(renewData.amount);
+
+        if (isNaN(days) || days <= 0 || isNaN(amount) || amount < 0) {
+            toast.error("يرجى إدخال قيم صحيحة للأيام والمبلغ");
+            setRenewLoading(false);
+            return;
+        }
+
+        try {
+            const { error } = await supabase.rpc('extend_store_subscription', {
+                p_store_id: renewDialog.storeId,
+                p_days: days,
+                p_amount: amount,
+                p_notes: renewData.notes || null
+            });
+
+            if (error) throw error;
+
+            toast.success(`تم تجديد الاشتراك بنجاح (${days} يوم)`);
+            setRenewDialog({ open: false, storeId: null });
+            fetchStores();
+        } catch (error: any) {
+            console.error("Renewal error:", error);
+            toast.error("فشل تجديد الاشتراك: " + error.message);
+        } finally {
+            setRenewLoading(false);
+        }
+    };
+
+    const handleToggleSuspension = async (store: Store) => {
+        const newStatus = !store.is_manually_suspended;
+        const confirmMsg = newStatus
+            ? "هل أنت متأكد من تجميد هذا المحل؟ سيتم إخفاء منتجاته فوراً."
+            : "هل أنت متأكد من إعادة تفعيل هذا المحل؟";
+
+        if (!window.confirm(confirmMsg)) return;
+
+        try {
+            const { error } = await supabase
+                .from('stores')
+                .update({ is_manually_suspended: newStatus })
+                .eq('id', store.id);
+
+            if (error) throw error;
+            toast.success(newStatus ? "تم تجميد المحل" : "تم إلغاء تجميد المحل");
+            fetchStores();
+        } catch (error: any) {
+            toast.error("فشل تغيير حالة التجميد");
+        }
+    };
+
     return (
         <div className="p-8">
             <div className="flex items-center justify-between mb-8">
@@ -684,6 +746,77 @@ export default function AdminStores() {
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
+
+                {/* Renewal Dialog */}
+                <Dialog open={renewDialog.open} onOpenChange={(val) => !val && setRenewDialog({ open: false, storeId: null })}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>تجديد اشتراك المحل</DialogTitle>
+                            <DialogDescription>أدخل تفاصيل التجديد (عدد الأيام والمبلغ) يدوياً.</DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                            <div className="grid gap-2">
+                                <Label>عدد الأيام</Label>
+                                <div className="flex gap-2">
+                                    <Button
+                                        type="button"
+                                        variant={renewData.days === "30" ? "default" : "outline"}
+                                        size="sm"
+                                        onClick={() => setRenewData({ ...renewData, days: "30", amount: "3000" })}
+                                    >
+                                        شهر (30)
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant={renewData.days === "90" ? "default" : "outline"}
+                                        size="sm"
+                                        onClick={() => setRenewData({ ...renewData, days: "90", amount: "8000" })}
+                                    >
+                                        3 أشهر (90)
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant={renewData.days === "365" ? "default" : "outline"}
+                                        size="sm"
+                                        onClick={() => setRenewData({ ...renewData, days: "365", amount: "30000" })}
+                                    >
+                                        سنة (365)
+                                    </Button>
+                                </div>
+                                <Input
+                                    type="number"
+                                    value={renewData.days}
+                                    onChange={(e) => setRenewData({ ...renewData, days: e.target.value })}
+                                    placeholder="إدخال يدوي لعدد الأيام"
+                                />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label>المبلغ المستلم (دج)</Label>
+                                <Input
+                                    type="number"
+                                    value={renewData.amount}
+                                    onChange={(e) => setRenewData({ ...renewData, amount: e.target.value })}
+                                />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label>ملاحظات (اختياري)</Label>
+                                <Input
+                                    value={renewData.notes}
+                                    onChange={(e) => setRenewData({ ...renewData, notes: e.target.value })}
+                                    placeholder="رقم الوصل، ملاحظة إدارية..."
+                                />
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button onClick={handleRenewSubscription} disabled={renewLoading}>
+                                {renewLoading && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+                                تأكيد التجديد
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </div>
 
             <Card>
@@ -743,16 +876,19 @@ export default function AdminStores() {
                                         <TableCell dir="ltr" className="text-right">{store.profiles?.phone || "-"}</TableCell>
                                         <TableCell>
                                             {(() => {
+                                                const isSuspended = store.is_manually_suspended;
                                                 const isExpired = store.subscription_end_date && new Date(store.subscription_end_date) < new Date();
-                                                const isActive = store.is_active && !isExpired;
-                                                return (
-                                                    <span className={`px-2 py-1 rounded-full text-xs font-bold ${isActive ? "bg-green-100 text-green-700" :
-                                                        isExpired ? "bg-orange-100 text-orange-700" :
-                                                            "bg-red-100 text-red-700"
-                                                        }`}>
-                                                        {isActive ? "نشط" : isExpired ? "منتهي" : "متوقف"}
-                                                    </span>
-                                                );
+                                                const isActive = !isSuspended && !isExpired; // Assuming simple logic: if not suspended and not expired, it's active. 
+                                                // Actually, if date is null, let's treat as 'Trial' or 'Active' for now unless defined otherwise. 
+                                                // Prompt implied expiration logic: Today > EndDate.
+
+                                                if (isSuspended) {
+                                                    return <span className="px-2 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700">مجمد</span>;
+                                                }
+                                                if (isExpired) {
+                                                    return <span className="px-2 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700">منتهي</span>;
+                                                }
+                                                return <span className="px-2 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">نشط</span>;
                                             })()}
                                         </TableCell>
                                         <TableCell>
@@ -762,7 +898,7 @@ export default function AdminStores() {
                                                     <span dir="ltr">{new Date(store.subscription_end_date).toLocaleDateString('en-GB')}</span>
                                                 </div>
                                             ) : (
-                                                <span className="text-xs text-muted-foreground">-</span>
+                                                <span className="text-xs text-muted-foreground">غير محدد</span>
                                             )}
                                         </TableCell>
                                         <TableCell>
@@ -771,54 +907,23 @@ export default function AdminStores() {
                                                     variant="outline"
                                                     size="icon"
                                                     className="text-green-600 hover:bg-green-50 border-green-200"
-                                                    title="تفعيل الاشتراك (30 يوم)"
-                                                    onClick={async () => {
-                                                        const endDate = new Date();
-                                                        endDate.setDate(endDate.getDate() + 30);
-                                                        const { error } = await supabase
-                                                            .from('stores')
-                                                            .update({
-                                                                is_active: true,
-                                                                subscription_end_date: endDate.toISOString()
-                                                            })
-                                                            .eq('id', store.id);
-
-                                                        if (error) toast.error("فشل التحديث");
-                                                        else {
-                                                            toast.success("تم تفعيل الاشتراك (3000 دج)");
-                                                            fetchStores();
-                                                        }
+                                                    title="تجديد الاشتراك"
+                                                    onClick={() => {
+                                                        setRenewData({ months: "1", amount: "3000", notes: "" });
+                                                        setRenewDialog({ open: true, storeId: store.id });
                                                     }}
                                                 >
-                                                    <Upload className="h-4 w-4 rotate-180" /> {/* Simulate 'Update/Upgrade' icon */}
+                                                    <Upload className="h-4 w-4 rotate-180" />
                                                 </Button>
 
                                                 <Button
                                                     variant="outline"
                                                     size="icon"
-                                                    className="text-orange-600 hover:bg-orange-50 border-orange-200"
-                                                    title="إيقاف الاشتراك"
-                                                    onClick={async () => {
-                                                        const { error } = await supabase
-                                                            .from('stores')
-                                                            .update({ is_active: false })
-                                                            .eq('id', store.id);
-
-                                                        if (error) toast.error("فشل التحديث");
-                                                        else {
-                                                            toast.success("تم إيقاف الاشتراك");
-                                                            fetchStores();
-                                                        }
-                                                    }}
+                                                    className={`${store.is_manually_suspended ? "text-green-600 bg-red-50" : "text-red-600 hover:bg-red-50"} border-red-200`}
+                                                    title={store.is_manually_suspended ? "إلغاء التجميد" : "تجميد المحل"}
+                                                    onClick={() => handleToggleSuspension(store)}
                                                 >
-                                                    <ToggleRight className="h-4 w-4" />
-                                                </Button>
-
-                                                <Button variant="ghost" size="icon" onClick={() => handleEdit(store)}>
-                                                    <Pencil className="h-4 w-4" />
-                                                </Button>
-                                                <Button variant="ghost" size="icon" onClick={() => setDeleteId(store.id)}>
-                                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                                    <ToggleRight className={`h-4 w-4 ${store.is_manually_suspended ? "rotate-180" : ""}`} />
                                                 </Button>
                                             </div>
                                         </TableCell>
@@ -838,6 +943,6 @@ export default function AdminStores() {
                 description="هل أنت متأكد من أنك تريد حذف هذا المحل؟ لا يمكن التراجع عن هذا الإجراء."
                 variant="destructive"
             />
-        </div >
+        </div>
     );
 }

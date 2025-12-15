@@ -40,49 +40,94 @@ export default function AdminDashboard() {
       const { count: productsCount } = await productsQuery;
       const { count: storesCount } = await storesQuery;
 
-      // 2. Fetch All Orders for Calculations (Revenue & Status)
-      // We need more than just count, so we fetch data.
-      let ordersQuery = supabase
-        .from("orders")
-        .select("id, total_price, status, created_at");
+      // 2. Fetch Subscription Logs for Revenue
+      const { data: subscriptionLogs, error: subError } = await supabase
+        .from("subscription_logs")
+        .select("amount, created_at"); // created_at IS payment_date roughly, or usage payment_date column if exists. I used payment_date in schema but usually default now() in created_at works too. Schema had payment_date. Let's use payment_date.
 
+      const { data: logsData } = await supabase
+        .from("subscription_logs")
+        .select("amount, payment_date");
+
+      if (subError) console.error("Error fetching logs:", subError);
+
+      const subscriptionRevenue = logsData?.reduce((sum, log) => sum + Number(log.amount || 0), 0) || 0;
+
+      // 3. Fetch Orders just for Count and Status
+      let ordersQuery = supabase.from("orders").select("id, status, created_at");
       if (isStoreOwner && storeId) {
         ordersQuery = ordersQuery.eq('store_id', storeId);
-      } else {
-        // If regular admin, we grab everything or based on logic (usually everything)
       }
-
       const { data: allOrders } = await ordersQuery;
       const ordersCount = allOrders?.length || 0;
 
-      // Calculate Revenue
-      const revenue = allOrders
-        ?.filter(o => o.status !== 'cancelled')
-        .reduce((sum, order) => sum + (order.total_price || 0), 0) || 0;
+      // IF STORE OWNER: Revenue might still be "My Sales" unless they also want to see how much they paid? 
+      // The user request "Admin Dashboard... Profits I want about store subscriptions". 
+      // This implies specifically for the ADMIN view.
+      // For Store Owner, "Revenue" usually means their Sales.
+      // I should check `isAdmin` flag. 
+      // If `isAdmin`, use subscription revenue. If `isStoreOwner`, keep sales revenue?
+      // "The main panel for the page admin of the site... profits I want it about store subscriptions".
+      // Okay, strictly for Admin.
+
+      let displayRevenue = 0;
+      let chartData: any[] = [];
+
+      if (isAdmin) {
+        displayRevenue = subscriptionRevenue;
+
+        // Chart Data for Admin (Subscriptions)
+        const last7Days = Array.from({ length: 7 }, (_, i) => {
+          const d = subDays(new Date(), 6 - i);
+          return format(d, "yyyy-MM-dd");
+        });
+
+        chartData = last7Days.map(date => {
+          const dayRevenue = logsData
+            ?.filter(log => format(new Date(log.payment_date || new Date()), "yyyy-MM-dd") === date)
+            .reduce((sum, log) => sum + Number(log.amount || 0), 0) || 0;
+          return { date: format(new Date(date), "MM/dd"), revenue: dayRevenue };
+        });
+
+      } else {
+        // Store Owner: Keep showing their Sales Revenue
+        // We need to fetch order totals again for store owner if we want to show sales.
+        // My previous fetch only got "id, status". I need total_price for store owner.
+        if (isStoreOwner && storeId) {
+          const { data: storeOrders } = await supabase
+            .from("orders")
+            .select("total_price, created_at, status")
+            .eq('store_id', storeId);
+
+          displayRevenue = storeOrders
+            ?.filter(o => o.status !== 'cancelled')
+            .reduce((sum, o) => sum + (o.total_price || 0), 0) || 0;
+
+          // Chart for Store Owner
+          const last7Days = Array.from({ length: 7 }, (_, i) => {
+            const d = subDays(new Date(), 6 - i);
+            return format(d, "yyyy-MM-dd");
+          });
+
+          chartData = last7Days.map(date => {
+            const dayRevenue = storeOrders
+              ?.filter(o =>
+                o.status !== 'cancelled' &&
+                format(new Date(o.created_at), "yyyy-MM-dd") === date
+              )
+              .reduce((sum, o) => sum + (o.total_price || 0), 0) || 0;
+            return { date: format(new Date(date), "MM/dd"), revenue: dayRevenue };
+          });
+        }
+      }
 
       setStats({
         products: productsCount || 0,
         orders: ordersCount || 0,
         stores: storesCount || 0,
-        revenue
+        revenue: displayRevenue
       });
 
-      // 3. Prepare Revenue Chart Data (Last 7 Days)
-      const last7Days = Array.from({ length: 7 }, (_, i) => {
-        const d = subDays(new Date(), 6 - i);
-        return format(d, "yyyy-MM-dd");
-      });
-
-      const chartData = last7Days.map(date => {
-        const dayRevenue = allOrders
-          ?.filter(o =>
-            o.status !== 'cancelled' &&
-            format(new Date(o.created_at), "yyyy-MM-dd") === date
-          )
-          .reduce((sum, o) => sum + (o.total_price || 0), 0) || 0;
-
-        return { date: format(new Date(date), "MM/dd"), revenue: dayRevenue };
-      });
       setRevenueData(chartData);
 
       // 4. Prepare Order Status Data
@@ -146,12 +191,12 @@ export default function AdminDashboard() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">إجمالي الإيرادات</CardTitle>
+            <CardTitle className="text-sm font-medium">{isAdmin ? "أرباح الاشتراكات" : "إجمالي المبيعات"}</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.revenue.toLocaleString()} دج</div>
-            <p className="text-xs text-muted-foreground mt-1">الإجمالي التراكمي</p>
+            <p className="text-xs text-muted-foreground mt-1">{isAdmin ? "إجمالي مداخيل اشتراكات المتاجر" : "إجمالي المبيعات التراكمي"}</p>
           </CardContent>
         </Card>
         <Card className="hover:shadow-md transition-shadow">

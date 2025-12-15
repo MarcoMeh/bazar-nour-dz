@@ -1,14 +1,37 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Minus, Plus, Trash2, ShoppingBag, Store, AlertTriangle } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function Cart() {
   const { items, removeItem, updateQuantity, totalPrice } = useCart();
+  const navigate = useNavigate();
+  const [isErrorOpen, setIsErrorOpen] = useState(false);
+
+  const handleCheckout = () => {
+    // 1. Extract unique owners
+    const owners = new Set(items.map(item => item.ownerId).filter(Boolean));
+
+    // 2. Check if more than 1 owner
+    if (owners.size > 1) {
+      setIsErrorOpen(true);
+    } else {
+      navigate("/checkout");
+    }
+  };
 
   return (
-    <div className="container py-8">
+    <div className="container py-8" dir="rtl">
       <h1 className="text-3xl font-bold mb-8 text-primary">سلة التسوق</h1>
 
       {items.length === 0 ? (
@@ -45,11 +68,21 @@ export default function Cart() {
                     <div className="flex-1">
                       <h3 className="font-semibold text-lg mb-2">{item.name_ar}</h3>
                       <p className="text-primary font-bold mb-4">{item.price} دج</p>
-                      <div className="text-sm text-muted-foreground mb-2">
-                        {item.color && <span className="ml-2">اللون: {item.color}</span>}
-                        {item.size && <span>المقاس: {item.size}</span>}
+                      <div className="text-sm text-muted-foreground mb-2 space-y-1">
+                        {item.color && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground">اللون:</span>
+                            <span>{item.color}</span>
+                          </div>
+                        )}
+                        {item.size && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground">المقاس:</span>
+                            <span>{item.size}</span>
+                          </div>
+                        )}
                       </div>
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-4 mt-4">
                         <div className="flex items-center gap-2">
                           <Button
                             variant="outline"
@@ -72,7 +105,7 @@ export default function Cart() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="text-destructive"
+                          className="text-destructive hover:bg-destructive/10"
                           onClick={() => removeItem(item.id)}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -89,7 +122,7 @@ export default function Cart() {
           </div>
 
           <div>
-            <Card>
+            <Card className="sticky top-24">
               <CardHeader>
                 <CardTitle>ملخص الطلب</CardTitle>
               </CardHeader>
@@ -108,14 +141,36 @@ export default function Cart() {
                     <span className="text-primary">{totalPrice} دج</span>
                   </div>
                 </div>
-                <Button asChild className="w-full" size="lg">
-                  <Link to="/checkout">إتمام الطلب</Link>
+                <Button onClick={handleCheckout} className="w-full" size="lg">
+                  إتمام الطلب
                 </Button>
               </CardContent>
             </Card>
           </div>
         </div>
       )}
+
+      {/* Multi-Store Restriction Dialog */}
+      <Dialog open={isErrorOpen} onOpenChange={setIsErrorOpen}>
+        <DialogContent className="sm:max-w-md" dir="rtl">
+          <DialogHeader className="gap-2">
+            <div className="mx-auto w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center mb-2">
+              <Store className="h-6 w-6 text-orange-600" />
+            </div>
+            <DialogTitle className="text-center text-xl">تنبيه هام حول الشحن</DialogTitle>
+            <DialogDescription className="text-center text-base leading-relaxed pt-2">
+              حرصاً منا على سرعة توصيل طلباتكم، ونظراً لأن المنتجات مختارة من متاجر مختلفة، يرجى إتمام عملية شراء منتجات كل متجر على حدة.
+              <br /><br />
+              نعتذر عن الإزعاج ونعمل على تحديث النظام لخدمتكم بشكل أفضل.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="sm:justify-center">
+            <Button type="button" variant="secondary" onClick={() => setIsErrorOpen(false)} className="w-full sm:w-auto min-w-[120px]">
+              إغلاق
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
