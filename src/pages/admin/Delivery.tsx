@@ -1,289 +1,401 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAdmin } from '@/contexts/AdminContext';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { ArrowRight, Save } from 'lucide-react';
-import logo from '@/assets/bazzarna-logo.jpeg';
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "sonner";
+import { Loader2, Plus, Trash2, Edit, Truck, Map, MapPin } from "lucide-react";
 
-const AdminDelivery = () => {
-  const navigate = useNavigate();
-  const { isAdmin } = useAdmin();
-  const [wilayas, setWilayas] = useState<any[]>([]);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingField, setEditingField] = useState<'home' | 'desk' | null>(null);
-  const [editPrice, setEditPrice] = useState('');
-  const [loading, setLoading] = useState(false);
+interface Company {
+  id: string;
+  name: string;
+  logo_url?: string;
+  delivery_zones?: Zone[];
+}
 
+interface Zone {
+  id: string;
+  name: string;
+  price_home: number;
+  price_desk: number;
+  zone_wilayas?: { wilaya_code: string }[];
+}
+
+interface Wilaya {
+  code: string;
+  name_ar: string;
+}
+
+export default function AdminDelivery() {
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [wilayas, setWilayas] = useState<Wilaya[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  // Initial Fetch
   useEffect(() => {
-    if (!isAdmin) {
-      navigate('/admin/login');
-      return;
-    }
-    fetchWilayas();
-  }, [isAdmin, navigate]);
+    fetchInitialData();
+  }, []);
 
-  const fetchWilayas = async () => {
-    const { data } = await supabase
-      .from('wilayas')
-      .select('*')
-      .order('code', { ascending: true });
-    setWilayas(data || []);
-  };
-
-  const handleEdit = (wilaya: any, field: 'home' | 'desk') => {
-    setEditingId(wilaya.id);
-    setEditingField(field);
-    const price =
-      field === 'home' ? wilaya.home_delivery_price : wilaya.desk_delivery_price;
-    setEditPrice(price.toString());
-  };
-
-  const handleSave = async (id: number) => {
-    if (!editingField) return;
-
+  const fetchInitialData = async () => {
     setLoading(true);
-    const updateField =
-      editingField === 'home'
-        ? 'home_delivery_price'
-        : 'desk_delivery_price';
+    try {
+      // Fetch Companies with their Zones
+      const { data: companiesData, error: companiesError } = await supabase
+        .from("delivery_companies")
+        .select("*, delivery_zones(*, zone_wilayas(wilaya_code))");
 
-    const { error } = await supabase
-      .from('wilayas')
-      .update({ [updateField]: parseFloat(editPrice) })
-      .eq('id', id);
+      if (companiesError) throw companiesError;
 
-    setLoading(false);
+      // Fetch Wilayas for reference
+      const { data: wilayasData, error: wilayasError } = await supabase
+        .from("wilayas")
+        .select("code, name_ar")
+        .order("code");
 
-    if (error) {
-      toast.error('حدث خطأ في التحديث');
-      return;
+      if (wilayasError) throw wilayasError;
+
+      setCompanies(companiesData || []);
+      setWilayas(wilayasData || []);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      toast.error("فشل تحميل بيانات التوصيل");
+    } finally {
+      setLoading(false);
     }
-
-    toast.success('تم تحديث رسوم التوصيل');
-    setEditingId(null);
-    setEditingField(null);
-    setEditPrice('');
-    fetchWilayas();
   };
 
-  const handleCancel = () => {
-    setEditingId(null);
-    setEditingField(null);
-    setEditPrice('');
-  };
-
-  const handleToggleAvailability = async (
-    wilayaId: number,
-    field: 'home' | 'desk',
-    currentValue: boolean
-  ) => {
-    setLoading(true);
-    const updateField =
-      field === 'home'
-        ? 'home_delivery_available'
-        : 'desk_delivery_available';
-
-    const { error } = await supabase
-      .from('wilayas')
-      .update({ [updateField]: !currentValue })
-      .eq('id', wilayaId);
-
-    setLoading(false);
-
-    if (error) {
-      toast.error('حدث خطأ في التحديث');
-      return;
+  const handleCreateCompany = async (name: string) => {
+    try {
+      const { data, error } = await supabase.from("delivery_companies").insert([{ name }]).select().single();
+      if (error) throw error;
+      setCompanies([...companies, { ...data, delivery_zones: [] }]);
+      toast.success("تم إضافة شركة التوصيل");
+    } catch (error) {
+      toast.error("فشل إضافة الشركة");
     }
-
-    toast.success('تم تحديث حالة التوصيل');
-    fetchWilayas();
   };
-
-  if (!isAdmin) return null;
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <Link to="/admin">
-            <Button variant="ghost">
-              <ArrowRight className="ml-2 h-4 w-4" />
-              العودة
-            </Button>
-          </Link>
-          <img src={logo} alt="Bazzarna" className="h-12" />
+    <div className="p-4 md:p-8 space-y-6" dir="rtl">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">إدارة شركات التوصيل</h1>
+          <p className="text-muted-foreground mt-2">قم بإعداد مناطق وأسعار التوصيل لكل شركة.</p>
         </div>
-      </header>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="w-4 h-4 ml-2" />
+              إضافة شركة
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>إضافة شركة توصيل جديدة</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              handleCreateCompany(formData.get("name") as string);
+            }} className="space-y-4 pt-4">
+              <div className="space-y-2">
+                <Label>اسم الشركة</Label>
+                <Input name="name" required placeholder="مثال: Yalidine" />
+              </div>
+              <Button type="submit" className="w-full">حفظ</Button>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
 
-      <main className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">رسوم التوصيل</h1>
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {companies.map((company) => (
+            <Card key={company.id} className="hover:shadow-lg transition-shadow cursor-pointer relative group" onClick={() => {
+              setSelectedCompany(company);
+              setIsDialogOpen(true);
+            }}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-xl font-bold flex items-center gap-2">
+                  <Truck className="w-5 h-5 text-primary" />
+                  {company.name}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-sm text-muted-foreground mt-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Map className="w-4 h-4" />
+                    {company.delivery_zones?.length || 0} مناطق توصيل
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4" />
+                    تغطية {company.delivery_zones?.reduce((acc, zone) => acc + (zone.zone_wilayas?.length || 0), 0) || 0} ولاية
+                  </div>
+                </div>
+                <div className="absolute top-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button variant="secondary" size="sm">تعديل</Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
-        <Card className="p-6">
-          <h2 className="text-xl font-bold mb-4">رسوم التوصيل حسب الولاية</h2>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-right">الرمز</TableHead>
-                  <TableHead className="text-right">اسم الولاية</TableHead>
-                  <TableHead className="text-right">توصيل للمنزل</TableHead>
-                  <TableHead className="text-right">سعر المنزل (دج)</TableHead>
-                  <TableHead className="text-right">توصيل للمكتب</TableHead>
-                  <TableHead className="text-right">سعر المكتب (دج)</TableHead>
-                </TableRow>
-              </TableHeader>
+      {/* Edit Company Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0 gap-0">
+          <DialogHeader className="p-6 border-b">
+            <DialogTitle className="text-2xl flex items-center gap-2">
+              <Edit className="w-5 h-5 text-primary" />
+              إعدادات {selectedCompany?.name}
+            </DialogTitle>
+          </DialogHeader>
 
-              <TableBody>
-                {wilayas.map((wilaya) => (
-                  <TableRow key={wilaya.id}>
-                    <TableCell className="font-mono">{wilaya.code}</TableCell>
-                    <TableCell>{wilaya.name_ar}</TableCell>
-
-                    {/* HOME AVAILABLE */}
-                    <TableCell>
-                      <Button
-                        size="sm"
-                        variant={
-                          wilaya.home_delivery_available ? 'default' : 'outline'
-                        }
-                        onClick={() =>
-                          handleToggleAvailability(
-                            wilaya.id,
-                            'home',
-                            wilaya.home_delivery_available
-                          )
-                        }
-                        disabled={loading}
-                      >
-                        {wilaya.home_delivery_available ? 'متاح' : 'غير متاح'}
-                      </Button>
-                    </TableCell>
-
-                    {/* HOME PRICE */}
-                    <TableCell>
-                      {editingId === wilaya.id &&
-                        editingField === 'home' ? (
-                        <div className="flex gap-2">
-                          <Input
-                            type="number"
-                            step="0.01"
-                            value={editPrice}    // string only — no conversion
-                            onChange={(e) => setEditPrice(e.target.value)}
-                            className="w-24"
-                          />
-
-                          <Button
-                            size="sm"
-                            onClick={() => handleSave(wilaya.id)}
-                            disabled={loading}
-                          >
-                            <Save className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={handleCancel}
-                            disabled={loading}
-                          >
-                            إلغاء
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="flex gap-2 items-center">
-                          <span>{wilaya.home_delivery_price} دج</span>
-                          {wilaya.home_delivery_available && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleEdit(wilaya, 'home')}
-                            >
-                              تعديل
-                            </Button>
-                          )}
-                        </div>
-                      )}
-                    </TableCell>
-
-                    {/* DESK AVAILABLE */}
-                    <TableCell>
-                      <Button
-                        size="sm"
-                        variant={
-                          wilaya.desk_delivery_available
-                            ? 'default'
-                            : 'outline'
-                        }
-                        onClick={() =>
-                          handleToggleAvailability(
-                            wilaya.id,
-                            'desk',
-                            wilaya.desk_delivery_available
-                          )
-                        }
-                        disabled={loading}
-                      >
-                        {wilaya.desk_delivery_available ? 'متاح' : 'غير متاح'}
-                      </Button>
-                    </TableCell>
-
-                    {/* DESK PRICE */}
-                    <TableCell>
-                      {editingId === wilaya.id &&
-                        editingField === 'desk' ? (
-                        <div className="flex gap-2">
-                          <Input
-                            type="number"
-                            step="0.01"
-                            value={editPrice}
-                            onChange={(e) => setEditPrice(e.target.value)}
-                            className="w-24"
-                          />
-                          <Button
-                            size="sm"
-                            onClick={() => handleSave(wilaya.id)}
-                            disabled={loading}
-                          >
-                            <Save className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={handleCancel}
-                            disabled={loading}
-                          >
-                            إلغاء
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="flex gap-2 items-center">
-                          <span>{wilaya.desk_delivery_price} دج</span>
-                          {wilaya.desk_delivery_available && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleEdit(wilaya, 'desk')}
-                            >
-                              تعديل
-                            </Button>
-                          )}
-                        </div>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </Card>
-      </main>
+          {selectedCompany && (
+            <CompanyEditor
+              company={selectedCompany}
+              wilayas={wilayas}
+              onUpdate={() => {
+                fetchInitialData();
+                // Keep dialog open but refresh data? 
+                // Actually simplistic fetchInitialData replaces selectedCompany instance reference
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
-};
+}
 
-export default AdminDelivery;
+function CompanyEditor({ company, wilayas, onUpdate }: { company: Company, wilayas: Wilaya[], onUpdate: () => void }) {
+  const [zones, setZones] = useState<Zone[]>(company.delivery_zones || []);
+  const [newZoneName, setNewZoneName] = useState("");
+  const [activeTab, setActiveTab] = useState("zones");
+
+  // Derived state for available wilayas (not assigned to any zone in this company)
+  const assignedWilayaCodes = new Set(zones.flatMap(z => z.zone_wilayas?.map(zw => zw.wilaya_code) || []));
+
+  const handleAddZone = async () => {
+    if (!newZoneName) return;
+    try {
+      const { error } = await supabase.from("delivery_zones").insert([{
+        company_id: company.id,
+        name: newZoneName,
+        price_home: 0,
+        price_desk: 0
+      }]);
+      if (error) throw error;
+      toast.success("تم إضافة المنطقة");
+      setNewZoneName("");
+      onUpdate();
+      // Optimistic update
+      // setZones([...zones, { id: "temp", name: newZoneName, price_home: 0, price_desk: 0, zone_wilayas: [] } as any]);
+    } catch (error) {
+      toast.error("حدث خطأ");
+    }
+  };
+
+  const handleDeleteZone = async (zoneId: string) => {
+    if (!confirm("هل أنت متأكد من حذف هذه المنطقة؟")) return;
+    try {
+      const { error } = await supabase.from("delivery_zones").delete().eq("id", zoneId);
+      if (error) throw error;
+      toast.success("تم حذف المنطقة");
+      onUpdate();
+    } catch (error) {
+      toast.error("حدث خطأ");
+    }
+  };
+
+  return (
+    <div className="flex-1 overflow-hidden flex flex-col">
+      <div className="p-4 bg-muted/20 flex gap-4 items-end border-b">
+        <div className="flex-1">
+          <Label>إضافة منطقة جديدة (Zone)</Label>
+          <div className="flex gap-2 mt-2">
+            <Input
+              value={newZoneName}
+              onChange={(e) => setNewZoneName(e.target.value)}
+              placeholder="مثال: المنطقة الوسطى"
+            />
+            <Button onClick={handleAddZone}><Plus className="w-4 h-4 ml-2" /> إضافة</Button>
+          </div>
+        </div>
+      </div>
+
+      <ScrollArea className="flex-1 p-6">
+        <div className="space-y-6">
+          {zones.map((zone) => (
+            <ZoneEditor
+              key={zone.id}
+              zone={zone}
+              allWilayas={wilayas}
+              assignedCodes={assignedWilayaCodes}
+              onUpdate={onUpdate}
+              onDelete={() => handleDeleteZone(zone.id)}
+            />
+          ))}
+          {zones.length === 0 && (
+            <div className="text-center py-12 text-muted-foreground border-2 border-dashed rounded-xl">
+              لا توجد مناطق مضافة بعد. ابدأ بإضافة منطقة لتقسيم الولايات.
+            </div>
+          )}
+        </div>
+      </ScrollArea>
+    </div>
+  );
+}
+
+function ZoneEditor({ zone, allWilayas, assignedCodes, onUpdate, onDelete }: {
+  zone: Zone,
+  allWilayas: Wilaya[],
+  assignedCodes: Set<string>,
+  onUpdate: () => void,
+  onDelete: () => void
+}) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [prices, setPrices] = useState({ home: zone.price_home, desk: zone.price_desk });
+
+  const handleSavePrices = async () => {
+    try {
+      const { error } = await supabase.from("delivery_zones")
+        .update({ price_home: prices.home, price_desk: prices.desk })
+        .eq("id", zone.id);
+      if (error) throw error;
+      toast.success("تم تحديث الأسعار");
+      onUpdate();
+    } catch (error) {
+      toast.error("فشل تحديث الأسعار");
+    }
+  };
+
+  const handleAddWilaya = async (code: string) => {
+    try {
+      const { error } = await supabase.from("zone_wilayas").insert([{ zone_id: zone.id, wilaya_code: code }]);
+      if (error) throw error;
+      onUpdate();
+    } catch (e) { toast.error("خطأ") }
+  };
+
+  const handleRemoveWilaya = async (code: string) => {
+    try {
+      const { error } = await supabase.from("zone_wilayas")
+        .delete()
+        .eq("zone_id", zone.id)
+        .eq("wilaya_code", code);
+      if (error) throw error;
+      onUpdate();
+    } catch (e) { toast.error("خطأ") }
+  };
+
+  return (
+    <Card className="border shadow-none">
+      <CardHeader className="bg-muted/30 pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg font-bold flex items-center gap-2">
+            <MapPin className="w-5 h-5 text-primary" />
+            {zone.name}
+            <Badge variant="secondary" className="mr-2 text-xs font-normal">
+              {zone.zone_wilayas?.length || 0} ولاية
+            </Badge>
+          </CardTitle>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setIsExpanded(!isExpanded)}>
+              {isExpanded ? "إخفاء التفاصيل" : "عرض التفاصيل"}
+            </Button>
+            <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10" onClick={onDelete}>
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 items-end">
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">توصيل للمنزل (دج)</Label>
+            <Input
+              type="number"
+              value={prices.home}
+              onChange={(e) => setPrices({ ...prices, home: Number(e.target.value) })}
+              className="bg-white"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">توصيل للمكتب (دج)</Label>
+            <Input
+              type="number"
+              value={prices.desk}
+              onChange={(e) => setPrices({ ...prices, desk: Number(e.target.value) })}
+              className="bg-white"
+            />
+          </div>
+          <Button onClick={handleSavePrices} disabled={prices.home === zone.price_home && prices.desk === zone.price_desk}>
+            حفظ الأسعار
+          </Button>
+        </div>
+      </CardHeader>
+      {isExpanded && (
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Assigned Wilayas */}
+            <div>
+              <h4 className="font-semibold mb-3 text-sm">الولايات المضافة في هذه المنطقة:</h4>
+              <div className="flex flex-wrap gap-2">
+                {zone.zone_wilayas?.map((zw) => {
+                  const w = allWilayas.find(w => w.code === zw.wilaya_code);
+                  return (
+                    <Badge key={zw.wilaya_code} variant="outline" className="pl-1 pr-2 py-1 flex items-center gap-2 bg-background">
+                      {w?.name_ar || zw.wilaya_code}
+                      <button onClick={() => handleRemoveWilaya(zw.wilaya_code)} className="hover:text-destructive">
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </Badge>
+                  );
+                })}
+                {(!zone.zone_wilayas || zone.zone_wilayas.length === 0) && (
+                  <p className="text-sm text-muted-foreground italic">لا توجد ولايات</p>
+                )}
+              </div>
+            </div>
+
+            {/* Available Wilayas */}
+            <div className="border-t pt-6 md:border-t-0 md:pt-0 md:border-r md:pr-6">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-semibold text-sm">إضافة ولايات لهذه المنطقة:</h4>
+                <input placeholder="بحث..." className="text-xs border rounded p-1" />
+              </div>
+              <ScrollArea className="h-48 border rounded-md p-2 bg-muted/10">
+                <div className="grid grid-cols-2 gap-1">
+                  {allWilayas.filter(w => !assignedCodes.has(w.code)).map((w) => (
+                    <button
+                      key={w.code}
+                      onClick={() => handleAddWilaya(w.code)}
+                      className="text-right text-sm px-2 py-1.5 hover:bg-primary/10 rounded cursor-pointer truncate"
+                    >
+                      <span className="opacity-50 ml-2 text-xs">{w.code}</span>
+                      {w.name_ar}
+                    </button>
+                  ))}
+                  {allWilayas.filter(w => !assignedCodes.has(w.code)).length === 0 && (
+                    <p className="col-span-2 text-center text-xs text-muted-foreground py-4">جميع الولايات مخصصة لمناطق بالفعل</p>
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
+          </div>
+        </CardContent>
+      )}
+    </Card>
+  );
+}

@@ -6,6 +6,7 @@ import {
     ShoppingCart,
     User,
     LogOut,
+    Truck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,6 +35,7 @@ export const StoreOwnerSidebar = ({ onLinkClick }: StoreOwnerSidebarProps) => {
         { name: "لوحة التحكم", href: "/store-dashboard", icon: LayoutDashboard },
         { name: "المنتجات", href: "/store-dashboard/products", icon: Package },
         { name: "الطلبات", href: "/store-dashboard/orders", icon: ShoppingCart },
+        { name: "طرق التوصيل", href: "/store-dashboard/delivery", icon: Truck },
         { name: "الملف الشخصي", href: "/store-dashboard/profile", icon: User },
     ];
 

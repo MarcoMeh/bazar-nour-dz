@@ -32,7 +32,7 @@ export const AdminSidebar = () => {
     { name: "المنتجات", href: "/admin/products", icon: Package, show: true },
     { name: "التقييمات", href: "/admin/reviews", icon: Star, show: true },
     { name: "تصنيفات المنتجات", href: "/admin/categories", icon: FolderTree, show: isAdmin },
-    { name: "تصنيفات المتاجر", href: "/admin/store-categories", icon: Tags, show: isAdmin },
+
     { name: "الطلبات", href: "/admin/orders", icon: ShoppingCart, show: true },
     { name: "المحلات", href: "/admin/stores", icon: Store, show: true },
     { name: "طلبات تسجيل المحلات", href: "/admin/store-registrations", icon: UserPlus, show: isAdmin },

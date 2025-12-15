@@ -46,6 +46,7 @@ import StoreOwnerDashboard from "./pages/store-owner/Dashboard";
 import StoreOwnerProducts from "./pages/store-owner/Products";
 import StoreOwnerOrders from "./pages/store-owner/Orders";
 import StoreOwnerProfile from "./pages/store-owner/Profile";
+import StoreOwnerDelivery from "./pages/store-owner/Delivery";
 
 // Contexts
 import { CartProvider } from "./contexts/CartContext";
@@ -153,6 +154,7 @@ const App = () => (
                       <Route index element={<StoreOwnerDashboard />} />
                       <Route path="products" element={<StoreOwnerProducts />} />
                       <Route path="orders" element={<StoreOwnerOrders />} />
+                      <Route path="delivery" element={<StoreOwnerDelivery />} />
                       <Route path="profile" element={<StoreOwnerProfile />} />
                     </Route>
 
