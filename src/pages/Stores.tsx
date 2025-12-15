@@ -17,8 +17,8 @@ interface StoreType {
     description: string | null;
     image_url: string | null;
     slug: string | null;
-    category_id: string | null;
-    // لم نعد بحاجة للعلاقة المعقدة هنا
+    category_id?: string | null; // Deprecated
+    categories?: { id: string; name: string }[];
 }
 
 // القائمة الثابتة (سنستخدمها لعرض الأسماء أيضاً)
@@ -61,19 +61,26 @@ export default function Stores() {
         const fetchStores = async () => {
             setLoading(true);
             try {
-                // ✅ استعلام بسيط جداً ومباشر (بدون Joins) لضمان ظهور البيانات
-                let query = supabase
-                    .from("stores")
-                    .select("id, name, description, image_url, slug, category_id", { count: "exact" })
-                    .eq("is_active", true);
+                let query;
 
-                // شرط الاشتراك (اختياري حسب بياناتك)
-                query = query.or(`subscription_end_date.gt.${new Date().toISOString()},subscription_end_date.is.null`);
+                const selectQuery = `id, name, description, image_url, slug, store_category_relations(categories(id, name, slug))`;
 
                 // الفلترة
                 if (selectedCategory !== "all") {
-                    query = query.eq("category_id", selectedCategory);
+                    query = supabase
+                        .from("stores")
+                        .select(`id, name, description, image_url, slug, store_category_relations!inner(categories(id, name, slug))`, { count: "exact" })
+                        .eq("store_category_relations.category_id", selectedCategory);
+                } else {
+                    query = supabase
+                        .from("stores")
+                        .select(selectQuery, { count: "exact" });
                 }
+
+                query = query.eq("is_active", true);
+
+                // شرط الاشتراك (اختياري حسب بياناتك)
+                query = query.or(`subscription_end_date.gt.${new Date().toISOString()},subscription_end_date.is.null`);
 
                 if (searchTerm) {
                     query = query.ilike("name", `%${searchTerm}%`);
@@ -91,7 +98,13 @@ export default function Stores() {
                     throw error;
                 }
 
-                setStores(data as any || []);
+                // Map data
+                const processed = (data as any || []).map((s: any) => ({
+                    ...s,
+                    categories: s.store_category_relations?.map((r: any) => r.categories).filter(Boolean) || []
+                }));
+
+                setStores(processed);
                 setTotalStores(count || 0);
 
             } catch (error) {
@@ -155,8 +168,8 @@ export default function Stores() {
                         <button
                             onClick={() => handleCategoryChange("all")}
                             className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all whitespace-nowrap shrink-0 border ${selectedCategory === "all"
-                                    ? "bg-black text-white border-black shadow-lg shadow-black/20"
-                                    : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
+                                ? "bg-black text-white border-black shadow-lg shadow-black/20"
+                                : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
                                 }`}
                         >
                             <Store className="w-4 h-4" />
@@ -168,8 +181,8 @@ export default function Stores() {
                                 key={cat.id}
                                 onClick={() => handleCategoryChange(cat.id)}
                                 className={`flex items-center gap-2 pr-1.5 pl-4 py-1.5 rounded-full text-sm font-bold transition-all whitespace-nowrap shrink-0 border ${selectedCategory === cat.id
-                                        ? "bg-black text-white border-black shadow-lg shadow-black/20"
-                                        : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
+                                    ? "bg-black text-white border-black shadow-lg shadow-black/20"
+                                    : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
                                     }`}
                             >
                                 <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100 border border-gray-200 shrink-0">
@@ -237,14 +250,13 @@ export default function Stores() {
                                             {store.name}
                                         </h3>
 
-                                        {/* عرض اسم الفئة باستخدام الدالة المساعدة */}
-                                        {getCategoryName(store.category_id) && (
-                                            <div className="flex justify-center gap-1 mb-4 opacity-90">
-                                                <span className="text-[10px] bg-white/20 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/10">
-                                                    {getCategoryName(store.category_id)}
+                                        <div className="flex justify-center gap-1 mb-4 opacity-90 flex-wrap px-4">
+                                            {store.categories?.slice(0, 3).map((cat) => (
+                                                <span key={cat.id} className="text-[10px] bg-white/20 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/10">
+                                                    {cat.name}
                                                 </span>
-                                            </div>
-                                        )}
+                                            ))}
+                                        </div>
 
                                         <div className="h-0 group-hover:h-10 overflow-hidden transition-all duration-300 opacity-0 group-hover:opacity-100">
                                             <Button size="sm" className="w-full rounded-full bg-white text-black hover:bg-blue-600 hover:text-white border-none font-bold text-xs h-8">

@@ -175,7 +175,7 @@ const Home = () => {
     };
 
     const fetchStoreCategories = async () => {
-        const { data } = await supabase.from("store_categories").select("*").order("name");
+        const { data } = await supabase.from("categories").select("*").order("name");
         if (data) setStoreCategories(data);
     };
 
@@ -188,7 +188,7 @@ const Home = () => {
                 image_url, 
                 description,
                 slug,
-                store_categories (
+                store_category_relations (
                     category_id
                 )
             `)
@@ -202,11 +202,11 @@ const Home = () => {
         }
 
         if (data) {
-            // Map the nested store_categories to a flat array of category IDs for filtering
+            // Map the nested store_category_relations to a flat array of category IDs for filtering
             const formattedStores = data.map((store: any) => ({
                 ...store,
                 // We map this to allow filtering by checking if the category exists in this array
-                category_ids: store.store_categories?.map((sc: any) => sc.category_id) || []
+                category_ids: store.store_category_relations?.map((sc: any) => sc.category_id) || []
             }));
             setStores(formattedStores);
         }

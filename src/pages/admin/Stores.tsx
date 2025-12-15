@@ -33,6 +33,7 @@ import { toast } from "sonner";
 import { createClient } from "@supabase/supabase-js";
 import { useAdmin } from "@/contexts/AdminContext";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { MultiSelect } from "@/components/MultiSelect";
 
 // Define interfaces based on the actual SQL schema
 interface Profile {
@@ -54,14 +55,20 @@ interface Store {
     created_at: string;
     // Joined profile data
     profiles?: Profile;
-    category_id?: string;
-    store_categories?: { name: string };
-    categories?: { id: string; name: string }[];
     subscription_end_date?: string;
     whatsapp?: string | null;
     facebook?: string | null;
     instagram?: string | null;
     tiktok?: string | null;
+    // Relations
+    store_category_relations?: {
+        store_categories?: {
+            id: string;
+            name: string;
+        };
+    }[];
+    categories?: { id: string; name: string }[];
+    cover_image_url?: string | null;
 }
 
 // Form data interface
@@ -74,11 +81,12 @@ interface StoreFormData {
     password?: string;
     image_url: string;
     description: string;
-    category_id: string;
+    category_ids: string[];
     whatsapp: string;
     facebook: string;
     instagram: string;
     tiktok: string;
+    cover_image_url: string;
 }
 
 export default function AdminStores() {
@@ -95,11 +103,12 @@ export default function AdminStores() {
         address: "",
         image_url: "",
         description: "",
-        category_id: "",
+        category_ids: [],
         whatsapp: "",
         facebook: "",
         instagram: "",
         tiktok: "",
+        cover_image_url: "",
     });
     const [categories, setCategories] = useState<any[]>([]);
     const [uploading, setUploading] = useState(false);
@@ -120,7 +129,7 @@ export default function AdminStores() {
             .select(`
                 *,
                 profiles:owner_id(*),
-                store_categories(
+                store_category_relations(
                     categories(
                         id,
                         name
@@ -142,7 +151,7 @@ export default function AdminStores() {
             // Map to flatten categories for easier usage if needed, or update interface
             const processedStores = (data || []).map((store: any) => ({
                 ...store,
-                categories: store.store_categories?.map((sc: any) => sc.categories) || [],
+                categories: store.store_category_relations?.map((rel: any) => rel.categories).filter(Boolean) || [],
                 profiles: store.profiles ? {
                     ...store.profiles,
                     role: store.profiles.role as 'admin' | 'store_owner' | 'customer'
@@ -171,14 +180,15 @@ export default function AdminStores() {
     const handleEdit = (store: Store) => {
         setEditingStore(store);
         setFormData({
-            store_name: store.name,
+            store_name: store.name || "",
             owner_name: store.profiles?.full_name || "",
             email: store.profiles?.email || "",
             phone: store.profiles?.phone || "",
             address: store.profiles?.address || "",
             image_url: store.image_url || "",
+            cover_image_url: store.cover_image_url || "",
             description: store.description || "",
-            category_id: store.category_id || "",
+            category_ids: store.categories?.map(c => c.id) || [],
             whatsapp: store.whatsapp || "",
             facebook: store.facebook || "",
             instagram: store.instagram || "",
@@ -187,33 +197,35 @@ export default function AdminStores() {
         setOpen(true);
     };
 
-    const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>, isCover = false) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        setUploading(true);
         try {
-            if (!event.target.files || event.target.files.length === 0) {
-                return;
-            }
-            setUploading(true);
-            const file = event.target.files[0];
             const fileExt = file.name.split('.').pop();
             const fileName = `${Math.random()}.${fileExt}`;
-            const filePath = `${fileName}`;
-
+            const bucket = isCover ? 'store-covers' : 'store-images';
             const { error: uploadError } = await supabase.storage
-                .from('store-images')
-                .upload(filePath, file);
+                .from(bucket)
+                .upload(fileName, file);
 
-            if (uploadError) {
-                throw uploadError;
-            }
+            if (uploadError) throw uploadError;
 
             const { data } = supabase.storage
-                .from('store-images')
-                .getPublicUrl(filePath);
+                .from(bucket)
+                .getPublicUrl(fileName);
 
-            setFormData({ ...formData, image_url: data.publicUrl });
+            if (isCover) {
+                setFormData(prev => ({ ...prev, cover_image_url: data.publicUrl }));
+            } else {
+                setFormData(prev => ({ ...prev, image_url: data.publicUrl }));
+            }
+
             toast.success("تم رفع الصورة بنجاح");
         } catch (error: any) {
-            toast.error("فشل في رفع الصورة: " + error.message);
+            console.error(error);
+            toast.error("فشل رفع الصورة");
         } finally {
             setUploading(false);
         }
@@ -231,21 +243,36 @@ export default function AdminStores() {
             if (editingStore) {
                 // Update existing store
                 // 1. Update Store details
+                const updates: { [key: string]: any } = {};
+                if (formData.store_name !== editingStore.name) updates.name = formData.store_name;
+                if (formData.image_url !== editingStore.image_url) updates.image_url = formData.image_url;
+                if (formData.cover_image_url !== editingStore.cover_image_url) updates.cover_image_url = formData.cover_image_url;
+                if (formData.description !== editingStore.description) updates.description = formData.description;
+                if (formData.whatsapp !== editingStore.whatsapp) updates.whatsapp = formData.whatsapp || null;
+                if (formData.facebook !== editingStore.facebook) updates.facebook = formData.facebook || null;
+                if (formData.instagram !== editingStore.instagram) updates.instagram = formData.instagram || null;
+                if (formData.tiktok !== editingStore.tiktok) updates.tiktok = formData.tiktok || null;
+
                 const { error: storeError } = await supabase
                     .from("stores")
-                    .update({
-                        name: formData.store_name,
-                        image_url: formData.image_url,
-                        description: formData.description,
-                        category_id: formData.category_id || null,
-                        whatsapp: formData.whatsapp || null,
-                        facebook: formData.facebook || null,
-                        instagram: formData.instagram || null,
-                        tiktok: formData.tiktok || null,
-                    })
+                    .update(updates)
                     .eq("id", editingStore.id);
 
                 if (storeError) throw storeError;
+
+                // Update Categories
+                // First delete existing
+                await supabase.from("store_category_relations").delete().eq("store_id", editingStore.id);
+                // Insert new
+                if (formData.category_ids.length > 0) {
+                    const { error: catError } = await supabase.from("store_category_relations").insert(
+                        formData.category_ids.map(catId => ({
+                            store_id: editingStore.id,
+                            category_id: catId
+                        }))
+                    );
+                    if (catError) throw catError;
+                }
 
                 // 2. Update Profile details
                 const { error: profileError } = await supabase
@@ -344,7 +371,7 @@ export default function AdminStores() {
                 }
 
                 // 3. Create Store
-                const { error: storeError } = await supabase
+                const { data: newStore, error: storeError } = await supabase
                     .from("stores")
                     .insert({
                         owner_id: userId,
@@ -352,12 +379,26 @@ export default function AdminStores() {
                         description: formData.description,
                         image_url: formData.image_url,
                         is_active: true,
-                        category_id: formData.category_id || null,
                         whatsapp: formData.whatsapp || null,
                         facebook: formData.facebook || null,
                         instagram: formData.instagram || null,
                         tiktok: formData.tiktok || null,
-                    });
+                    })
+                    .select()
+                    .single();
+
+                if (storeError) throw storeError;
+
+                // Insert Categories
+                if (formData.category_ids.length > 0) {
+                    const { error: catError } = await supabase.from("store_category_relations").insert(
+                        formData.category_ids.map(catId => ({
+                            store_id: newStore.id,
+                            category_id: catId
+                        }))
+                    );
+                    if (catError) throw catError;
+                }
 
                 if (storeError) throw storeError;
 
@@ -374,11 +415,12 @@ export default function AdminStores() {
                 address: "",
                 image_url: "",
                 description: "",
-                category_id: "",
+                category_ids: [],
                 whatsapp: "",
                 facebook: "",
                 instagram: "",
                 tiktok: "",
+                cover_image_url: "",
             });
             fetchStores();
 
@@ -406,11 +448,12 @@ export default function AdminStores() {
                             address: "",
                             image_url: "",
                             description: "",
-                            category_id: "",
+                            category_ids: [],
                             whatsapp: "",
                             facebook: "",
                             instagram: "",
                             tiktok: "",
+                            cover_image_url: "",
                         });
                     }
                 }}>
@@ -462,6 +505,45 @@ export default function AdminStores() {
                                         <Upload className="w-4 h-4 ml-2" />
                                         رفع صورة
                                     </Label>
+                                </div>
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label>صورة الغلاف (Banner)</Label>
+                                <div className="flex flex-col items-center gap-4 border rounded-lg p-4 bg-muted/50">
+                                    {formData.cover_image_url && (
+                                        <div className="w-full h-32 relative rounded-md overflow-hidden bg-background">
+                                            <img
+                                                src={formData.cover_image_url}
+                                                alt="Store Cover"
+                                                className="w-full h-full object-cover"
+                                            />
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="absolute top-2 right-2 bg-background/50 hover:bg-background/80"
+                                                onClick={() => setFormData({ ...formData, cover_image_url: "" })}
+                                            >
+                                                <Trash2 className="w-4 h-4 text-destructive" />
+                                            </Button>
+                                        </div>
+                                    )}
+                                    <div className="flex items-center gap-2">
+                                        <Input
+                                            id="cover-upload"
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={(e) => handleImageUpload(e, true)}
+                                        />
+                                        <Label
+                                            htmlFor="cover-upload"
+                                            className="cursor-pointer bg-secondary text-secondary-foreground hover:bg-secondary/90 h-9 px-4 py-2 rounded-md text-sm font-medium flex items-center"
+                                        >
+                                            <Upload className="w-4 h-4 ml-2" />
+                                            {formData.cover_image_url ? "تغيير الغلاف" : "رفع غلاف"}
+                                        </Label>
+                                    </div>
                                 </div>
                             </div>
 
@@ -542,20 +624,13 @@ export default function AdminStores() {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label>فئة المحل</Label>
-                                <UISelect
-                                    value={formData.category_id}
-                                    onValueChange={(val) => setFormData({ ...formData, category_id: val })}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="اختر فئة المحل" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {categories.map((cat) => (
-                                            <SelectItem key={cat.id} value={String(cat.id)}>{cat.name}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </UISelect>
+                                <Label>فئات المحل</Label>
+                                <MultiSelect
+                                    options={categories.map(c => ({ label: c.name, value: c.id }))}
+                                    selected={formData.category_ids}
+                                    onChange={(vals) => setFormData({ ...formData, category_ids: vals })}
+                                    placeholder="اختر فئات المحل"
+                                />
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
@@ -656,16 +731,11 @@ export default function AdminStores() {
                                         <TableCell className="font-medium">{store.name}</TableCell>
                                         <TableCell>
                                             <div className="flex flex-wrap gap-1">
-                                                {store.categories?.slice(0, 3).map((cat: any) => (
+                                                {store.categories?.map((cat: any) => (
                                                     <span key={cat.id} className="text-[10px] bg-secondary/20 text-secondary-foreground px-1 py-0.5 rounded">
                                                         {cat.name}
                                                     </span>
                                                 ))}
-                                                {store.store_categories?.name && !store.categories?.length && (
-                                                    <span className="text-[10px] bg-secondary/20 text-secondary-foreground px-1 py-0.5 rounded">
-                                                        {store.store_categories.name}
-                                                    </span>
-                                                )}
                                             </div>
                                         </TableCell>
                                         <TableCell>{store.profiles?.full_name || "غير محدد"}</TableCell>

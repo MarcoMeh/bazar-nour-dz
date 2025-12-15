@@ -41,38 +41,43 @@ async function fetchStores(filters: StoreFilters = {}): Promise<StoresResponse> 
         search
     } = filters;
 
-    let query = supabase
-        .from('stores')
-        .select(`
+    let query;
+
+    // Base selection with categories
+    const selectQuery = `
     *,
-    store_categories!inner(
+    store_category_relations(
         categories(
             id,
-            name
+            name,
+            slug
         )
     )
-        `, { count: 'exact' })
-        .eq('is_active', true)
-        .or(`subscription_end_date.gt.${new Date().toISOString()},subscription_end_date.is.null`);
+    `;
 
-    // Apply filters
+    // If filtering by category, use inner join to filter stores
     if (categoryId && categoryId !== 'all') {
-        query = query.eq('store_categories.category_id', categoryId);
-    } else {
         query = supabase
             .from('stores')
             .select(`
-    *,
-    store_categories(
-        categories(
-            id,
-            name
-        )
-    )
-        `, { count: 'exact' })
-            .eq('is_active', true)
-            .or(`subscription_end_date.gt.${new Date().toISOString()},subscription_end_date.is.null`);
+                *,
+                store_category_relations!inner(
+                    categories(
+                        id,
+                        name,
+                        slug
+                    )
+                )
+            `, { count: 'exact' })
+            .eq('store_category_relations.category_id', categoryId);
+    } else {
+        query = supabase
+            .from('stores')
+            .select(selectQuery, { count: 'exact' });
     }
+
+    query = query.eq('is_active', true)
+        .or(`subscription_end_date.gt.${new Date().toISOString()},subscription_end_date.is.null`);
 
     if (search) {
         query = query.ilike('name', `%${search}%`);
@@ -94,7 +99,7 @@ async function fetchStores(filters: StoreFilters = {}): Promise<StoresResponse> 
     // Process data to flatten categories structure
     const processedStores = (data || []).map((store: any) => ({
         ...store,
-        categories: store.store_categories?.map((sc: any) => sc.categories).filter(Boolean) || []
+        categories: store.store_category_relations?.map((rel: any) => rel.categories).filter(Boolean) || []
     }));
 
     const totalCount = count || 0;

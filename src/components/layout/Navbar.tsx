@@ -123,7 +123,7 @@ export const Navbar = () => {
                                             <Package className="h-5 w-5" />
                                             طلباتي
                                         </Link>
-                                        <Link to="/profile" className="text-lg font-semibold hover:text-primary flex items-center gap-2" onClick={() => setIsSheetOpen(false)}>
+                                        <Link to={userRole === 'store_owner' ? "/store-dashboard/profile" : "/profile"} className="text-lg font-semibold hover:text-primary flex items-center gap-2" onClick={() => setIsSheetOpen(false)}>
                                             <Settings className="h-5 w-5" />
                                             الإعدادات
                                         </Link>
@@ -212,7 +212,7 @@ export const Navbar = () => {
                                     </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem asChild>
-                                    <Link to="/profile" className="cursor-pointer flex items-center gap-2">
+                                    <Link to={userRole === 'store_owner' ? "/store-dashboard/profile" : "/profile"} className="cursor-pointer flex items-center gap-2">
                                         <Settings className="h-4 w-4" />
                                         <span>الإعدادات</span>
                                     </Link>

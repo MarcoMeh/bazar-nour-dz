@@ -13,8 +13,9 @@ import { Pagination } from "@/components/Pagination";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import {
   Search, MapPin, Phone, Grid3x3, List, Filter, ArrowRight,
-  Instagram, Facebook, CheckCircle2, Star, MessageCircle, ShoppingBag
+  Instagram, Facebook, CheckCircle2, Star, MessageCircle, ShoppingBag, Store, Clock, FileText
 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import SEO from "@/components/SEO";
 
 // ... (نفس تعريفات الواجهات Themes و Interfaces السابقة بدون تغيير) ...
@@ -34,7 +35,11 @@ interface StoreDetails {
   created_at: string;
   category_id?: string;
   profiles?: { phone?: string; email?: string; address?: string; };
-  store_categories?: { category_id: string }[];
+  store_category_relations?: { category_id: string }[];
+  cover_image_url?: string;
+  opening_hours?: string;
+  location_url?: string;
+  return_policy?: string;
 }
 
 const CATEGORY_IDS = {
@@ -83,14 +88,15 @@ const ProductStores = () => {
       if (!slug) return;
       try {
         const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
-        let query = supabase.from("stores").select(`*, whatsapp, facebook, instagram, tiktok, profiles:owner_id(phone, email, address), store_categories(category_id)`).eq("is_active", true);
+        let query = supabase.from("stores").select(`*, whatsapp, facebook, instagram, tiktok, cover_image_url, opening_hours, location_url, return_policy, profiles:owner_id(phone, email, address), store_category_relations(category_id)`).eq("is_active", true);
         if (isUUID) query = query.eq("id", slug); else query = query.eq("slug", slug);
+
         const { data, error } = await query.single();
         if (error) throw error;
         const mappedStore = { ...data, phone: data.profiles?.phone, email: data.profiles?.email, address: data.profiles?.address };
         setStore(mappedStore);
         let foundId = data.category_id;
-        if (!foundId && data.store_categories && data.store_categories.length > 0) foundId = data.store_categories[0].category_id;
+        if (!foundId && data.store_category_relations && data.store_category_relations.length > 0) foundId = data.store_category_relations[0].category_id;
         setCurrentTheme(getThemeById(foundId));
       } catch (error) { console.error("Error:", error); } finally { setLoadingStore(false); }
     };
@@ -114,36 +120,29 @@ const ProductStores = () => {
     <div className={`min-h-screen pb-20 font-cairo ${currentTheme.bg}`}>
       <SEO title={store.name} description={store.description || ""} image={store.image_url} />
 
-      {/* --- MOBILE OPTIMIZED HEADER --- */}
-      <div className="bg-white shadow-sm border-b border-gray-100 relative mb-4">
+      {/* Store Header - Mobile Compact */}
+      <div className="md:container md:mx-auto md:px-4 md:pt-6">
+        <div className="relative bg-white md:rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
 
-        {/* Cover Image - Reduced Height for Mobile (h-28 instead of h-40) */}
-        <div className="h-28 md:h-60 w-full bg-gray-900 relative overflow-hidden">
-          {store.image_url ? (
-            <>
-              <img src={store.image_url} alt="Cover" className="w-full h-full object-cover opacity-50 blur-sm" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-            </>
-          ) : (
-            <div className="w-full h-full opacity-10 bg-pattern-grid" />
+          {/* Cover Image Banner */}
+          {store.cover_image_url && (
+            <div className="w-full h-32 md:h-56 bg-gray-100 relative">
+              <img
+                src={store.cover_image_url}
+                alt="Cover"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+            </div>
           )}
 
-          <Link to="/stores" className="absolute top-3 left-3 z-20">
-            <div className="bg-white/20 hover:bg-white/30 backdrop-blur-md p-1.5 rounded-full text-white">
-              <ArrowRight className="w-5 h-5" />
-            </div>
-          </Link>
-        </div>
+          {/* Store Info Container (Overlapping Cover if exists) */}
+          <div className={`relative px-4 pb-6 ${store.cover_image_url ? '-mt-12 md:-mt-16' : 'pt-6'}`}>
+            <div className="flex flex-col md:flex-row gap-4 md:items-end">
 
-        {/* Profile Info - Pull Up Effect */}
-        <div className="container mx-auto px-4 relative -mt-10 md:-mt-16 pb-4">
-          <div className="flex flex-col md:flex-row md:items-end gap-3 md:gap-6">
-
-            {/* Avatar & Basic Info Wrapper */}
-            <div className="flex items-end gap-3">
-              {/* Store Logo - Smaller on Mobile (w-20 instead of w-28) */}
-              <div className="relative shrink-0">
-                <div className="w-20 h-20 md:w-36 md:h-36 rounded-xl bg-white p-1 shadow-lg border border-gray-100">
+              {/* Logo & Status */}
+              <div className="relative flex items-center gap-3 md:gap-4 shrink-0">
+                <div className="relative w-20 h-20 md:w-32 md:h-32 rounded-xl md:rounded-2xl border-4 border-white shadow-md overflow-hidden bg-white shrink-0">
                   {store.image_url ? (
                     <img src={store.image_url} className="w-full h-full object-cover rounded-lg" alt={store.name} />
                   ) : (
@@ -197,6 +196,67 @@ const ProductStores = () => {
                       <span className="hidden md:inline">اتصل بالمتجر</span>
                     </Button>
                   </a>
+                )}
+
+                {(store.opening_hours || store.location_url || store.return_policy) && (
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" className="w-full md:w-auto h-10 gap-1.5 rounded-lg border-gray-300 bg-white text-gray-700 text-sm">
+                        <Store className="w-4 h-4" />
+                        <span className="md:hidden">المحل</span>
+                        <span className="hidden md:inline">معلومات المتجر</span>
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md" dir="rtl">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                          <Store className="w-5 h-5 text-primary" />
+                          معلومات {store.name}
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        {store.opening_hours && (
+                          <div className="space-y-2">
+                            <h4 className="font-semibold flex items-center gap-2 text-sm text-gray-900">
+                              <Clock className="w-4 h-4 text-primary" />
+                              ساعات العمل
+                            </h4>
+                            <p className="text-sm text-gray-600 leading-relaxed bg-gray-50 p-3 rounded-md whitespace-pre-wrap">
+                              {store.opening_hours}
+                            </p>
+                          </div>
+                        )}
+                        {store.location_url && (
+                          <div className="space-y-2">
+                            <h4 className="font-semibold flex items-center gap-2 text-sm text-gray-900">
+                              <MapPin className="w-4 h-4 text-primary" />
+                              الموقع
+                            </h4>
+                            <a
+                              href={store.location_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="flex items-center gap-2 text-sm text-blue-600 hover:underline bg-blue-50 p-3 rounded-md"
+                            >
+                              <MapPin className="w-4 h-4" />
+                              عرض على خرائط جوجل
+                            </a>
+                          </div>
+                        )}
+                        {store.return_policy && (
+                          <div className="space-y-2">
+                            <h4 className="font-semibold flex items-center gap-2 text-sm text-gray-900">
+                              <FileText className="w-4 h-4 text-primary" />
+                              سياسة الاستبدال والاسترجاع
+                            </h4>
+                            <p className="text-sm text-gray-600 leading-relaxed bg-gray-50 p-3 rounded-md whitespace-pre-wrap">
+                              {store.return_policy}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 )}
               </div>
 
