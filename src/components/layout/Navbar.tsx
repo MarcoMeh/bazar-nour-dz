@@ -205,18 +205,51 @@ export const Navbar = () => {
                             <DropdownMenuContent align="end" className="w-56">
                                 <DropdownMenuLabel>حسابي</DropdownMenuLabel>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem asChild>
-                                    <Link to="/my-orders" className="cursor-pointer flex items-center gap-2">
-                                        <Package className="h-4 w-4" />
-                                        <span>طلباتي</span>
-                                    </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem asChild>
-                                    <Link to={userRole === 'store_owner' ? "/store-dashboard/profile" : "/profile"} className="cursor-pointer flex items-center gap-2">
-                                        <Settings className="h-4 w-4" />
-                                        <span>الإعدادات</span>
-                                    </Link>
-                                </DropdownMenuItem>
+
+                                {userRole === 'store_owner' ? (
+                                    <>
+                                        <DropdownMenuItem asChild>
+                                            <Link to="/store-dashboard" className="cursor-pointer flex items-center gap-2">
+                                                <LayoutDashboard className="h-4 w-4" />
+                                                <span>لوحة التحكم</span>
+                                            </Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                            <Link to="/store-dashboard/products" className="cursor-pointer flex items-center gap-2">
+                                                <Package className="h-4 w-4" />
+                                                <span>المنتجات</span>
+                                            </Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                            <Link to="/store-dashboard/orders" className="cursor-pointer flex items-center gap-2">
+                                                <ShoppingCart className="h-4 w-4" />
+                                                <span>الطلبات</span>
+                                            </Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                            <Link to="/store-dashboard/profile" className="cursor-pointer flex items-center gap-2">
+                                                <Settings className="h-4 w-4" />
+                                                <span>الإعدادات</span>
+                                            </Link>
+                                        </DropdownMenuItem>
+                                    </>
+                                ) : (
+                                    <>
+                                        <DropdownMenuItem asChild>
+                                            <Link to="/my-orders" className="cursor-pointer flex items-center gap-2">
+                                                <Package className="h-4 w-4" />
+                                                <span>طلباتي</span>
+                                            </Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                            <Link to="/profile" className="cursor-pointer flex items-center gap-2">
+                                                <Settings className="h-4 w-4" />
+                                                <span>الإعدادات</span>
+                                            </Link>
+                                        </DropdownMenuItem>
+                                    </>
+                                )}
+
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive focus:text-destructive flex items-center gap-2">
                                     <LogOut className="h-4 w-4" />

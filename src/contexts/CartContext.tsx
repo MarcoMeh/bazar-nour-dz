@@ -3,7 +3,8 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { toast } from "sonner";
 
 export interface CartItem {
-  id: string;         // product id
+  id: string;         // product id from database
+  cartItemId: string; // unique id for this specific cart entry (variant)
   name_ar: string;
   price: number;
   quantity: number;
@@ -18,9 +19,9 @@ export interface CartItem {
 
 interface CartContextType {
   items: CartItem[];
-  addItem: (item: Omit<CartItem, "quantity"> & { quantity?: number }) => void;
-  removeItem: (id: string) => void;
-  updateQuantity: (id: string, quantity: number) => void;
+  addItem: (item: Omit<CartItem, "quantity" | "cartItemId"> & { quantity?: number }) => void;
+  removeItem: (cartItemId: string) => void;
+  updateQuantity: (cartItemId: string, quantity: number) => void;
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
@@ -35,7 +36,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [items, setItems] = useState<CartItem[]>(() => {
     try {
       const saved = localStorage.getItem("bazzarna-cart");
-      return saved ? JSON.parse(saved) : [];
+      if (!saved) return [];
+
+      const parsedItems = JSON.parse(saved);
+      // Migration: Add cartItemId to existing items if missing
+      return parsedItems.map((item: any) => ({
+        ...item,
+        cartItemId: item.cartItemId || `${item.id}-${Math.random().toString(36).substr(2, 9)}`
+      }));
     } catch {
       return [];
     }
@@ -59,8 +67,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     else localStorage.removeItem("bazzarna-cart-owner");
   }, [ownerId]);
 
-  const addItem = (payload: Omit<CartItem, "quantity"> & { quantity?: number }) => {
+  const addItem = (payload: Omit<CartItem, "quantity" | "cartItemId"> & { quantity?: number }) => {
     setItems((prev) => {
+      // Find exact match (same product + same variants)
       const existing = prev.find((i) =>
         i.id === payload.id &&
         (i.color ?? "") === (payload.color ?? "") &&
@@ -70,40 +79,38 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (existing) {
         toast.success("تم تحديث الكمية");
         return prev.map((i) =>
-          i === existing ? { ...i, quantity: i.quantity + (payload.quantity ?? 1) } : i
+          i.cartItemId === existing.cartItemId ? { ...i, quantity: i.quantity + (payload.quantity ?? 1) } : i
         );
       }
 
       toast.success("تم إضافة المنتج إلى السلة");
-      return [
-        ...prev,
-        {
-          ...payload,
-          quantity: payload.quantity ?? 1
-        } as CartItem
-      ];
+      // Create new item with unique cartItemId
+      const newItem: CartItem = {
+        ...payload,
+        quantity: payload.quantity ?? 1,
+        cartItemId: `${payload.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+      };
+
+      return [...prev, newItem];
     });
 
     // If cart ownerId is not set and item has ownerId, set it (helps multi-store)
-    console.log("addItem payload:", payload);
-    console.log("Current ownerId:", ownerId);
     if (!ownerId && (payload as any).ownerId) {
-      console.log("Setting ownerId to:", (payload as any).ownerId);
       setOwnerId((payload as any).ownerId);
     }
   };
 
-  const removeItem = (id: string) => {
-    setItems((prev) => prev.filter((i) => i.id !== id));
+  const removeItem = (cartItemId: string) => {
+    setItems((prev) => prev.filter((i) => i.cartItemId !== cartItemId));
     toast.success("تم حذف المنتج من السلة");
   };
 
-  const updateQuantity = (id: string, quantity: number) => {
+  const updateQuantity = (cartItemId: string, quantity: number) => {
     if (quantity <= 0) {
-      removeItem(id);
+      removeItem(cartItemId);
       return;
     }
-    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, quantity } : i)));
+    setItems((prev) => prev.map((i) => (i.cartItemId === cartItemId ? { ...i, quantity } : i)));
   };
 
   const clearCart = () => {

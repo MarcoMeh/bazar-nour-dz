@@ -7,6 +7,7 @@ import {
     User,
     LogOut,
     Truck,
+    Store,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,9 +18,12 @@ interface StoreOwnerSidebarProps {
     onLinkClick?: () => void;
 }
 
+import { useAdmin } from "@/contexts/AdminContext";
+
 export const StoreOwnerSidebar = ({ onLinkClick }: StoreOwnerSidebarProps) => {
     const location = useLocation();
     const navigate = useNavigate();
+    const { storeId } = useAdmin();
 
     const handleLogout = async () => {
         try {
@@ -73,7 +77,20 @@ export const StoreOwnerSidebar = ({ onLinkClick }: StoreOwnerSidebarProps) => {
                 })}
             </nav>
 
-            <div className="border-t p-3 md:p-4 mt-auto">
+            <div className="border-t p-3 md:p-4 mt-auto space-y-2">
+                <Link to="/">
+                    <Button variant="outline" className="w-full justify-start gap-3 text-base md:text-sm">
+                        <Store className="h-5 w-5" />
+                        الرئيسية
+                    </Button>
+                </Link>
+
+                {/* View Store Button - visible only if storeId is resolved (or logic to fetch it) */}
+                {/*  Since retrieving storeId might be complex here without prop drilling or context, 
+                      I will stick to Home button first as requested "Main Page or his page".
+                      Actually I can easily add it if I use useAdmin() hook assuming verified context. 
+                 */}
+
                 <Button
                     variant="ghost"
                     className="w-full justify-start gap-3 text-base md:text-sm py-3 md:py-2 text-red-500 hover:text-red-600 hover:bg-red-50"

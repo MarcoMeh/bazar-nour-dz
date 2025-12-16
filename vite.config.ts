@@ -18,8 +18,8 @@ export default defineConfig(({ mode }) => ({
         name: 'Bazarna - بازارنا',
         short_name: 'Bazarna',
         description: 'وجهتك الأولى للتسوق الإلكتروني في الجزائر',
-        theme_color: '#ffffff',
-        background_color: '#ffffff',
+        theme_color: '#1e3a5f',
+        background_color: '#000000',
         display: 'standalone',
         orientation: 'portrait',
         icons: [

@@ -53,7 +53,7 @@ export default function Cart() {
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-4">
             {items.map((item) => (
-              <Card key={item.id + (item.color || "") + (item.size || "")}>
+              <Card key={item.cartItemId}>
                 <CardContent className="p-6">
                   <div className="flex gap-4">
                     <div className="w-24 h-24 bg-muted rounded overflow-hidden">
@@ -88,7 +88,7 @@ export default function Cart() {
                             variant="outline"
                             size="icon"
                             className="h-8 w-8"
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)}
                           >
                             <Minus className="h-4 w-4" />
                           </Button>
@@ -97,7 +97,7 @@ export default function Cart() {
                             variant="outline"
                             size="icon"
                             className="h-8 w-8"
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)}
                           >
                             <Plus className="h-4 w-4" />
                           </Button>
@@ -106,7 +106,7 @@ export default function Cart() {
                           variant="ghost"
                           size="icon"
                           className="text-destructive hover:bg-destructive/10"
-                          onClick={() => removeItem(item.id)}
+                          onClick={() => removeItem(item.cartItemId)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

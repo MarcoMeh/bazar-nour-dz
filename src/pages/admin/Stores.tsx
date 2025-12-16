@@ -909,7 +909,7 @@ export default function AdminStores() {
                                                     className="text-green-600 hover:bg-green-50 border-green-200"
                                                     title="تجديد الاشتراك"
                                                     onClick={() => {
-                                                        setRenewData({ months: "1", amount: "3000", notes: "" });
+                                                        setRenewData({ months: "custom", days: "30", amount: "3000", notes: "" });
                                                         setRenewDialog({ open: true, storeId: store.id });
                                                     }}
                                                 >

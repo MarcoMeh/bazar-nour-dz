@@ -4,7 +4,6 @@ import {
   LayoutDashboard,
   Package,
   ShoppingCart,
-  Store,
   FolderTree,
   Settings,
   LogOut,
@@ -13,6 +12,8 @@ import {
   Star,
   UserPlus,
   ImageIcon,
+  DollarSign,
+  Store,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,6 +37,7 @@ export const AdminSidebar = () => {
     { name: "الطلبات", href: "/admin/orders", icon: ShoppingCart, show: true },
     { name: "المحلات", href: "/admin/stores", icon: Store, show: true },
     { name: "طلبات تسجيل المحلات", href: "/admin/store-registrations", icon: UserPlus, show: isAdmin },
+    { name: "الإدارة المالية", href: "/admin/finance", icon: DollarSign, show: isAdmin },
     { name: "رسوم التوصيل", href: "/admin/delivery", icon: Truck, show: isAdmin },
     { name: "خلفيات الصفحات", href: "/admin/backgrounds", icon: ImageIcon, show: isAdmin },
     { name: "التحكم", href: "/admin/control", icon: Settings, show: isAdmin },
@@ -67,8 +69,14 @@ export const AdminSidebar = () => {
           );
         })}
       </nav>
-      <div className="border-t p-4">
-        <Button variant="ghost" className="w-full justify-start gap-3" onClick={handleLogout}>
+      <div className="border-t p-4 space-y-2">
+        <Link to="/">
+          <Button variant="outline" className="w-full justify-start gap-3">
+            <Store className="h-5 w-5" />
+            الرئيسية
+          </Button>
+        </Link>
+        <Button variant="ghost" className="w-full justify-start gap-3 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={handleLogout}>
           <LogOut className="h-5 w-5" />
           تسجيل الخروج
         </Button>

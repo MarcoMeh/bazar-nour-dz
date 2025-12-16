@@ -35,6 +35,7 @@ import AdminStoreCategories from "./pages/admin/StoreCategories";
 import AdminOrders from "./pages/admin/Orders";
 import AdminStores from "./pages/admin/Stores";
 import AdminDelivery from "./pages/admin/Delivery";
+import AdminFinance from "./pages/admin/Finance";
 import AdminControl from "./pages/admin/Control";
 import AdminReviews from "./pages/admin/Reviews";
 import AdminStoreRegistrations from "./pages/admin/StoreRegistrations";
@@ -136,6 +137,7 @@ const App = () => (
                       <Route path="orders" element={<AdminOrders />} />
                       <Route path="stores" element={<AdminStores />} />
                       <Route path="delivery" element={<AdminDelivery />} />
+                      <Route path="finance" element={<AdminFinance />} />
                       <Route path="control" element={<AdminControl />} />
                       <Route path="reviews" element={<AdminReviews />} />
                       <Route path="store-registrations" element={<AdminStoreRegistrations />} />
