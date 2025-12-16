@@ -74,48 +74,50 @@ interface OrdersTableProps {
 }
 
 const OrdersTable = ({ orders, onView, onDelete, onConfirmDelivery, getStatusBadge }: OrdersTableProps) => (
-    <Table>
-        <TableHeader>
-            <TableRow>
-                <TableHead className="text-right">الطلب</TableHead>
-                <TableHead className="text-right hidden md:table-cell">العميل</TableHead>
-                <TableHead className="text-right hidden sm:table-cell">التاريخ</TableHead>
-                <TableHead className="text-center">الحالة</TableHead>
-                <TableHead className="text-left w-[50px]"></TableHead>
-            </TableRow>
-        </TableHeader>
-        <TableBody>
-            {orders.length === 0 ? (
+    <div className="overflow-x-auto">
+        <Table>
+            <TableHeader>
                 <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                        لا توجد طلبات في هذه القائمة
-                    </TableCell>
+                    <TableHead className="text-right">الطلب</TableHead>
+                    <TableHead className="text-right hidden md:table-cell">العميل</TableHead>
+                    <TableHead className="text-right hidden sm:table-cell">التاريخ</TableHead>
+                    <TableHead className="text-center">الحالة</TableHead>
+                    <TableHead className="text-left w-[50px]"></TableHead>
                 </TableRow>
-            ) : (
-                orders.map((order) => (
-                    <TableRow key={order.id}>
-                        <TableCell className="font-medium">
-                            <div className="flex flex-col">
-                                <span>#{order.id.slice(0, 6)}</span>
-                                <span className="text-xs text-muted-foreground md:hidden">{order.full_name || "غير معروف"}</span>
-                            </div>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">{order.full_name || order.profiles?.full_name || "غير معروف"}</TableCell>
-                        <TableCell className="hidden sm:table-cell text-muted-foreground dir-ltr text-right">{format(new Date(order.created_at), "yyyy-MM-dd")}</TableCell>
-                        <TableCell className="text-center">{getStatusBadge(order.status)}</TableCell>
-                        <TableCell>
-                            <ActionsMenu
-                                order={order}
-                                onView={onView}
-                                onDelete={onDelete}
-                                onConfirmDelivery={onConfirmDelivery}
-                            />
+            </TableHeader>
+            <TableBody>
+                {orders.length === 0 ? (
+                    <TableRow>
+                        <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                            لا توجد طلبات في هذه القائمة
                         </TableCell>
                     </TableRow>
-                ))
-            )}
-        </TableBody>
-    </Table>
+                ) : (
+                    orders.map((order) => (
+                        <TableRow key={order.id}>
+                            <TableCell className="font-medium">
+                                <div className="flex flex-col">
+                                    <span>#{order.id.slice(0, 6)}</span>
+                                    <span className="text-xs text-muted-foreground md:hidden">{order.full_name || "غير معروف"}</span>
+                                </div>
+                            </TableCell>
+                            <TableCell className="hidden md:table-cell">{order.full_name || order.profiles?.full_name || "غير معروف"}</TableCell>
+                            <TableCell className="hidden sm:table-cell text-muted-foreground dir-ltr text-right">{format(new Date(order.created_at), "yyyy-MM-dd")}</TableCell>
+                            <TableCell className="text-center">{getStatusBadge(order.status)}</TableCell>
+                            <TableCell>
+                                <ActionsMenu
+                                    order={order}
+                                    onView={onView}
+                                    onDelete={onDelete}
+                                    onConfirmDelivery={onConfirmDelivery}
+                                />
+                            </TableCell>
+                        </TableRow>
+                    ))
+                )}
+            </TableBody>
+        </Table>
+    </div>
 );
 
 export default function StoreOwnerOrders() {

@@ -18,15 +18,28 @@ import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
-import { Gift } from "lucide-react";
+import { Gift, AlertTriangle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface Wilaya {
   id: number;
+  code: string;
   name: string;
   name_ar: string;
   home_delivery_price: number;
   desk_delivery_price: number;
   created_at?: string;
+}
+
+interface DeliveryMethod {
+  enabled: boolean;
+  price: number;
+}
+
+interface DeliveryMethods {
+  home: DeliveryMethod;
+  desk: DeliveryMethod;
+  error?: string;
 }
 
 const Checkout = () => {
@@ -35,13 +48,19 @@ const Checkout = () => {
 
   const [wilayas, setWilayas] = useState<Wilaya[]>([]);
   const [loading, setLoading] = useState(false);
+  const [calculatingDelivery, setCalculatingDelivery] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
     address: "",
     wilayaId: "", // store as string for Select; convert to number on submit
-    deliveryType: "home" as "home" | "desktop"
+    deliveryType: "home" as "home" | "desktop" // kept as "desktop" for compatibility with existing DB enum if needed, though usually "office" or "desk"
+  });
+
+  const [deliveryMethods, setDeliveryMethods] = useState<DeliveryMethods>({
+    home: { enabled: true, price: 0 },
+    desk: { enabled: true, price: 0 }
   });
 
   useEffect(() => {
@@ -49,6 +68,13 @@ const Checkout = () => {
     loadWilayas();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Recalculate delivery whenever Wilaya or Cart Items (Store) change
+  useEffect(() => {
+    if (formData.wilayaId && items.length > 0) {
+      calculateDeliveryFees();
+    }
+  }, [formData.wilayaId, items]);
 
   const loadWilayas = async () => {
     const { data, error } = await supabase
@@ -62,7 +88,6 @@ const Checkout = () => {
       return;
     }
 
-    // data items may not contain 'code' — we expect id,name,name_ar,home_delivery_price,desk_delivery_price
     setWilayas((data as any) || []);
   };
 
@@ -71,14 +96,119 @@ const Checkout = () => {
   // Check if all items have free delivery
   const hasFreeDelivery = items.length > 0 && items.every(item => item.is_free_delivery);
 
-  // Calculate delivery price (0 if free delivery)
-  const deliveryPrice = hasFreeDelivery ? 0 : (selectedWilaya
-    ? formData.deliveryType === "home"
-      ? selectedWilaya.home_delivery_price
-      : selectedWilaya.desk_delivery_price
-    : 0);
+  const calculateDeliveryFees = async () => {
+    if (!selectedWilaya) return;
 
-  const finalTotal = totalPrice + deliveryPrice;
+    // Assuming single-store cart for now
+    const storeId = items[0]?.ownerId;
+    if (!storeId) return;
+
+    setCalculatingDelivery(true);
+    setDeliveryMethods({
+      home: { enabled: false, price: 0 },
+      desk: { enabled: false, price: 0 },
+      error: undefined
+    });
+
+    try {
+      // 1. Check for Overrides first (Specific Store + Wilaya rule)
+      const { data: overrideData } = await supabase
+        .from('store_delivery_overrides')
+        .select('*')
+        .eq('store_id', storeId)
+        .eq('wilaya_code', selectedWilaya.code) // Assuming wilayas table has 'code' column matching override
+        .single();
+
+      if (overrideData) {
+        setDeliveryMethods({
+          home: {
+            enabled: overrideData.is_home_enabled !== false, // Default true if null, but explicit false disables
+            price: overrideData.price_home || 0
+          },
+          desk: {
+            enabled: overrideData.is_desk_enabled !== false,
+            price: overrideData.price_desk || 0
+          }
+        });
+        setCalculatingDelivery(false);
+        return;
+      }
+
+      // 2. If no override, check Company Configuration
+      const { data: settingsData } = await supabase
+        .from('store_delivery_settings')
+        .select('company_id')
+        .eq('store_id', storeId)
+        .single();
+
+      if (!settingsData || !settingsData.company_id) {
+        // Fallback to default Wilaya prices if no company set (Legacy behavior)
+        setDeliveryMethods({
+          home: { enabled: true, price: selectedWilaya.home_delivery_price },
+          desk: { enabled: true, price: selectedWilaya.desk_delivery_price }
+        });
+        setCalculatingDelivery(false);
+        return;
+      }
+
+      // 3. Find Zone for this Company & Wilaya
+      // Join: delivery_zones -> zone_wilayas
+      const { data: zoneData, error: zoneError } = await supabase
+        .from('zone_wilayas')
+        .select(`
+                zone_id,
+                delivery_zones!inner (
+                    id,
+                    price_home,
+                    price_desk,
+                    company_id
+                )
+            `)
+        .eq('wilaya_code', selectedWilaya.code)
+        .eq('delivery_zones.company_id', settingsData.company_id)
+        .maybeSingle(); // Use maybeSingle to handle "no zone found" gracefully
+
+      if (zoneData && zoneData.delivery_zones) {
+        setDeliveryMethods({
+          home: { enabled: true, price: zoneData.delivery_zones.price_home },
+          desk: { enabled: true, price: zoneData.delivery_zones.price_desk }
+        });
+      } else {
+        // 4. No Zone found for this Company & Wilaya => Delivery Not Supported
+        setDeliveryMethods({
+          home: { enabled: false, price: 0 },
+          desk: { enabled: false, price: 0 },
+          error: "نعتذر، التوصيل غير متوفر لهذه الولاية حالياً."
+        });
+      }
+
+    } catch (err) {
+      console.error("Error calculating delivery:", err);
+      // Fallback or keep error state
+    } finally {
+      setCalculatingDelivery(false);
+    }
+  };
+
+  // Determine effective price based on selected type and calculation
+  const currentMethod = formData.deliveryType === "home" ? deliveryMethods.home : deliveryMethods.desk;
+
+  // If Selected Method is disabled, we might need to switch or warn
+  // But for price calculation:
+  const deliveryPriceAmount = hasFreeDelivery ? 0 : currentMethod.price;
+
+  const finalTotal = totalPrice + deliveryPriceAmount;
+  const isDeliveryBlocked = !!deliveryMethods.error || (!deliveryMethods.home.enabled && !deliveryMethods.desk.enabled);
+
+  // Auto-switch delivery type if current is disabled but other is enabled
+  useEffect(() => {
+    if (formData.deliveryType === 'home' && !deliveryMethods.home.enabled && deliveryMethods.desk.enabled) {
+      setFormData(prev => ({ ...prev, deliveryType: 'desktop' }));
+    } else if (formData.deliveryType === 'desktop' && !deliveryMethods.desk.enabled && deliveryMethods.home.enabled) {
+      setFormData(prev => ({ ...prev, deliveryType: 'home' }));
+    }
+  }, [deliveryMethods, formData.deliveryType]);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,34 +223,33 @@ const Checkout = () => {
       return;
     }
 
+    // Final check for blocked delivery
+    if (isDeliveryBlocked) {
+      toast.error("التوصيل غير متوفر لهذه الولاية");
+      return;
+    }
+
+    // Check if selected specific method is enabled
+    if (formData.deliveryType === 'home' && !deliveryMethods.home.enabled) {
+      toast.error("التوصيل للمنزل غير متوفر لهذه الولاية");
+      return;
+    }
+    if (formData.deliveryType === 'desktop' && !deliveryMethods.desk.enabled) {
+      toast.error("التوصيل للمكتب غير متوفر لهذه الولاية");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      // Get the store ID from the first item (assuming single store order for now)
-      // In a real multi-store app, you'd split orders or have a cart per store.
-      // We'll try to find a store_id from the items if available, or use a default/null.
-      // Since CartItem doesn't strictly have store_id, we might need to fetch it or rely on ownerId if that maps to store.
-      // But orders table expects store_id.
-      // Let's assume for now we can't easily get store_id without fetching, so we'll leave it null 
-      // OR better, we should have store_id in CartItem.
-      // For this fix, I'll use null for store_id to prevent the error, as owner_id column doesn't exist in orders table.
-
-      // Get current user
       const { data: { user } } = await supabase.auth.getUser();
 
-      // Calculate unique store IDs from items
-      // We need to ensure CartItem has ownerId (which is store_id)
       const uniqueStoreIds = Array.from(new Set(items.map(item => item.ownerId).filter((id): id is string => !!id)));
-
-      // If single store, use that ID. If multiple or none, use null.
       const orderStoreId = uniqueStoreIds.length === 1 ? uniqueStoreIds[0] : null;
-
-      console.log("Checkout uniqueStoreIds:", uniqueStoreIds);
-      console.log("Final Order Store ID:", orderStoreId);
 
       const orderPayload = {
         store_id: orderStoreId,
-        store_ids: uniqueStoreIds, // Send the array of store IDs
+        store_ids: uniqueStoreIds,
         user_id: user?.id || null,
         wilaya_id: selectedWilaya.id,
         full_name: formData.name,
@@ -128,6 +257,8 @@ const Checkout = () => {
         address: formData.address,
         delivery_option: formData.deliveryType,
         total_price: finalTotal,
+        // We might want to save the actual delivery price used
+        delivery_price: deliveryPriceAmount
       };
 
       const itemsPayload = items.map((it) => ({
@@ -136,7 +267,7 @@ const Checkout = () => {
         price: it.price,
         selected_color: it.color ?? null,
         selected_size: it.size ?? null,
-        store_id: it.ownerId // Required for splitting orders by store
+        store_id: it.ownerId
       }));
 
       const { error } = await supabase.rpc('create_order', {
@@ -217,35 +348,54 @@ const Checkout = () => {
                 </div>
               )}
 
-              <RadioGroup value={formData.deliveryType} onValueChange={(v) => setFormData({ ...formData, deliveryType: v as "home" | "desktop" })}>
-                <div className="flex items-center justify-between p-4 border rounded mb-3">
-                  <div>
-                    <RadioGroupItem value="home" id="home" />
-                    <Label htmlFor="home" className="ml-2">توصيل إلى المنزل</Label>
-                  </div>
-                  <div className="font-bold">
-                    {hasFreeDelivery ? (
-                      <Badge variant="secondary" className="bg-green-100 text-green-700">مجاني</Badge>
-                    ) : (
-                      <>{selectedWilaya ? selectedWilaya.home_delivery_price : "--"} دج</>
-                    )}
-                  </div>
-                </div>
+              {deliveryMethods.error && (
+                <Alert variant="destructive" className="mb-4">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle>تنبيه</AlertTitle>
+                  <AlertDescription>
+                    {deliveryMethods.error}
+                  </AlertDescription>
+                </Alert>
+              )}
 
-                <div className="flex items-center justify-between p-4 border rounded">
-                  <div>
-                    <RadioGroupItem value="desktop" id="office" />
-                    <Label htmlFor="office" className="ml-2">استلام من المكتب</Label>
+              {/* ... existing code ... */}
+              {!deliveryMethods.error && (
+                <RadioGroup value={formData.deliveryType} onValueChange={(v) => setFormData({ ...formData, deliveryType: v as "home" | "desktop" })}>
+                  <div className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 border rounded mb-3 transition-colors ${!deliveryMethods.home.enabled ? 'opacity-50 bg-gray-50' : ''}`}>
+                    <div className="flex items-center mb-2 sm:mb-0">
+                      <RadioGroupItem value="home" id="home" disabled={!deliveryMethods.home.enabled} />
+                      <Label htmlFor="home" className="ml-2 cursor-pointer text-sm sm:text-base">
+                        توصيل إلى المنزل
+                        {!deliveryMethods.home.enabled && <span className="block sm:inline text-xs text-red-500 mr-2 sm:mr-1 mt-1 sm:mt-0">(غير متوفر)</span>}
+                      </Label>
+                    </div>
+                    <div className="font-bold text-sm sm:text-base w-full sm:w-auto text-left sm:text-right pl-6 sm:pl-0">
+                      {hasFreeDelivery ? (
+                        <Badge variant="secondary" className="bg-green-100 text-green-700">مجاني</Badge>
+                      ) : (
+                        <>{calculatingDelivery ? "..." : deliveryMethods.home.enabled ? `${deliveryMethods.home.price} دج` : "--"}</>
+                      )}
+                    </div>
                   </div>
-                  <div className="font-bold">
-                    {hasFreeDelivery ? (
-                      <Badge variant="secondary" className="bg-green-100 text-green-700">مجاني</Badge>
-                    ) : (
-                      <>{selectedWilaya ? selectedWilaya.desk_delivery_price : "--"} دج</>
-                    )}
+
+                  <div className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 border rounded transition-colors ${!deliveryMethods.desk.enabled ? 'opacity-50 bg-gray-50' : ''}`}>
+                    <div className="flex items-center mb-2 sm:mb-0">
+                      <RadioGroupItem value="desktop" id="office" disabled={!deliveryMethods.desk.enabled} />
+                      <Label htmlFor="office" className="ml-2 cursor-pointer text-sm sm:text-base">
+                        استلام من المكتب
+                        {!deliveryMethods.desk.enabled && <span className="block sm:inline text-xs text-red-500 mr-2 sm:mr-1 mt-1 sm:mt-0">(غير متوفر)</span>}
+                      </Label>
+                    </div>
+                    <div className="font-bold text-sm sm:text-base w-full sm:w-auto text-left sm:text-right pl-6 sm:pl-0">
+                      {hasFreeDelivery ? (
+                        <Badge variant="secondary" className="bg-green-100 text-green-700">مجاني</Badge>
+                      ) : (
+                        <>{calculatingDelivery ? "..." : deliveryMethods.desk.enabled ? `${deliveryMethods.desk.price} دج` : "--"}</>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </RadioGroup>
+                </RadioGroup>
+              )}
             </Card>
           </div>
 
@@ -280,7 +430,7 @@ const Checkout = () => {
                 {hasFreeDelivery ? (
                   <Badge variant="secondary" className="bg-green-100 text-green-700">مجاني 🎁</Badge>
                 ) : (
-                  <strong>{deliveryPrice.toFixed(2)} دج</strong>
+                  <strong>{deliveryPriceAmount.toFixed(2)} دج</strong>
                 )}
               </div>
 
@@ -291,8 +441,8 @@ const Checkout = () => {
                 <span>{finalTotal.toFixed(2)} دج</span>
               </div>
 
-              <Button type="submit" className="mt-6 w-full" disabled={loading}>
-                {loading ? "جاري الإرسال..." : "تأكيد الطلب"}
+              <Button type="submit" className="mt-6 w-full" disabled={loading || isDeliveryBlocked}>
+                {loading ? "جاري الإرسال..." : isDeliveryBlocked ? "التوصيل غير متوفر" : "تأكيد الطلب"}
               </Button>
             </Card>
           </div>
