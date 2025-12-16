@@ -172,6 +172,11 @@ const ProductStores = () => {
                 <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {store.address || "الجزائر"}</span>
                 <span className="flex items-center gap-1"><Star className="w-4 h-4 text-yellow-400 fill-yellow-400" /> 4.9</span>
               </div>
+              {store.description && (
+                <p className="text-base text-gray-600 mt-2 max-w-2xl leading-relaxed">
+                  {store.description}
+                </p>
+              )}
             </div>
 
             {/* Actions Bar - SIDE BY SIDE ON MOBILE */}
@@ -260,14 +265,36 @@ const ProductStores = () => {
                 )}
               </div>
 
-              {/* Social Icons - Hidden on very small screens if needed, or kept compact */}
-              {(store.facebook || store.instagram) && (
-                <div className="flex justify-center md:justify-start gap-3 md:gap-2">
-                  {store.facebook && <a href={store.facebook} target="_blank" className="text-gray-400 hover:text-blue-600"><Facebook className="w-5 h-5" /></a>}
-                  {store.instagram && <a href={store.instagram} target="_blank" className="text-gray-400 hover:text-pink-600"><Instagram className="w-5 h-5" /></a>}
+              {/* Social Icons - Enhanced Visibility */}
+              {(store.facebook || store.instagram || store.tiktok) && (
+                <div className="flex justify-center md:justify-start gap-4 md:gap-3 mt-2 md:mt-0">
+                  {store.facebook && (
+                    <a href={store.facebook} target="_blank" rel="noreferrer" className="bg-white p-2 rounded-full shadow-sm text-[#1877F2] hover:scale-110 transition-transform">
+                      <Facebook className="w-6 h-6 md:w-7 md:h-7 fill-current" />
+                    </a>
+                  )}
+                  {store.instagram && (
+                    <a href={store.instagram} target="_blank" rel="noreferrer" className="bg-white p-2 rounded-full shadow-sm text-[#E4405F] hover:scale-110 transition-transform">
+                      <Instagram className="w-6 h-6 md:w-7 md:h-7" />
+                    </a>
+                  )}
+                  {store.tiktok && (
+                    <a href={store.tiktok} target="_blank" rel="noreferrer" className="bg-white p-2 rounded-full shadow-sm text-black hover:scale-110 transition-transform">
+                      <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 md:w-7 md:h-7">
+                        <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
+                      </svg>
+                    </a>
+                  )}
                 </div>
               )}
             </div>
+
+            {/* Description - Mobile Only (Below actions) */}
+            {store.description && (
+              <div className="md:hidden mt-4 pt-4 border-t border-gray-100 text-center">
+                <p className="text-sm text-gray-600 line-clamp-3 leading-relaxed">{store.description}</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

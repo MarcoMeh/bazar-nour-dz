@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Loader2, User, Store, Upload, Save, MapPin, Phone, Lock } from "lucide-react";
+import { Loader2, User, Store, Upload, Save, MapPin, Phone, Lock, ImageIcon } from "lucide-react";
 import {
     Select,
     SelectContent,
@@ -166,6 +166,38 @@ export default function StoreOwnerProfile() {
         }
     };
 
+    const handleCoverImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        try {
+            if (!event.target.files || event.target.files.length === 0) {
+                return;
+            }
+            setUploading(true);
+            const file = event.target.files[0];
+            const fileExt = file.name.split('.').pop();
+            const fileName = `cover_${Math.random()}.${fileExt}`;
+            const filePath = `${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('store-images')
+                .upload(filePath, file);
+
+            if (uploadError) {
+                throw uploadError;
+            }
+
+            const { data } = supabase.storage
+                .from('store-images')
+                .getPublicUrl(filePath);
+
+            setStoreData(prev => ({ ...prev, cover_image_url: data.publicUrl }));
+            toast.success("تم رفع الغلاف بنجاح");
+        } catch (error: any) {
+            toast.error("فشل في رفع الغلاف: " + error.message);
+        } finally {
+            setUploading(false);
+        }
+    };
+
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         setSaving(true);
@@ -191,6 +223,7 @@ export default function StoreOwnerProfile() {
                         name: storeData.name,
                         description: storeData.description,
                         image_url: storeData.image_url,
+                        cover_image_url: storeData.cover_image_url,
                         whatsapp: storeData.whatsapp || null,
                         facebook: storeData.facebook || null,
                         instagram: storeData.instagram || null,
@@ -283,8 +316,45 @@ export default function StoreOwnerProfile() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                        {/* Image Upload */}
+                        {/* Cover Image Upload (New) */}
+                        <div className="flex flex-col items-center gap-4 border-b pb-6">
+                            <Label className="w-full text-right font-semibold">صورة الغلاف (خلفية المتجر)</Label>
+                            <div className="relative w-full h-32 md:h-48 border-2 border-dashed rounded-lg flex items-center justify-center overflow-hidden bg-muted group">
+                                {storeData.cover_image_url ? (
+                                    <img src={storeData.cover_image_url} alt="Cover" className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className="text-center text-muted-foreground p-2">
+                                        <ImageIcon className="mx-auto h-8 w-8 mb-1" />
+                                        <span className="text-xs">اضغط لرفع صورة الغلاف</span>
+                                    </div>
+                                )}
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <Label
+                                        htmlFor="cover-image"
+                                        className="cursor-pointer bg-white/20 hover:bg-white/30 text-white border border-white/50 h-9 px-4 py-2 rounded-md text-sm font-medium flex items-center backdrop-blur-sm"
+                                    >
+                                        <Upload className="w-4 h-4 ml-2" />
+                                        تغيير الغلاف
+                                    </Label>
+                                </div>
+                                {uploading && (
+                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
+                                        <Loader2 className="h-6 w-6 animate-spin text-white" />
+                                    </div>
+                                )}
+                            </div>
+                            <Input
+                                id="cover-image"
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={handleCoverImageUpload}
+                            />
+                        </div>
+
+                        {/* Logo Upload (Existing) */}
                         <div className="flex flex-col items-center gap-4">
+                            <Label className="w-full text-right font-semibold">شعار المتجر (Logo)</Label>
                             <div className="relative w-32 h-32 border-2 border-dashed rounded-lg flex items-center justify-center overflow-hidden bg-muted">
                                 {storeData.image_url ? (
                                     <img src={storeData.image_url} alt="Store" className="w-full h-full object-cover" />
