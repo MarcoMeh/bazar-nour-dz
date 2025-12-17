@@ -25,8 +25,51 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { SizeSelector } from "@/components/SizeSelector";
 import { ColorSelector } from "@/components/ColorSelector";
 
+// Utility to compress images
+const compressImage = async (file: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target?.result as string;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 1200; // Resize to max width
+                let width = img.width;
+                let height = img.height;
+
+                if (width > MAX_WIDTH) {
+                    height *= MAX_WIDTH / width;
+                    width = MAX_WIDTH;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx?.drawImage(img, 0, 0, width, height);
+
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        // Create new file with jpeg compression
+                        const newFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
+                            type: 'image/jpeg',
+                            lastModified: Date.now(),
+                        });
+                        resolve(newFile);
+                    } else {
+                        reject(new Error("Canvas to Blob failed"));
+                    }
+                }, 'image/jpeg', 0.7); // 70% quality
+            };
+            img.onerror = (err) => reject(err);
+        };
+        reader.onerror = (err) => reject(err);
+    });
+};
+
 export default function StoreOwnerProducts() {
-    // ... (نفس الـ States والـ useEffects السابقة لم تتغير) ...
+    // ... (rest of the component)
     const [products, setProducts] = useState<any[]>([]);
     const [categories, setCategories] = useState<any[]>([]);
     const [subcategories, setSubcategories] = useState<any[]>([]);
@@ -159,36 +202,63 @@ export default function StoreOwnerProducts() {
         const file = e.target.files?.[0];
         if (!file) return;
         setUploading(true);
-        const fileExt = file.name.split(".").pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage.from("product-images").upload(fileName, file);
-        if (uploadError) {
-            toast.error("فشل رفع الصورة");
-            setUploading(false);
-            return;
+
+        try {
+            const compressedFile = await compressImage(file);
+            const fileExt = "jpg"; // We force convert to jpg
+            const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+            const { error: uploadError } = await supabase.storage.from("product-images").upload(fileName, compressedFile);
+
+            if (uploadError) {
+                toast.error("فشل رفع الصورة");
+                setUploading(false);
+                return;
+            }
+
+            const { data: { publicUrl } } = supabase.storage.from("product-images").getPublicUrl(fileName);
+            setFormData((prev) => ({ ...prev, image_url: publicUrl }));
+            toast.success("تم رفع الصورة الرئيسية (تم ضغطها)");
+        } catch (err) {
+            console.error(err);
+            toast.error("فشل ضغط الصورة");
         }
-        const { data: { publicUrl } } = supabase.storage.from("product-images").getPublicUrl(fileName);
-        setFormData((prev) => ({ ...prev, image_url: publicUrl }));
-        toast.success("تم رفع الصورة الرئيسية");
         setUploading(false);
     };
 
     const handleAdditionalImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
         if (!files || files.length === 0) return;
+
+        // CHECK LIMIT
+        const currentCount = (formData.image_url ? 1 : 0) + (formData.additional_images?.length || 0);
+        const allowed = 4 - currentCount;
+
+        if (files.length > allowed) {
+            toast.error(`يمكنك إضافة ${allowed} صور فقط (الحد الأقصى 4 صور للمنتج)`);
+            return;
+        }
+
         setUploading(true);
         const newImages: string[] = [];
+
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
-            const fileExt = file.name.split(".").pop();
-            const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
-            const { error: uploadError } = await supabase.storage.from("product-images").upload(fileName, file);
-            if (uploadError) {
-                toast.error(`فشل رفع الصورة ${file.name}`);
-                continue;
+            try {
+                const compressedFile = await compressImage(file);
+                const fileExt = "jpg";
+                const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+                const { error: uploadError } = await supabase.storage.from("product-images").upload(fileName, compressedFile);
+
+                if (uploadError) {
+                    toast.error(`فشل رفع الصورة ${file.name}`);
+                    continue;
+                }
+                const { data: { publicUrl } } = supabase.storage.from("product-images").getPublicUrl(fileName);
+                newImages.push(publicUrl);
+            } catch (err) {
+                console.error(err);
+                toast.error(`فشل ضغط الصورة ${file.name}`);
             }
-            const { data: { publicUrl } } = supabase.storage.from("product-images").getPublicUrl(fileName);
-            newImages.push(publicUrl);
         }
         setFormData((prev) => ({
             ...prev,
