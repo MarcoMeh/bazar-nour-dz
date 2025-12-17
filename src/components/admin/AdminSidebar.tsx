@@ -14,6 +14,7 @@ import {
   ImageIcon,
   DollarSign,
   Store,
+  Globe,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,6 +41,7 @@ export const AdminSidebar = () => {
     { name: "الإدارة المالية", href: "/admin/finance", icon: DollarSign, show: isAdmin },
     { name: "رسوم التوصيل", href: "/admin/delivery", icon: Truck, show: isAdmin },
     { name: "خلفيات الصفحات", href: "/admin/backgrounds", icon: ImageIcon, show: isAdmin },
+    { name: "إعدادات الموقع", href: "/admin/settings", icon: Globe, show: isAdmin },
     { name: "التحكم", href: "/admin/control", icon: Settings, show: isAdmin },
   ];
 

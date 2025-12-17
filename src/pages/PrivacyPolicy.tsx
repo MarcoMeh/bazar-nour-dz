@@ -1,6 +1,5 @@
-// 1. حذفنا استيراد Container المسبب للخطأ
 import SEO from "@/components/SEO";
-import { ArrowLeft, Shield, Lock, Eye, Database, Globe } from "lucide-react";
+import { ArrowLeft, Shield, Lock, Eye, Database, Globe, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
@@ -17,7 +16,6 @@ export default function PrivacyPolicy() {
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
                 <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
 
-                {/* 2. استبدلنا Container بـ div عادي مع كلاسات التنسيق */}
                 <div className="container mx-auto px-4 relative z-10 flex flex-col items-center text-center">
                     <div className="inline-flex items-center justify-center p-3 bg-white/10 rounded-2xl mb-6 backdrop-blur-sm border border-white/10">
                         <Shield className="w-8 h-8 text-indigo-400" />
@@ -30,11 +28,11 @@ export default function PrivacyPolicy() {
             </div>
 
             {/* Content Section */}
-            {/* 3. استبدلنا Container هنا أيضاً */}
             <div className="container mx-auto px-4 py-16">
                 <div className="max-w-4xl mx-auto bg-white rounded-3xl shadow-sm border border-slate-100 p-8 md:p-12">
                     <div className="max-w-none font-sans">
 
+                        {/* 1. المعلومات التي نجمعها */}
                         <div className="mb-12 border-b border-slate-100 pb-8">
                             <h2 className="flex items-center gap-3 text-2xl font-bold text-slate-800 mb-6">
                                 <Eye className="w-6 h-6 text-indigo-600" />
@@ -45,19 +43,17 @@ export default function PrivacyPolicy() {
                             </p>
                             <ul className="list-disc pr-6 space-y-2 text-slate-600 marker:text-indigo-400">
                                 <li>المعلومات الشخصية: الاسم، عنوان البريد الإلكتروني، رقم الهاتف، والعنوان.</li>
-                                <li>معلومات الدفع: تفاصيل البطاقة الائتمانية أو الحساب البنكي عند الشراء (يتم معالجتها بأمان عبر بوابات دفع طرف ثالث).</li>
+                                <li>معلومات الدفع: تفاصيل البطاقة الائتمانية أو الحساب البنكي (يتم معالجتها بأمان تام عبر بوابات دفع طرف ثالث).</li>
                                 <li>معلومات الجهاز: نوع الجهاز، عنوان IP، ونظام التشغيل لتحسين تجربة المستخدم.</li>
                             </ul>
                         </div>
 
+                        {/* 2. كيفية استخدام المعلومات */}
                         <div className="mb-12 border-b border-slate-100 pb-8">
                             <h2 className="flex items-center gap-3 text-2xl font-bold text-slate-800 mb-6">
                                 <Database className="w-6 h-6 text-indigo-600" />
                                 2. كيفية استخدام المعلومات
                             </h2>
-                            <p className="text-slate-600 mb-4">
-                                نستخدم المعلومات التي نجمعها للأغراض التالية:
-                            </p>
                             <ul className="list-disc pr-6 space-y-2 text-slate-600 marker:text-indigo-400">
                                 <li>معالجة الطلبات وإيصال المنتجات إليك.</li>
                                 <li>تحسين خدماتنا وتجربة المستخدم على الموقع.</li>
@@ -66,6 +62,7 @@ export default function PrivacyPolicy() {
                             </ul>
                         </div>
 
+                        {/* 3. حماية البيانات */}
                         <div className="mb-12 border-b border-slate-100 pb-8">
                             <h2 className="flex items-center gap-3 text-2xl font-bold text-slate-800 mb-6">
                                 <Lock className="w-6 h-6 text-indigo-600" />
@@ -76,6 +73,7 @@ export default function PrivacyPolicy() {
                             </p>
                         </div>
 
+                        {/* 4. مشاركة المعلومات */}
                         <div className="mb-12 border-b border-slate-100 pb-8">
                             <h2 className="flex items-center gap-3 text-2xl font-bold text-slate-800 mb-6">
                                 <Globe className="w-6 h-6 text-indigo-600" />
@@ -91,12 +89,14 @@ export default function PrivacyPolicy() {
                             </ul>
                         </div>
 
+                        {/* 5. اتصل بنا */}
                         <div>
-                            <h2 className="text-2xl font-bold text-slate-800 mb-6">
+                            <h2 className="flex items-center gap-3 text-2xl font-bold text-slate-800 mb-6">
+                                <Mail className="w-6 h-6 text-indigo-600" />
                                 5. اتصل بنا
                             </h2>
                             <p className="text-slate-600">
-                                إذا كان لديك أي أسئلة حول سياسة الخصوصية هذه، يرجى التواصل معنا عبر البريد الإلكتروني: <a href="mailto:support@bazzarna.dz" className="text-indigo-600 hover:text-indigo-700 font-medium">support@bazzarna.dz</a>
+                                إذا كان لديك أي أسئلة حول سياسة الخصوصية هذه، يرجى التواصل معنا عبر البريد الإلكتروني: <a href="mailto:support@bazzarna.store" className="text-indigo-600 hover:text-indigo-700 font-medium">support@bazzarna.store</a>
                             </p>
                         </div>
 

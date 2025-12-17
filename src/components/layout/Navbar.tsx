@@ -19,8 +19,10 @@ import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 export const Navbar = () => {
+    const { data: settings } = useSiteSettings();
     const { totalItems } = useCart();
     const { user, signOut } = useAuth();
     const navigate = useNavigate();
@@ -148,7 +150,11 @@ export const Navbar = () => {
                 {/* Logo */}
                 <div className="flex items-center gap-2">
                     <Link to="/" className="flex items-center gap-2">
-                        <span className="text-2xl font-bold text-primary">بازارنا</span>
+                        {settings?.logo_url ? (
+                            <img src={settings.logo_url} alt={settings.site_name} className="h-10 w-auto object-contain" />
+                        ) : (
+                            <span className="text-2xl font-bold text-primary">{settings?.site_name || "بازارنا"}</span>
+                        )}
                     </Link>
                 </div>
 
@@ -233,6 +239,27 @@ export const Navbar = () => {
                                             </Link>
                                         </DropdownMenuItem>
                                     </>
+                                ) : userRole === 'admin' ? (
+                                    <>
+                                        <DropdownMenuItem asChild>
+                                            <Link to="/admin" className="cursor-pointer flex items-center gap-2">
+                                                <LayoutDashboard className="h-4 w-4" />
+                                                <span>لوحة الإدارة</span>
+                                            </Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                            <Link to="/admin/control" className="cursor-pointer flex items-center gap-2">
+                                                <Settings className="h-4 w-4" />
+                                                <span>التحكم بالموقع</span>
+                                            </Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                            <Link to="/admin/settings" className="cursor-pointer flex items-center gap-2">
+                                                <User className="h-4 w-4" />
+                                                <span>إعدادات الحساب</span>
+                                            </Link>
+                                        </DropdownMenuItem>
+                                    </>
                                 ) : (
                                     <>
                                         <DropdownMenuItem asChild>
@@ -267,6 +294,6 @@ export const Navbar = () => {
                     )}
                 </div>
             </div>
-        </nav>
+        </nav >
     );
 };

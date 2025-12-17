@@ -239,12 +239,13 @@ const Home = () => {
     };
 
     const fetchFlashSaleProducts = async () => {
+        console.log("Fetching Flash Sale Products...");
         const { data, error } = await supabase
             .from("flash_sale_items" as any)
             .select(`
                 product:products (
                     *,
-                    categories!inner(name, parent:parent_id(name))
+                    categories(name, parent:parent_id(name))
                 )
             `)
             .limit(10);
@@ -254,9 +255,14 @@ const Home = () => {
             return;
         }
 
+        console.log("Raw Flash Sale Data:", data);
+
         if (data && data.length > 0) {
             const formattedProducts = data
-                .filter((item: any) => item.product) // Safety check
+                .filter((item: any) => {
+                    if (!item.product) console.warn("Flash Sale item missing product (RLS hidden?):", item);
+                    return item.product;
+                }) // Safety check
                 .map((item: any) => {
                     const prod = item.product;
                     return {
@@ -269,6 +275,7 @@ const Home = () => {
                         is_free_delivery: prod.is_free_delivery ?? false,
                     };
                 });
+            console.log("Formatted Flash Sale Products:", formattedProducts);
             setFlashSaleProducts(formattedProducts);
         } else {
             setFlashSaleProducts([]);
@@ -295,97 +302,99 @@ const Home = () => {
             />
 
             {/* 1. HERO SECTION */}
-            <section className="relative min-h-[65vh] md:min-h-[85vh] flex items-center justify-center overflow-hidden">
-                {/* Background with Overlay */}
-                <div className="absolute inset-0 z-0">
-                    <img
-                        src={heroBackground}
-                        alt="Hero Background"
-                        className="w-full h-full object-cover object-top md:object-center animate-pulse-slow active:animate-none transition-all duration-700"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-slate-950 via-indigo-950/60 to-transparent"></div>
-                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
-                </div>
-
-                <div className="container mx-auto px-4 relative z-10 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center pt-8 md:pt-0">
-                    {/* Text Content */}
-                    <div className="text-white space-y-6 md:space-y-8 text-right order-2 lg:order-1">
-                        <div className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-indigo-500/20 backdrop-blur-md border border-indigo-400/30 animate-fade-in shadow-lg">
-                            <span className="relative flex h-2.5 w-2.5 md:h-3 md:w-3">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-full w-full bg-emerald-400"></span>
-                            </span>
-                            <span className="text-indigo-100 font-bold text-xs md:text-sm tracking-wide">المنصة رقم #1 في الجزائر</span>
-                        </div>
-
-                        <h1 className="text-4xl md:text-6xl lg:text-7xl font-black leading-normal md:leading-tight animate-slide-up tracking-wide mb-4">
-                            بازارنا.. <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-l from-yellow-300 via-amber-200 to-yellow-100 filter drop-shadow-sm">
-                                وجهتك الأولى للأناقة
-                            </span>
-                        </h1>
-
-                        <p className="text-base md:text-xl text-gray-200/90 max-w-xl leading-relaxed animate-slide-up delay-100 font-medium">
-                            أحدث صيحات الموضة من أفضل الماركات والمحلات الجزائرية.
-                            أسعار تنافسية، وتوصيل سريع <span className="text-yellow-400 font-bold">لـ 58 ولاية</span> مع الدفع عند الاستلام.
-                        </p>
-
-                        {/* Search Bar - Enhanced */}
-                        <form onSubmit={handleSearch} className="relative max-w-lg animate-slide-up delay-200">
-                            <div className="relative group">
-                                <div className="absolute -inset-0.5 bg-gradient-to-r from-yellow-400 to-amber-600 rounded-full blur opacity-40 group-hover:opacity-70 transition duration-500"></div>
-                                <div className="relative flex bg-white rounded-full p-1.5 md:p-2 shadow-2xl items-center">
-                                    <Input
-                                        type="text"
-                                        placeholder="ابحث عن فستان، قميص، حذاء رياضي..."
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="flex-1 border-none shadow-none focus-visible:ring-0 text-gray-900 text-base md:text-lg h-10 md:h-12 px-4 md:px-6 rounded-full bg-transparent placeholder:text-gray-400"
-                                    />
-                                    <Button
-                                        type="submit"
-                                        size="lg"
-                                        className="rounded-full px-6 md:px-8 bg-indigo-600 hover:bg-indigo-700 text-white h-10 md:h-12 transition-all duration-300 hover:scale-105 shadow-md"
-                                    >
-                                        <Search className="h-4 w-4 md:h-5 md:w-5" />
-                                    </Button>
-                                </div>
-                            </div>
-                        </form>
-
-                        {/* Trust Badges - More Prominent */}
-                        <div className="flex flex-wrap gap-3 md:gap-6 pt-2 md:pt-4 animate-slide-up delay-300">
-                            <div className="flex items-center gap-3 bg-white/5 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 hover:bg-white/10 transition-colors cursor-default">
-                                <div className="p-2 bg-yellow-400/20 rounded-full text-yellow-400">
-                                    <Truck className="h-5 w-5 md:h-6 md:w-6" />
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="text-xs md:text-sm font-bold text-white">توصيل 58 ولاية</span>
-                                    <span className="text-[10px] md:text-xs text-gray-300">سريع ومضمون</span>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-3 bg-white/5 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 hover:bg-white/10 transition-colors cursor-default">
-                                <div className="p-2 bg-green-400/20 rounded-full text-green-400">
-                                    <Shield className="h-5 w-5 md:h-6 md:w-6" />
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="text-xs md:text-sm font-bold text-white">الدفع عند الاستلام</span>
-                                    <span className="text-[10px] md:text-xs text-gray-300">تأكد من سلعتك أولاً</span>
-                                </div>
-                            </div>
-                        </div>
+            {settings.hero_visible && (
+                <section className="relative min-h-[65vh] md:min-h-[85vh] flex items-center justify-center overflow-hidden">
+                    {/* Background with Overlay */}
+                    <div className="absolute inset-0 z-0">
+                        <img
+                            src={heroBackground}
+                            alt="Hero Background"
+                            className="w-full h-full object-cover object-top md:object-center animate-pulse-slow active:animate-none transition-all duration-700"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-slate-950 via-indigo-950/60 to-transparent"></div>
+                        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
                     </div>
 
-                    {/* Empty div for grid balance */}
-                    <div className="hidden lg:block"></div>
-                </div>
+                    <div className="container mx-auto px-4 relative z-10 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center pt-8 md:pt-0">
+                        {/* Text Content */}
+                        <div className="text-white space-y-6 md:space-y-8 text-right order-2 lg:order-1">
+                            <div className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-indigo-500/20 backdrop-blur-md border border-indigo-400/30 animate-fade-in shadow-lg">
+                                <span className="relative flex h-2.5 w-2.5 md:h-3 md:w-3">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-full w-full bg-emerald-400"></span>
+                                </span>
+                                <span className="text-indigo-100 font-bold text-xs md:text-sm tracking-wide">المنصة رقم #1 في الجزائر</span>
+                            </div>
 
-                {/* Scroll Indicator */}
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 animate-bounce hidden md:flex flex-col items-center gap-2 text-white/50">
-                    <span className="text-xs">اكتشف المزيد</span>
-                    <ArrowLeft className="h-5 w-5 -rotate-90" />
-                </div>
-            </section>
+                            <h1 className="text-4xl md:text-6xl lg:text-7xl font-black leading-normal md:leading-tight animate-slide-up tracking-wide mb-4">
+                                بازارنا.. <br />
+                                <span className="text-transparent bg-clip-text bg-gradient-to-l from-yellow-300 via-amber-200 to-yellow-100 filter drop-shadow-sm">
+                                    وجهتك الأولى للأناقة
+                                </span>
+                            </h1>
+
+                            <p className="text-base md:text-xl text-gray-200/90 max-w-xl leading-relaxed animate-slide-up delay-100 font-medium">
+                                أحدث صيحات الموضة من أفضل الماركات والمحلات الجزائرية.
+                                أسعار تنافسية، وتوصيل سريع <span className="text-yellow-400 font-bold">لـ 58 ولاية</span> مع الدفع عند الاستلام.
+                            </p>
+
+                            {/* Search Bar - Enhanced */}
+                            <form onSubmit={handleSearch} className="relative max-w-lg animate-slide-up delay-200">
+                                <div className="relative group">
+                                    <div className="absolute -inset-0.5 bg-gradient-to-r from-yellow-400 to-amber-600 rounded-full blur opacity-40 group-hover:opacity-70 transition duration-500"></div>
+                                    <div className="relative flex bg-white rounded-full p-1.5 md:p-2 shadow-2xl items-center">
+                                        <Input
+                                            type="text"
+                                            placeholder="ابحث عن فستان، قميص، حذاء رياضي..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            className="flex-1 border-none shadow-none focus-visible:ring-0 text-gray-900 text-base md:text-lg h-10 md:h-12 px-4 md:px-6 rounded-full bg-transparent placeholder:text-gray-400"
+                                        />
+                                        <Button
+                                            type="submit"
+                                            size="lg"
+                                            className="rounded-full px-6 md:px-8 bg-indigo-600 hover:bg-indigo-700 text-white h-10 md:h-12 transition-all duration-300 hover:scale-105 shadow-md"
+                                        >
+                                            <Search className="h-4 w-4 md:h-5 md:w-5" />
+                                        </Button>
+                                    </div>
+                                </div>
+                            </form>
+
+                            {/* Trust Badges - More Prominent */}
+                            <div className="flex flex-wrap gap-3 md:gap-6 pt-2 md:pt-4 animate-slide-up delay-300">
+                                <div className="flex items-center gap-3 bg-white/5 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 hover:bg-white/10 transition-colors cursor-default">
+                                    <div className="p-2 bg-yellow-400/20 rounded-full text-yellow-400">
+                                        <Truck className="h-5 w-5 md:h-6 md:w-6" />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-xs md:text-sm font-bold text-white">توصيل 58 ولاية</span>
+                                        <span className="text-[10px] md:text-xs text-gray-300">سريع ومضمون</span>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3 bg-white/5 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 hover:bg-white/10 transition-colors cursor-default">
+                                    <div className="p-2 bg-green-400/20 rounded-full text-green-400">
+                                        <Shield className="h-5 w-5 md:h-6 md:w-6" />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-xs md:text-sm font-bold text-white">الدفع عند الاستلام</span>
+                                        <span className="text-[10px] md:text-xs text-gray-300">تأكد من سلعتك أولاً</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Empty div for grid balance */}
+                        <div className="hidden lg:block"></div>
+                    </div>
+
+                    {/* Scroll Indicator */}
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 animate-bounce hidden md:flex flex-col items-center gap-2 text-white/50">
+                        <span className="text-xs">اكتشف المزيد</span>
+                        <ArrowLeft className="h-5 w-5 -rotate-90" />
+                    </div>
+                </section>
+            )}
 
             {/* 2. FEATURED STORES (Moved after Hero) */}
             {settings.stores_visible && (
@@ -654,17 +663,52 @@ const Home = () => {
                 </section>
             )}
 
-            {/* 4. BEST SELLERS */}
-            {settings.products_visible && (
+            {/* 2.2 FEATURES SECTION (WHY CHOOSE US) */}
+            {settings.features_visible && (
+                <section className="py-16 bg-white border-y border-gray-100">
+                    <div className="container mx-auto px-4">
+                        <div className="text-center mb-12">
+                            <h2 className="text-3xl font-black mb-4">لماذا تختارنا؟</h2>
+                            <p className="text-gray-500">نقدم لك أفضل تجربة تسوق مع ضمانات حقيقية</p>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            <div className="flex flex-col items-center text-center p-6 bg-gray-50 rounded-2xl hover:shadow-lg transition-all duration-300 group">
+                                <div className="p-4 bg-white rounded-full shadow-md mb-4 text-primary group-hover:scale-110 transition-transform">
+                                    <Shield className="h-8 w-8" />
+                                </div>
+                                <h3 className="text-xl font-bold mb-2">ضمان الجودة</h3>
+                                <p className="text-gray-500 text-sm">منتجات أصلية 100% من أفضل الماركات العالمية والمحلية.</p>
+                            </div>
+                            <div className="flex flex-col items-center text-center p-6 bg-gray-50 rounded-2xl hover:shadow-lg transition-all duration-300 group">
+                                <div className="p-4 bg-white rounded-full shadow-md mb-4 text-green-500 group-hover:scale-110 transition-transform">
+                                    <Truck className="h-8 w-8" />
+                                </div>
+                                <h3 className="text-xl font-bold mb-2">توصيل سريع</h3>
+                                <p className="text-gray-500 text-sm">توصيل لجميع ولايات الجزائر (58 ولاية) في وقت قياسي.</p>
+                            </div>
+                            <div className="flex flex-col items-center text-center p-6 bg-gray-50 rounded-2xl hover:shadow-lg transition-all duration-300 group">
+                                <div className="p-4 bg-white rounded-full shadow-md mb-4 text-blue-500 group-hover:scale-110 transition-transform">
+                                    <Store className="h-8 w-8" />
+                                </div>
+                                <h3 className="text-xl font-bold mb-2">خيارات متنوعة</h3>
+                                <p className="text-gray-500 text-sm">مئات المتاجر وآلاف المنتجات في مكان واحد لتلبية جميع احتياجاتك.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            )}
+
+            {/* 4. BEST SELLERS (Trending) */}
+            {settings.trending_visible && (
                 <section className="py-24 bg-white">
                     <div className="container mx-auto px-4">
                         <div className="flex items-center justify-between mb-12">
                             <div>
                                 <h2 className="text-3xl md:text-5xl font-black mb-2 flex items-center gap-3">
                                     <TrendingUp className="text-primary h-8 w-8 md:h-12 md:w-12" />
-                                    الأكثر مبيعاً
+                                    الأكثر طلباً
                                 </h2>
-                                <p className="text-gray-500 text-lg">منتجات أحبها الآخرون هذا الأسبوع</p>
+                                <p className="text-gray-500 text-lg">منتجات أحبها الآخرون هذا الاسبوع</p>
                             </div>
                             <Link to="/products?sort=best_selling">
                                 <Button variant="outline" className="rounded-full px-6 font-bold hover:bg-gray-100 border-2">
@@ -678,13 +722,20 @@ const Home = () => {
                                 ? [1, 2, 3, 4, 5].map((i) => (
                                     <Skeleton key={i} className="h-[400px] rounded-2xl" />
                                 ))
-                                : bestSellers.map((product) => (
-                                    <ProductCard
-                                        key={product.id}
-                                        {...product}
-                                        onQuickView={setQuickViewProduct}
-                                    />
-                                ))}
+                                : bestSellers.length > 0 ? (
+                                    bestSellers.map((product) => (
+                                        <ProductCard
+                                            key={product.id}
+                                            {...product}
+                                            onQuickView={setQuickViewProduct}
+                                        />
+                                    ))
+                                ) : (
+                                    <div className="col-span-full text-center py-12 text-gray-400">
+                                        <TrendingUp className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                                        <p>لا توجد منتجات رائجة حالياً</p>
+                                    </div>
+                                )}
                         </div>
                     </div>
                 </section>
@@ -721,6 +772,42 @@ const Home = () => {
                                     تصفح جميع المنتجات
                                 </Button>
                             </Link>
+                        </div>
+                    </div>
+                </section>
+            )}
+
+            {/* 6. NEWSLETTER SECTION */}
+            {settings.newsletter_visible && (
+                <section className="py-20 bg-primary/95 text-white relative overflow-hidden">
+                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+                    <div className="container mx-auto px-4 relative z-10">
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-8 md:gap-12">
+                            <div className="text-center md:text-right flex-1">
+                                <h2 className="text-3xl md:text-4xl font-black mb-4">انضم لقائمتنا البريدية</h2>
+                                <p className="text-primary-foreground/80 text-lg max-w-lg">
+                                    احصل على أحدث العروض وكوبونات الخصم الحصرية مباشرة إلى بريدك الإلكتروني.
+                                    لا تفوت فرصة التوفير!
+                                </p>
+                            </div>
+                            <div className="w-full md:w-auto flex-1 max-w-md">
+                                <form className="flex flex-col sm:flex-row gap-3">
+                                    <Input
+                                        type="email"
+                                        placeholder="أدخل بريدك الإلكتروني"
+                                        className="h-12 bg-white/10 border-white/20 text-white placeholder:text-white/60 focus-visible:ring-offset-0 focus-visible:ring-1 focus-visible:ring-white"
+                                    />
+                                    <Button
+                                        size="lg"
+                                        className="h-12 bg-white text-primary hover:bg-white/90 font-bold w-full sm:w-auto"
+                                    >
+                                        اشترك الآن
+                                    </Button>
+                                </form>
+                                <p className="text-xs text-primary-foreground/60 mt-3 text-center md:text-right">
+                                    نحترم خصوصيتك. يمكنك إلغاء الاشتراك في أي وقت.
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </section>

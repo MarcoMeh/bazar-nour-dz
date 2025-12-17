@@ -40,6 +40,7 @@ import AdminControl from "./pages/admin/Control";
 import AdminReviews from "./pages/admin/Reviews";
 import AdminStoreRegistrations from "./pages/admin/StoreRegistrations";
 import PageBackgrounds from "./pages/admin/PageBackgrounds";
+import AdminSettings from "./pages/admin/Settings";
 
 // Store Owner Pages
 import { StoreOwnerLayout } from "./components/layout/StoreOwnerLayout";
@@ -142,6 +143,7 @@ const App = () => (
                       <Route path="reviews" element={<AdminReviews />} />
                       <Route path="store-registrations" element={<AdminStoreRegistrations />} />
                       <Route path="backgrounds" element={<PageBackgrounds />} />
+                      <Route path="settings" element={<AdminSettings />} />
                     </Route>
 
                     {/* Store Owner Routes - Protected */}

@@ -1,15 +1,17 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, X, Plus, Search } from "lucide-react";
+import { Loader2, X, Plus, Search, Eye, Zap, Settings, AlertTriangle, Store, ArrowRight } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface SiteSettings {
-    id: number;
+    id: string; // Changed from number to string (UUID)
     hero_visible: boolean;
     features_visible: boolean;
     products_visible: boolean;
@@ -26,8 +28,14 @@ export default function AdminControl() {
     const [saving, setSaving] = useState(false);
 
     const [flashSaleProducts, setFlashSaleProducts] = useState<any[]>([]);
-    const [productSearchQuery, setProductSearchQuery] = useState("");
-    const [searchResults, setSearchResults] = useState<any[]>([]);
+
+    // Store Selection State
+    const [viewMode, setViewMode] = useState<'search_stores' | 'select_products'>('search_stores');
+    const [storeSearchQuery, setStoreSearchQuery] = useState("");
+    const [storeSearchResults, setStoreSearchResults] = useState<any[]>([]);
+    const [selectedStore, setSelectedStore] = useState<any | null>(null);
+    const [storeProducts, setStoreProducts] = useState<any[]>([]);
+    const [loadingProducts, setLoadingProducts] = useState(false);
 
     useEffect(() => {
         fetchSettings();
@@ -53,9 +61,8 @@ export default function AdminControl() {
         }
 
         if (data) {
-            // Flatten the structure for the UI
             const formattedData = data.map((item: any) => ({
-                id: item.product.id, // Use product ID for UI logic match
+                id: item.product.id,
                 flash_sale_item_id: item.id,
                 name_ar: item.product.name_ar,
                 image_url: item.product.image_url,
@@ -65,25 +72,49 @@ export default function AdminControl() {
         }
     };
 
-    const searchProducts = async () => {
-        if (!productSearchQuery.trim()) return;
+    const searchStores = async () => {
+        if (!storeSearchQuery.trim()) return;
         const { data } = await supabase
-            .from('products')
-            .select('id, name_ar, image_url, price')
-            .ilike('name_ar', `%${productSearchQuery}%`)
+            .from('stores')
+            .select('id, name, image_url')
+            .ilike('name', `%${storeSearchQuery}%`)
             .limit(5);
-        if (data) setSearchResults(data);
+        if (data) setStoreSearchResults(data);
+    };
+
+    const handleSelectStore = async (store: any) => {
+        setSelectedStore(store);
+        setViewMode('select_products');
+        setLoadingProducts(true);
+        // Fetch products for this store
+        const { data, error } = await supabase
+            .from('products')
+            .select('id, name, name_ar, image_url, price')
+            .eq('store_id', store.id);
+
+        if (error) {
+            console.error("Error fetching store products:", error);
+            toast.error(`حدث خطأ أثناء تحميل المنتجات: ${(error as any).message || "خطأ غير محدد"}`);
+        } else if (data) {
+            setStoreProducts(data);
+        }
+        setLoadingProducts(false);
+    };
+
+    const handleBackToStores = () => {
+        setSelectedStore(null);
+        setStoreProducts([]);
+        setViewMode('search_stores');
     };
 
     const addToFlashSale = async (productId: string) => {
-        // Check if already exists to avoid unique constraint error (though UI should handle this, safety first)
         const { error } = await supabase
             .from('flash_sale_items' as any)
             .insert({ product_id: productId });
 
         if (error) {
             console.error("Error adding to flash sale:", error);
-            if (error.code === '23505') { // Unique violation
+            if (error.code === '23505') {
                 toast.error("المنتج موجود بالفعل في عروض فلاش");
             } else {
                 toast.error("حدث خطأ أثناء إضافة المنتج");
@@ -92,13 +123,11 @@ export default function AdminControl() {
         }
 
         fetchFlashSaleProducts();
-        setSearchResults([]);
-        setProductSearchQuery("");
+        // Don't clear store search context, just show success
         toast.success("تم إضافة المنتج لعروض فلاش");
     };
 
     const removeFromFlashSale = async (productId: string) => {
-        // We delete by product_id for convenience since we map it in the UI
         const { error } = await supabase
             .from('flash_sale_items' as any)
             .delete()
@@ -119,36 +148,25 @@ export default function AdminControl() {
             const { data, error } = await supabase
                 .from("site_settings" as any)
                 .select("*")
-                .single();
+                .maybeSingle(); // Switch to maybeSingle to avoid PGRST116 error log
 
-            if (error && error.code !== 'PGRST116') { // PGRST116 is 'Row not found'
+            if (error) {
                 console.error("Error fetching settings:", error);
             } else if (data) {
                 setSettings(data as any);
             } else {
-                // No settings found, create default
-                const { data: newData, error: createError } = await supabase
-                    .from("site_settings" as any)
-                    .insert([{
-                        id: 1,
-                        hero_visible: true,
-                        features_visible: true,
-                        products_visible: true,
-                        stores_visible: true,
-                        categories_visible: true,
-                        flash_sale_visible: true,
-                        trending_visible: true,
-                        newsletter_visible: true,
-                    }])
-                    .select()
-                    .single();
-
-                if (createError) {
-                    console.error("Error creating default settings:", createError);
-                    toast.error("فشل في إنشاء إعدادات افتراضية");
-                } else {
-                    setSettings(newData as any);
-                }
+                // Default settings fallback
+                setSettings({
+                    id: "",
+                    hero_visible: true,
+                    features_visible: true,
+                    products_visible: true,
+                    stores_visible: true,
+                    categories_visible: true,
+                    flash_sale_visible: true,
+                    trending_visible: true,
+                    newsletter_visible: true,
+                });
             }
         } catch (error) {
             console.error("Error:", error);
@@ -166,25 +184,27 @@ export default function AdminControl() {
         if (!settings) return;
         setSaving(true);
         try {
-            const { error } = await supabase
+            // Prepare payload without ID initially
+            const { id, ...updates } = settings;
+
+            // If ID is valid UUID, include it. If empty string (from our default state), exclude it to let DB generate one
+            const payload = id && id.length > 10 ? { id, ...updates } : updates;
+
+            const { data, error } = await supabase
                 .from("site_settings" as any)
-                .update({
-                    hero_visible: settings.hero_visible,
-                    features_visible: settings.features_visible,
-                    products_visible: settings.products_visible,
-                    stores_visible: settings.stores_visible,
-                    categories_visible: settings.categories_visible,
-                    flash_sale_visible: settings.flash_sale_visible,
-                    trending_visible: settings.trending_visible,
-                    newsletter_visible: settings.newsletter_visible,
-                })
-                .eq("id", 1); // Assuming single row with ID 1
+                .upsert(payload)
+                .select()
+                .single();
 
             if (error) throw error;
+
+            // Update local state with returned data (crucial for getting the generated ID)
+            if (data) setSettings(data as any);
+
             toast.success("تم حفظ التغييرات بنجاح");
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error saving settings:", error);
-            toast.error("حدث خطأ أثناء الحفظ");
+            toast.error(`حدث خطأ أثناء الحفظ: ${error.message || error.details || "خطأ غير محدد"}`);
         } finally {
             setSaving(false);
         }
@@ -195,139 +215,218 @@ export default function AdminControl() {
     }
 
     if (!settings) {
-        return <div className="p-8 text-center text-red-500">فشل في تحميل الإعدادات. يرجى مراجعة سجل الأخطاء.</div>;
+        return <div className="p-8 text-center text-red-500">فشل في تحميل الإعدادات</div>;
     }
 
     return (
-        <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8">
-            <div className="flex items-center justify-between">
+        <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8" dir="rtl">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900">إعدادات الموقع</h1>
-                    <p className="text-muted-foreground mt-2">تحكم في ظهور أقسام الصفحة الرئيسية والميزات.</p>
+                    <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
+                        <Settings className="w-8 h-8 text-primary" />
+                        لوحة التحكم المركزية
+                    </h1>
+                    <p className="text-muted-foreground mt-2">إدارة ظهور الأقسام والعروض الترويجية من مكان واحد.</p>
                 </div>
-                <Button size="lg" onClick={handleSave} disabled={saving} className="bg-primary hover:bg-primary/90">
+                <Button size="lg" onClick={handleSave} disabled={saving} className="w-full md:w-auto bg-primary hover:bg-primary/90 shadow-lg">
                     {saving && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
                     حفظ التغييرات
                 </Button>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2">
-                {/* 1. Visibility Settings (Grouped) */}
-                <Card className="h-fit shadow-md border-0 bg-white/50 backdrop-blur-sm">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <span className="bg-primary/10 p-2 rounded-lg text-primary text-xl">👁️</span>
-                            أقسام الصفحة الرئيسية
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
+            <Tabs defaultValue="visibility" className="space-y-6">
+                <TabsList className="bg-white p-1 border h-auto w-full justify-start overflow-x-auto">
+                    <TabsTrigger value="visibility" className="px-6 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-base">
+                        <Eye className="w-4 h-4 ml-2" />
+                        واجهة المستخدم
+                    </TabsTrigger>
+                    <TabsTrigger value="flash_sales" className="px-6 py-2.5 data-[state=active]:bg-yellow-500 data-[state=active]:text-white text-base">
+                        <Zap className="w-4 h-4 ml-2" />
+                        عروض فلاش
+                    </TabsTrigger>
+                </TabsList>
+
+                {/* VISIBILITY SETTINGS */}
+                <TabsContent value="visibility" className="space-y-4">
+                    <Alert className="bg-blue-50 border-blue-200 text-blue-800">
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertTitle>ملاحظة هامة</AlertTitle>
+                        <AlertDescription>
+                            إخفاء قسم معين سيجعله يختفي تماماً من الصفحة الرئيسية لجميع الزوار فوراً بعد الحفظ.
+                        </AlertDescription>
+                    </Alert>
+
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {[
-                            { id: "hero_visible", label: "قسم البطل (Hero Section)", desc: "الصورة الكبيرة في مقدمة الموقع" },
-                            { id: "features_visible", label: "المميزات (Why Us)", desc: "قسم لماذا تختارنا" },
-                            { id: "categories_visible", label: "التصنيفات (Categories)", desc: "شريط التصنيفات الدائري" },
-                            { id: "stores_visible", label: "المحلات (Featured Stores)", desc: "قائمة المتاجر المميزة" },
-                            { id: "flash_sale_visible", label: "عروض فلاش (Flash Sales)", desc: "عداد التنازلي والعروض المؤقتة" },
-                            { id: "products_visible", label: "أحدث المنتجات (New Arrivals)", desc: "شبكة المنتجات المضافة حديثاً" },
-                            { id: "trending_visible", label: "الأكثر مبيعاً (Best Sellers)", desc: "المنتجات الرائجة" },
-                            { id: "newsletter_visible", label: "النشرة البريدية", desc: "نموذج الاشتراك في الأسفل" },
+                            { id: "hero_visible", label: "الواجهة الرئيسية (Hero)", icon: "🖼️", desc: "الصورة الكبيرة والرسالة الترحيبية" },
+                            { id: "categories_visible", label: "شريط التصنيفات", icon: "📂", desc: "القائمة الدائرية للأقسام" },
+                            { id: "features_visible", label: "لماذا تختارنا", icon: "✨", desc: "قسم المميزات والخدمات" },
+                            { id: "stores_visible", label: "أفضل المحلات", icon: "🏪", desc: "قائمة المتاجر المميزة" },
+                            { id: "flash_sale_visible", label: "عروض فلاش", icon: "⚡", desc: "شريط العروض المؤقتة" },
+                            { id: "products_visible", label: "وصل حديثاً", icon: "🛍️", desc: "شبكة المنتجات الجديدة" },
+                            { id: "trending_visible", label: "الأكثر طلباً", icon: "🔥", desc: "المنتجات الرائجة حالياً" },
+                            { id: "newsletter_visible", label: "القائمة البريدية", icon: "📧", desc: "نموذج الاشتراك في الأسفل" },
                         ].map((item) => (
-                            <div key={item.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-white hover:shadow-sm transition-all border border-transparent hover:border-gray-100">
-                                <div className="space-y-0.5">
-                                    <Label htmlFor={item.id} className="text-base font-medium text-gray-800 cursor-pointer">{item.label}</Label>
+                            <Card key={item.id} className={`transition-all duration-300 border-2 ${settings[item.id as keyof SiteSettings] ? 'border-primary/20 bg-primary/5' : 'border-gray-100 opacity-70 grayscale'}`}>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-base font-medium">
+                                        {item.icon} {item.label}
+                                    </CardTitle>
+                                    <Switch
+                                        checked={settings[item.id as keyof SiteSettings] as boolean}
+                                        onCheckedChange={() => handleToggle(item.id as keyof SiteSettings)}
+                                    />
+                                </CardHeader>
+                                <CardContent>
                                     <p className="text-xs text-muted-foreground">{item.desc}</p>
-                                </div>
-                                <Switch
-                                    id={item.id}
-                                    checked={settings[item.id as keyof SiteSettings] as boolean}
-                                    onCheckedChange={() => handleToggle(item.id as keyof SiteSettings)}
-                                />
-                            </div>
+                                </CardContent>
+                            </Card>
                         ))}
-                    </CardContent>
-                </Card>
+                    </div>
+                </TabsContent>
 
-                {/* 2. Flash Sale Management */}
-                <Card className="h-fit shadow-md border-0 bg-white/50 backdrop-blur-sm">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <span className="bg-yellow-100 p-2 rounded-lg text-yellow-600 text-xl">⚡</span>
-                            إدارة عروض فلاش
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="flex gap-2">
-                            <div className="relative flex-1">
-                                <Search className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    placeholder="بحث عن منتج لإضافته..."
-                                    value={productSearchQuery}
-                                    onChange={e => setProductSearchQuery(e.target.value)}
-                                    onKeyDown={(e) => e.key === 'Enter' && searchProducts()}
-                                    className="pr-9"
-                                />
-                            </div>
-                            <Button onClick={searchProducts} variant="secondary">بحث</Button>
-                        </div>
-
-                        {/* Search Results */}
-                        {searchResults.length > 0 && (
-                            <div className="border rounded-xl p-2 space-y-1 bg-white shadow-lg animate-in fade-in slide-in-from-top-2 z-10">
-                                <div className="text-xs font-semibold text-muted-foreground px-2 py-1">نتائج البحث:</div>
-                                {searchResults.map(p => (
-                                    <div key={p.id} className="flex justify-between items-center p-2 hover:bg-indigo-50 cursor-pointer rounded-lg transition-colors group" onClick={() => addToFlashSale(p.id)}>
-                                        <div className="flex items-center gap-3">
-                                            <img src={p.image_url || "/placeholder.svg"} className="w-10 h-10 rounded-md object-cover border border-gray-200" />
-                                            <div>
-                                                <p className="text-sm font-medium text-gray-900">{p.name_ar}</p>
-                                                <p className="text-xs text-gray-500">{p.price} د.ج</p>
+                {/* FLASH SALES MANAGMENT */}
+                <TabsContent value="flash_sales">
+                    <div className="grid gap-6 md:grid-cols-12">
+                        {/* Search & Add */}
+                        <Card className="md:col-span-5 h-fit">
+                            <CardHeader>
+                                <CardTitle>{viewMode === 'search_stores' ? 'إضافة منتجات من متجر' : `منتجات ${selectedStore?.name}`}</CardTitle>
+                                <CardDescription>
+                                    {viewMode === 'search_stores'
+                                        ? 'ابحث عن المتجر أولاً لاستعراض منتجاته'
+                                        : 'اختر المنتجات لإضافتها لعروض فلاش'}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {viewMode === 'search_stores' ? (
+                                    <>
+                                        <div className="flex gap-2">
+                                            <div className="relative flex-1">
+                                                <Search className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                                                <Input
+                                                    placeholder="اسم المتجر..."
+                                                    value={storeSearchQuery}
+                                                    onChange={e => setStoreSearchQuery(e.target.value)}
+                                                    onKeyDown={(e) => e.key === 'Enter' && searchStores()}
+                                                />
                                             </div>
+                                            <Button onClick={searchStores} variant="secondary">بحث</Button>
                                         </div>
-                                        <Button size="icon" variant="ghost" className="h-8 w-8 text-green-600 bg-green-50 opacity-0 group-hover:opacity-100 transition-all">
-                                            <Plus className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
 
-                        <div className="border-t pt-4">
-                            <h3 className="font-bold mb-4 flex items-center justify-between">
-                                <span>المنتجات النشطة حالياً</span>
-                                <span className="bg-red-100 text-red-700 text-xs px-2 py-1 rounded-full">{flashSaleProducts.length}</span>
-                            </h3>
-
-                            {/* Active Products List */}
-                            <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                                {flashSaleProducts.map(p => (
-                                    <div key={p.id} className="flex items-center justify-between p-3 rounded-xl border border-gray-100 bg-gray-50/50 hover:bg-white hover:shadow-sm transition-all group">
-                                        <div className="flex items-center gap-3">
-                                            <img src={p.image_url || "/placeholder.svg"} className="w-12 h-12 rounded-lg object-cover border border-gray-200" />
-                                            <div>
-                                                <p className="text-sm font-bold text-gray-900 line-clamp-1">{p.name_ar}</p>
-                                                <p className="text-xs text-gray-500">{p.price} د.ج</p>
+                                        {storeSearchResults.length > 0 && (
+                                            <div className="border rounded-lg divide-y bg-slate-50 overflow-hidden">
+                                                {storeSearchResults.map(store => (
+                                                    <div key={store.id} className="flex justify-between items-center p-3 hover:bg-slate-100 transition-colors cursor-pointer" onClick={() => handleSelectStore(store)}>
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-10 h-10 rounded-full bg-white border flex items-center justify-center overflow-hidden">
+                                                                {store.image_url ? (
+                                                                    <img src={store.image_url} alt={store.name} className="w-full h-full object-cover" />
+                                                                ) : (
+                                                                    <Store className="w-5 h-5 text-gray-400" />
+                                                                )}
+                                                            </div>
+                                                            <div className="text-sm">
+                                                                <p className="font-medium">{store.name}</p>
+                                                            </div>
+                                                        </div>
+                                                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                                                            <ArrowRight className="h-4 w-4 rotate-180" /> {/* RTL arrow logic */}
+                                                        </Button>
+                                                    </div>
+                                                ))}
                                             </div>
-                                        </div>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-8 w-8 text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                                            onClick={() => removeFromFlashSale(p.id)}
-                                        >
-                                            <X className="h-4 w-4" />
+                                        )}
+                                    </>
+                                ) : (
+                                    <>
+                                        <Button variant="outline" size="sm" onClick={handleBackToStores} className="mb-2 w-full">
+                                            <ArrowRight className="ml-2 h-4 w-4" />
+                                            العودة للبحث عن متاجر
                                         </Button>
+
+                                        {loadingProducts ? (
+                                            <div className="text-center py-8 text-muted-foreground">
+                                                <Loader2 className="mx-auto h-8 w-8 animate-spin mb-2" />
+                                                جاري تحميل المنتجات...
+                                            </div>
+                                        ) : storeProducts.length > 0 ? (
+                                            <div className="border rounded-lg divide-y bg-slate-50 overflow-hidden max-h-[400px] overflow-y-auto">
+                                                {storeProducts.map(p => {
+                                                    const isAlreadyAdded = flashSaleProducts.some(fp => fp.id === p.id);
+                                                    return (
+                                                        <div key={p.id} className="flex justify-between items-center p-3 hover:bg-slate-100 transition-colors">
+                                                            <div className="flex items-center gap-3">
+                                                                <img src={p.image_url || "/placeholder.svg"} className="w-10 h-10 rounded object-cover bg-white" />
+                                                                <div className="text-sm">
+                                                                    <p className="font-medium line-clamp-1">{p.name_ar || p.name}</p>
+                                                                    <p className="text-muted-foreground text-xs">{p.price} د.ج</p>
+                                                                </div>
+                                                            </div>
+                                                            <Button
+                                                                size="sm"
+                                                                onClick={() => !isAlreadyAdded && addToFlashSale(p.id)}
+                                                                disabled={isAlreadyAdded}
+                                                                variant={isAlreadyAdded ? "ghost" : "default"}
+                                                                className={`h-8 w-8 p-0 rounded-full ${isAlreadyAdded ? 'text-green-600 bg-green-50' : ''}`}
+                                                            >
+                                                                {isAlreadyAdded ? <Zap className="h-4 w-4 fill-current" /> : <Plus className="h-4 w-4" />}
+                                                            </Button>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        ) : (
+                                            <div className="text-center py-8 text-muted-foreground">
+                                                لا توجد منتجات في هذا المتجر
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        {/* List Active */}
+                        <Card className="md:col-span-7">
+                            <CardHeader>
+                                <CardTitle className="flex justify-between items-center">
+                                    <span>المنتجات النشطة</span>
+                                    <span className="bg-yellow-100 text-yellow-800 text-xs px-2.5 py-0.5 rounded-full ring-1 ring-yellow-600/20">
+                                        {flashSaleProducts.length} منتج
+                                    </span>
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                {flashSaleProducts.length > 0 ? (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {flashSaleProducts.map(p => (
+                                            <div key={p.id} className="flex items-center gap-3 p-3 rounded-xl border bg-white shadow-sm hover:shadow-md transition-all group relative">
+                                                <img src={p.image_url || "/placeholder.svg"} className="w-16 h-16 rounded-lg object-cover" />
+                                                <div className="flex-1 min-w-0">
+                                                    <h4 className="font-bold text-sm truncate">{p.name_ar}</h4>
+                                                    <p className="text-yellow-600 font-bold text-sm">{p.price} د.ج</p>
+                                                </div>
+                                                <Button
+                                                    variant="ghost" size="icon"
+                                                    onClick={() => removeFromFlashSale(p.id)}
+                                                    className="absolute top-2 left-2 h-7 w-7 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                                >
+                                                    <X className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
-                                {flashSaleProducts.length === 0 && (
-                                    <div className="text-center py-8 text-muted-foreground bg-gray-50 rounded-xl border border-dashed">
-                                        <p>لا توجد منتجات في عروض فلاش</p>
-                                        <p className="text-xs mt-1">ابدأ بالبحث لإضافة منتجات</p>
+                                ) : (
+                                    <div className="text-center py-12 text-muted-foreground bg-slate-50 rounded-xl border border-dashed">
+                                        <Zap className="h-10 w-10 mx-auto text-gray-300 mb-3" />
+                                        <p>لا توجد منتجات في عروض فلاش حالياً</p>
                                     </div>
                                 )}
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </TabsContent>
+            </Tabs>
         </div>
     );
 }
