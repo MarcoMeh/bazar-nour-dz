@@ -239,46 +239,36 @@ const Home = () => {
     };
 
     const fetchFlashSaleProducts = async () => {
-        console.log("Fetching Flash Sale Products...");
-        const { data, error } = await supabase
-            .from("flash_sale_items" as any)
-            .select(`
-                product:products (
-                    *,
-                    categories(name, parent:parent_id(name))
-                )
-            `)
-            .limit(10);
+        console.log("DEBUG: Starting fetchFlashSaleProducts (JSON RPC)...");
+        try {
+            const { data, error } = await supabase
+                .rpc('get_flash_sale_products_json');
 
-        if (error) {
-            console.error("Error fetching flash sale products:", error);
-            return;
-        }
+            if (error) {
+                console.error("DEBUG: RPC Error:", error);
+                return;
+            }
 
-        console.log("Raw Flash Sale Data:", data);
+            console.log("DEBUG: Flash Sale JSON received:", data);
 
-        if (data && data.length > 0) {
-            const formattedProducts = data
-                .filter((item: any) => {
-                    if (!item.product) console.warn("Flash Sale item missing product (RLS hidden?):", item);
-                    return item.product;
-                }) // Safety check
-                .map((item: any) => {
-                    const prod = item.product;
-                    return {
-                        ...prod,
-                        category_name: prod.categories?.name || "غير مصنف",
-                        sub_category_name: prod.categories?.parent?.name || null,
-                        is_delivery_home_available: prod.is_delivery_home_available ?? false,
-                        is_delivery_desktop_available: prod.is_delivery_desktop_available ?? false,
-                        is_sold_out: prod.is_sold_out ?? false,
-                        is_free_delivery: prod.is_free_delivery ?? false,
-                    };
-                });
-            console.log("Formatted Flash Sale Products:", formattedProducts);
-            setFlashSaleProducts(formattedProducts);
-        } else {
-            setFlashSaleProducts([]);
+            if (data && Array.isArray(data)) {
+                const formattedProducts = data.map((prod: any) => ({
+                    ...prod,
+                    category_name: prod.categories?.name || "غير مصنف",
+                    sub_category_name: prod.subcategory_data?.name || prod.categories?.parent?.name || null,
+                    is_delivery_home_available: prod.is_delivery_home_available ?? false,
+                    is_delivery_desktop_available: prod.is_delivery_desktop_available ?? false,
+                    is_sold_out: prod.is_sold_out ?? false,
+                    is_free_delivery: prod.is_free_delivery ?? false,
+                }));
+                console.log("DEBUG: Formatted products count:", formattedProducts.length);
+                setFlashSaleProducts(formattedProducts);
+            } else {
+                console.log("DEBUG: Flash Sale Data is empty or not an array.");
+                setFlashSaleProducts([]);
+            }
+        } catch (err) {
+            console.error("DEBUG: Unexpected error in fetchFlashSaleProducts:", err);
         }
     };
 
