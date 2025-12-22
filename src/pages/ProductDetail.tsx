@@ -128,6 +128,8 @@ const ProductDetail = () => {
         color: selectedColor,
         size: selectedSize,
         is_free_delivery: product.is_free_delivery,
+        is_delivery_home_available: product.is_delivery_home_available,
+        is_delivery_desk_available: product.is_delivery_desk_available,
       });
       toast.success('تمت إضافة المنتج إلى السلة!');
     } else if (product?.is_sold_out) {

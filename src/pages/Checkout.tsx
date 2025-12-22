@@ -192,22 +192,30 @@ const Checkout = () => {
 
   // Determine effective price based on selected type and calculation
   const currentMethod = formData.deliveryType === "home" ? deliveryMethods.home : deliveryMethods.desk;
-
-  // If Selected Method is disabled, we might need to switch or warn
-  // But for price calculation:
   const deliveryPriceAmount = hasFreeDelivery ? 0 : currentMethod.price;
 
   const finalTotal = totalPrice + deliveryPriceAmount;
-  const isDeliveryBlocked = !!deliveryMethods.error || (!deliveryMethods.home.enabled && !deliveryMethods.desk.enabled);
 
-  // Auto-switch delivery type if current is disabled but other is enabled
+  // Product-level availability check
+  const allProductsSupportHome = items.every(it => it.is_delivery_home_available !== false);
+  const allProductsSupportDesk = items.every(it => it.is_delivery_desk_available !== false);
+
+  const isDeliveryBlocked = !!deliveryMethods.error ||
+    (!deliveryMethods.home.enabled && !deliveryMethods.desk.enabled) ||
+    (formData.deliveryType === 'home' && !allProductsSupportHome) ||
+    (formData.deliveryType === 'desktop' && !allProductsSupportDesk);
+
+  // Auto-switch delivery type if current is disabled or unsupported by products
   useEffect(() => {
-    if (formData.deliveryType === 'home' && !deliveryMethods.home.enabled && deliveryMethods.desk.enabled) {
+    const homeDisabled = !deliveryMethods.home.enabled || !allProductsSupportHome;
+    const deskDisabled = !deliveryMethods.desk.enabled || !allProductsSupportDesk;
+
+    if (formData.deliveryType === 'home' && homeDisabled && !deskDisabled) {
       setFormData(prev => ({ ...prev, deliveryType: 'desktop' }));
-    } else if (formData.deliveryType === 'desktop' && !deliveryMethods.desk.enabled && deliveryMethods.home.enabled) {
+    } else if (formData.deliveryType === 'desktop' && deskDisabled && !homeDisabled) {
       setFormData(prev => ({ ...prev, deliveryType: 'home' }));
     }
-  }, [deliveryMethods, formData.deliveryType]);
+  }, [deliveryMethods, allProductsSupportHome, allProductsSupportDesk, formData.deliveryType]);
 
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -230,12 +238,12 @@ const Checkout = () => {
     }
 
     // Check if selected specific method is enabled
-    if (formData.deliveryType === 'home' && !deliveryMethods.home.enabled) {
-      toast.error("التوصيل للمنزل غير متوفر لهذه الولاية");
+    if (formData.deliveryType === 'home' && (!deliveryMethods.home.enabled || !allProductsSupportHome)) {
+      toast.error("التوصيل للمنزل غير متوفر");
       return;
     }
-    if (formData.deliveryType === 'desktop' && !deliveryMethods.desk.enabled) {
-      toast.error("التوصيل للمكتب غير متوفر لهذه الولاية");
+    if (formData.deliveryType === 'desktop' && (!deliveryMethods.desk.enabled || !allProductsSupportDesk)) {
+      toast.error("التوصيل للمكتب غير متوفر");
       return;
     }
 
@@ -361,12 +369,13 @@ const Checkout = () => {
               {/* ... existing code ... */}
               {!deliveryMethods.error && (
                 <RadioGroup value={formData.deliveryType} onValueChange={(v) => setFormData({ ...formData, deliveryType: v as "home" | "desktop" })}>
-                  <div className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 border rounded mb-3 transition-colors ${!deliveryMethods.home.enabled ? 'opacity-50 bg-gray-50' : ''}`}>
+                  <div className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 border rounded mb-3 transition-colors ${(!deliveryMethods.home.enabled || !allProductsSupportHome) ? 'opacity-50 bg-gray-50' : ''}`}>
                     <div className="flex items-center mb-2 sm:mb-0">
-                      <RadioGroupItem value="home" id="home" disabled={!deliveryMethods.home.enabled} />
+                      <RadioGroupItem value="home" id="home" disabled={!deliveryMethods.home.enabled || !allProductsSupportHome} />
                       <Label htmlFor="home" className="ml-2 cursor-pointer text-sm sm:text-base">
                         توصيل إلى المنزل
-                        {!deliveryMethods.home.enabled && <span className="block sm:inline text-xs text-red-500 mr-2 sm:mr-1 mt-1 sm:mt-0">(غير متوفر)</span>}
+                        {!deliveryMethods.home.enabled && <span className="block sm:inline text-xs text-red-500 mr-2 sm:mr-1 mt-1 sm:mt-0">(غير متوفر للولاية)</span>}
+                        {deliveryMethods.home.enabled && !allProductsSupportHome && <span className="block sm:inline text-xs text-red-500 mr-2 sm:mr-1 mt-1 sm:mt-0">(غير متوفر لبعض المنتجات)</span>}
                       </Label>
                     </div>
                     <div className="font-bold text-sm sm:text-base w-full sm:w-auto text-left sm:text-right pl-6 sm:pl-0">
@@ -378,12 +387,13 @@ const Checkout = () => {
                     </div>
                   </div>
 
-                  <div className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 border rounded transition-colors ${!deliveryMethods.desk.enabled ? 'opacity-50 bg-gray-50' : ''}`}>
+                  <div className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 border rounded transition-colors ${(!deliveryMethods.desk.enabled || !allProductsSupportDesk) ? 'opacity-50 bg-gray-50' : ''}`}>
                     <div className="flex items-center mb-2 sm:mb-0">
-                      <RadioGroupItem value="desktop" id="office" disabled={!deliveryMethods.desk.enabled} />
+                      <RadioGroupItem value="desktop" id="office" disabled={!deliveryMethods.desk.enabled || !allProductsSupportDesk} />
                       <Label htmlFor="office" className="ml-2 cursor-pointer text-sm sm:text-base">
                         استلام من المكتب
-                        {!deliveryMethods.desk.enabled && <span className="block sm:inline text-xs text-red-500 mr-2 sm:mr-1 mt-1 sm:mt-0">(غير متوفر)</span>}
+                        {!deliveryMethods.desk.enabled && <span className="block sm:inline text-xs text-red-500 mr-2 sm:mr-1 mt-1 sm:mt-0">(غير متوفر للولاية)</span>}
+                        {deliveryMethods.desk.enabled && !allProductsSupportDesk && <span className="block sm:inline text-xs text-red-500 mr-2 sm:mr-1 mt-1 sm:mt-0">(غير متوفر لبعض المنتجات)</span>}
                       </Label>
                     </div>
                     <div className="font-bold text-sm sm:text-base w-full sm:w-auto text-left sm:text-right pl-6 sm:pl-0">
@@ -414,6 +424,14 @@ const Checkout = () => {
                         {it.size && <>• مقاس: {it.size}</>}
                       </div>
                       <div className="text-muted-foreground text-xs">كمية: {it.quantity}</div>
+
+                      {/* Delivery Availability Warning per Product */}
+                      {formData.deliveryType === 'home' && it.is_delivery_home_available === false && (
+                        <div className="text-red-500 text-[10px] font-bold mt-1">لا يوجد توصيل للمنزل لهذا المنتج</div>
+                      )}
+                      {formData.deliveryType === 'desktop' && it.is_delivery_desk_available === false && (
+                        <div className="text-red-500 text-[10px] font-bold mt-1">لا يوجد استلام من المكتب لهذا المنتج</div>
+                      )}
                     </div>
                     <div className="font-medium">{(it.price * it.quantity).toFixed(2)} دج</div>
                   </div>

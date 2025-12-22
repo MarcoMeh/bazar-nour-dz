@@ -88,8 +88,8 @@ export default function StoreOwnerProducts() {
         category_id: "",
         subcategory_id: "",
         image_url: "",
-        home_delivery: true,
-        office_delivery: true,
+        is_delivery_home_available: true,
+        is_delivery_desk_available: true,
         is_sold_out: false,
         is_free_delivery: false,
         additional_images: [] as string[],
@@ -146,8 +146,8 @@ export default function StoreOwnerProducts() {
             category_id: "",
             subcategory_id: "",
             image_url: "",
-            home_delivery: true,
-            office_delivery: true,
+            is_delivery_home_available: true,
+            is_delivery_desk_available: true,
             is_sold_out: false,
             is_free_delivery: false,
             additional_images: [],
@@ -168,8 +168,8 @@ export default function StoreOwnerProducts() {
             category_id: product.category_id || "",
             subcategory_id: product.subcategory_id || "",
             image_url: product.image_url || "",
-            home_delivery: product.home_delivery ?? true,
-            office_delivery: product.office_delivery ?? true,
+            is_delivery_home_available: product.is_delivery_home_available ?? true,
+            is_delivery_desk_available: product.is_delivery_desk_available ?? true,
             is_sold_out: product.is_sold_out ?? false,
             is_free_delivery: product.is_free_delivery ?? false,
             additional_images: product.additional_images || [],
@@ -300,8 +300,8 @@ export default function StoreOwnerProducts() {
             subcategory_id: formData.subcategory_id || null,
             image_url: formData.image_url || null,
             store_id: storeId,
-            home_delivery: formData.home_delivery,
-            office_delivery: formData.office_delivery,
+            is_delivery_home_available: formData.is_delivery_home_available,
+            is_delivery_desk_available: formData.is_delivery_desk_available,
             is_sold_out: formData.is_sold_out,
             is_free_delivery: formData.is_free_delivery,
             additional_images: formData.additional_images,
@@ -471,22 +471,38 @@ export default function StoreOwnerProducts() {
                             </div>
 
                             {/* 5. الإعدادات (Switches Grid) */}
-                            <div className="grid grid-cols-2 gap-3 pt-2">
-                                <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer" onClick={() => setFormData(prev => ({ ...prev, home_delivery: !prev.home_delivery }))}>
-                                    <span className="text-sm font-medium">توصيل منزل</span>
-                                    <Switch checked={formData.home_delivery} onCheckedChange={(c) => setFormData(prev => ({ ...prev, home_delivery: c }))} />
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                                <div className="flex items-center justify-between p-3.5 border rounded-xl hover:bg-slate-50 transition-colors bg-white">
+                                    <Label htmlFor="home_delivery" className="flex-1 cursor-pointer text-sm font-semibold">توصيل منزل</Label>
+                                    <Switch
+                                        id="home_delivery"
+                                        checked={formData.is_delivery_home_available}
+                                        onCheckedChange={(c) => setFormData(prev => ({ ...prev, is_delivery_home_available: c }))}
+                                    />
                                 </div>
-                                <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer" onClick={() => setFormData(prev => ({ ...prev, office_delivery: !prev.office_delivery }))}>
-                                    <span className="text-sm font-medium">توصيل مكتب</span>
-                                    <Switch checked={formData.office_delivery} onCheckedChange={(c) => setFormData(prev => ({ ...prev, office_delivery: c }))} />
+                                <div className="flex items-center justify-between p-3.5 border rounded-xl hover:bg-slate-50 transition-colors bg-white">
+                                    <Label htmlFor="office_delivery" className="flex-1 cursor-pointer text-sm font-semibold">توصيل مكتب</Label>
+                                    <Switch
+                                        id="office_delivery"
+                                        checked={formData.is_delivery_desk_available}
+                                        onCheckedChange={(c) => setFormData(prev => ({ ...prev, is_delivery_desk_available: c }))}
+                                    />
                                 </div>
-                                <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer" onClick={() => setFormData(prev => ({ ...prev, is_free_delivery: !prev.is_free_delivery }))}>
-                                    <span className="text-sm font-medium text-green-600">توصيل مجاني</span>
-                                    <Switch checked={formData.is_free_delivery} onCheckedChange={(c) => setFormData(prev => ({ ...prev, is_free_delivery: c }))} />
+                                <div className="flex items-center justify-between p-3.5 border rounded-xl hover:bg-green-50/30 border-green-100 transition-colors bg-white">
+                                    <Label htmlFor="free_delivery" className="flex-1 cursor-pointer text-sm font-semibold text-green-700">توصيل مجاني</Label>
+                                    <Switch
+                                        id="free_delivery"
+                                        checked={formData.is_free_delivery}
+                                        onCheckedChange={(c) => setFormData(prev => ({ ...prev, is_free_delivery: c }))}
+                                    />
                                 </div>
-                                <div className="flex items-center justify-between p-3 border rounded-lg bg-red-50/50 hover:bg-red-50 cursor-pointer" onClick={() => setFormData(prev => ({ ...prev, is_sold_out: !prev.is_sold_out }))}>
-                                    <span className="text-sm font-medium text-red-600">نفد المخزون</span>
-                                    <Switch checked={formData.is_sold_out} onCheckedChange={(c) => setFormData(prev => ({ ...prev, is_sold_out: c }))} />
+                                <div className="flex items-center justify-between p-3.5 border rounded-xl hover:bg-red-50/30 border-red-100 transition-colors bg-white">
+                                    <Label htmlFor="sold_out" className="flex-1 cursor-pointer text-sm font-semibold text-red-600">نفد المخزون</Label>
+                                    <Switch
+                                        id="sold_out"
+                                        checked={formData.is_sold_out}
+                                        onCheckedChange={(c) => setFormData(prev => ({ ...prev, is_sold_out: c }))}
+                                    />
                                 </div>
                             </div>
 

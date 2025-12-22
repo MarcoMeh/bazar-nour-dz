@@ -13,6 +13,11 @@ import { Loader2, Save, Truck, Info } from "lucide-react";
 interface DeliveryCompany {
     id: string;
     name: string;
+    phone1?: string;
+    phone2?: string;
+    phone3?: string;
+    website_url?: string;
+    address?: string;
 }
 
 interface WilayaData {
@@ -225,6 +230,52 @@ export default function StoreOwnerDelivery() {
                             </SelectContent>
                         </Select>
                     </div>
+
+                    {selectedCompanyId && companies.find(c => c.id === selectedCompanyId) && (
+                        <div className="mt-6 pt-6 border-t animate-in fade-in slide-in-from-top-4 duration-500">
+                            <h3 className="text-sm font-bold mb-4 flex items-center gap-2 text-primary">
+                                <Info className="w-4 h-4" />
+                                معلومات التواصل مع الشركة
+                            </h3>
+                            {(() => {
+                                const company = companies.find(c => c.id === selectedCompanyId);
+                                if (!company) return null;
+                                return (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {(company.phone1 || company.phone2 || company.phone3) && (
+                                            <div className="p-3 bg-muted/30 rounded-lg border">
+                                                <div className="text-[10px] text-muted-foreground mb-1 uppercase tracking-wider font-bold">أرقام الهاتف</div>
+                                                <div className="space-y-1">
+                                                    {company.phone1 && <div className="text-sm font-medium">{company.phone1}</div>}
+                                                    {company.phone2 && <div className="text-sm font-medium">{company.phone2}</div>}
+                                                    {company.phone3 && <div className="text-sm font-medium">{company.phone3}</div>}
+                                                </div>
+                                            </div>
+                                        )}
+                                        {company.website_url && (
+                                            <div className="p-3 bg-muted/30 rounded-lg border">
+                                                <div className="text-[10px] text-muted-foreground mb-1 uppercase tracking-wider font-bold">الموقع الإلكتروني</div>
+                                                <a
+                                                    href={company.website_url.startsWith('http') ? company.website_url : `https://${company.website_url}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-sm font-medium text-primary hover:underline break-all"
+                                                >
+                                                    {company.website_url.replace(/^https?:\/\//, '')}
+                                                </a>
+                                            </div>
+                                        )}
+                                        {company.address && (
+                                            <div className="p-3 bg-muted/30 rounded-lg border lg:col-span-1">
+                                                <div className="text-[10px] text-muted-foreground mb-1 uppercase tracking-wider font-bold">العنوان الرئيسي</div>
+                                                <div className="text-sm font-medium">{company.address}</div>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })()}
+                        </div>
+                    )}
                 </CardContent>
             </Card>
 
