@@ -6,7 +6,7 @@ import { Menu, AlertTriangle, Lock, Clock } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAdmin } from "@/contexts/AdminContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { NotificationCenter } from "@/components/store-owner/NotificationCenter";
 
 export const StoreOwnerLayout = () => {
     const [open, setOpen] = useState(false);
@@ -60,8 +60,6 @@ export const StoreOwnerLayout = () => {
 
     // Expired
     const isExpired = endDate && endDate < now;
-    // Assuming NULL date means Trial/Active for now. If strictly required to have date, logic changes.
-    // User logic: "Today > end_date" -> Expired.
 
     if (!storeStatus.loading && isExpired) {
         return (
@@ -113,27 +111,37 @@ export const StoreOwnerLayout = () => {
                     <StoreOwnerSidebar />
                 </div>
 
-                {/* Mobile Sidebar (Sheet) */}
-                <div className="md:hidden fixed top-4 right-4 z-50">
-                    <Sheet open={open} onOpenChange={setOpen}>
-                        <SheetTrigger asChild>
-                            <Button variant="outline" size="icon" className="bg-background shadow-sm">
-                                <Menu className="h-5 w-5" />
-                            </Button>
-                        </SheetTrigger>
+                <div className="flex flex-1 flex-col overflow-hidden">
+                    {/* Top Header Bar */}
+                    <header className="h-16 border-b bg-background flex items-center justify-between px-4 md:px-8 shrink-0">
+                        <div className="flex items-center gap-4">
+                            {/* Mobile Sidebar Trigger (moved inside header) */}
+                            <div className="md:hidden">
+                                <Sheet open={open} onOpenChange={setOpen}>
+                                    <SheetTrigger asChild>
+                                        <Button variant="outline" size="icon" className="shadow-sm">
+                                            <Menu className="h-5 w-5" />
+                                        </Button>
+                                    </SheetTrigger>
 
-                        <SheetContent side="right" className="p-0 w-64">
-                            <StoreOwnerSidebar onLinkClick={() => setOpen(false)} />
-                        </SheetContent>
-                    </Sheet>
+                                    <SheetContent side="right" className="p-0 w-64">
+                                        <StoreOwnerSidebar onLinkClick={() => setOpen(false)} />
+                                    </SheetContent>
+                                </Sheet>
+                            </div>
+                            <h1 className="text-lg font-bold text-primary hidden md:block">لوحة إدارة المتجر</h1>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                            <NotificationCenter />
+                        </div>
+                    </header>
+
+                    {/* Main Content Area */}
+                    <main className="flex-1 overflow-y-auto bg-accent/30 p-4 md:p-8">
+                        <Outlet />
+                    </main>
                 </div>
-
-                {/* Main Content Area */}
-                <main className="flex-1 overflow-y-auto bg-accent/30 w-full p-4 md:p-8">
-                    {/* Spacer for mobile header button area */}
-                    <div className="md:hidden h-12" />
-                    <Outlet />
-                </main>
             </div>
         </div>
     );
