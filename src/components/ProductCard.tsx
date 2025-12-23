@@ -73,9 +73,12 @@ export const ProductCard = ({
   };
 
   return (
-    <div className={cn("group flex flex-col space-y-3 relative", className)}>
+    <div className={cn("group flex flex-col space-y-3 relative store-card p-2", className)}>
       <Link to={`/product/${id}`} className="block relative group-hover:-translate-y-1 transition-transform duration-300">
-        <div className="relative aspect-[4/5] md:aspect-square w-full overflow-hidden rounded-2xl bg-gray-50 border border-gray-100 shadow-sm">
+        <div
+          className="relative aspect-[4/5] md:aspect-square w-full overflow-hidden bg-gray-50/50"
+          style={{ borderRadius: 'calc(var(--store-radius, 1rem) * 0.8)' }}
+        >
 
           {image_url ? (
             <img
@@ -103,12 +106,11 @@ export const ProductCard = ({
             )}
           </div>
 
-          {/* WISHLIST BUTTON - FIXED CENTERING */}
+          {/* WISHLIST BUTTON */}
           <button
             onClick={handleWishlistToggle}
-            className="absolute top-2.5 right-2.5 h-9 w-9 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-sm text-gray-400 hover:text-red-500 hover:bg-white shadow-sm border border-gray-100/50 transition-all active:scale-95 z-20"
+            className="absolute top-2.5 right-2.5 h-9 w-9 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-sm text-gray-400 hover:text-red-500 hover:bg-white shadow-sm transition-all active:scale-95 z-20"
           >
-            {/* لاحظ هنا: fill-current للتحكم الكامل في اللون */}
             <Heart
               className={cn("h-5 w-5 transition-transform", isWishlisted && "fill-red-500 text-red-500 scale-110")}
               strokeWidth={isWishlisted ? 0 : 2}
@@ -121,7 +123,7 @@ export const ProductCard = ({
       <div className="px-1 space-y-1">
         <div className="flex justify-between items-start gap-2">
           <Link to={`/product/${id}`}>
-            <h3 className="font-bold text-gray-800 text-sm leading-snug line-clamp-2 min-h-[2.5em] hover:text-black transition-colors">
+            <h3 className="font-bold text-sm leading-snug line-clamp-2 min-h-[2.5em] hover:text-[var(--store-primary,black)] transition-colors">
               {name_ar}
             </h3>
           </Link>
@@ -132,8 +134,8 @@ export const ProductCard = ({
             disabled={is_sold_out}
             onClick={handleAddToCart}
             className={cn(
-              "h-8 w-8 rounded-full shrink-0 shadow-sm transition-all active:scale-90",
-              is_sold_out ? "bg-gray-100 text-gray-300" : "bg-black text-white hover:bg-gray-800 hover:shadow-md"
+              "h-9 w-9 shrink-0 shadow-sm transition-all active:scale-90 store-btn",
+              is_sold_out ? "bg-gray-100 text-gray-300" : "text-white shadow-md"
             )}
           >
             {is_sold_out ? <span className="text-xs font-bold">×</span> : <Plus className="h-4 w-4" />}

@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Loader2, User, Store, Upload, Save, MapPin, Phone, Lock, ImageIcon } from "lucide-react";
+import { Loader2, User, Store, Upload, Save, MapPin, Phone, Lock, ImageIcon, Star, Check, Palette, Eye } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import {
     Select,
     SelectContent,
@@ -15,6 +16,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { MultiSelect } from "@/components/MultiSelect";
+import { STORE_THEMES } from "@/config/themes";
 
 export default function StoreOwnerProfile() {
     const { user } = useAuth();
@@ -52,6 +54,7 @@ export default function StoreOwnerProfile() {
         return_policy: "",
         cover_image_url: "",
         subscription_end_date: "",
+        theme_id: "default",
     });
 
     const [categories, setCategories] = useState<any[]>([]);
@@ -114,6 +117,7 @@ export default function StoreOwnerProfile() {
                     return_policy: storeData.return_policy || "",
                     cover_image_url: storeData.cover_image_url || "",
                     subscription_end_date: storeData.subscription_end_date || "",
+                    theme_id: storeData.theme_id || "default",
                 });
             }
 
@@ -231,6 +235,7 @@ export default function StoreOwnerProfile() {
                         opening_hours: storeData.opening_hours || null,
                         location_url: storeData.location_url || null,
                         return_policy: storeData.return_policy || null,
+                        theme_id: storeData.theme_id,
                     })
                     .eq("id", storeData.id);
 
@@ -422,6 +427,7 @@ export default function StoreOwnerProfile() {
                     </CardContent>
                 </Card>
 
+
                 {/* Social Media Links */}
                 <Card>
                     <CardHeader>
@@ -574,6 +580,162 @@ export default function StoreOwnerProfile() {
                                 {updatingPassword ? <Loader2 className="ml-2 h-4 w-4 animate-spin" /> : <Lock className="ml-2 h-4 w-4" />}
                                 تحديث كلمة المرور
                             </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Theme Selection Section - MOVED TO BOTTOM */}
+                <Card className="border-2 border-primary/20 shadow-xl overflow-hidden mb-8">
+                    <CardHeader className="bg-gradient-to-r from-primary/10 to-transparent border-b">
+                        <CardTitle className="flex items-center gap-3 text-xl">
+                            <Palette className="h-6 w-6 text-primary animate-pulse" />
+                            تصميم وشخصية المتجر (القوالب)
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-8">
+                        <div className="flex flex-col lg:flex-row gap-8">
+                            {/* Live Miniature Preview */}
+                            <div className="w-full lg:w-72 shrink-0">
+                                <div className="sticky top-4">
+                                    <h4 className="font-bold text-sm mb-4 flex items-center gap-2">
+                                        <Eye className="w-4 h-4 text-primary" />
+                                        معاينة مباشرة مصغرة
+                                    </h4>
+                                    <div
+                                        className="aspect-[9/16] rounded-3xl border-8 border-gray-900 shadow-2xl overflow-hidden relative"
+                                        style={{
+                                            backgroundColor: STORE_THEMES.find(t => t.id === storeData.theme_id)?.colors.background
+                                        }}
+                                    >
+                                        <div className="absolute top-0 inset-x-0 h-4 bg-gray-900 flex justify-center items-center">
+                                            <div className="w-12 h-1 bg-gray-800 rounded-full"></div>
+                                        </div>
+
+                                        {/* Mini Store Content */}
+                                        {(() => {
+                                            const activeTheme = STORE_THEMES.find(t => t.id === storeData.theme_id) || STORE_THEMES[0];
+                                            const isElegant = activeTheme.styles.headerStyle === 'elegant';
+                                            const isBold = activeTheme.styles.headerStyle === 'bold';
+
+                                            return (
+                                                <div className="p-3 h-full overflow-hidden" style={{ fontFamily: activeTheme.typography.fontFamily }}>
+                                                    {/* Mini Header */}
+                                                    <div className={`mt-4 mb-4 ${isElegant ? 'text-center' : ''}`}>
+                                                        <div className={`w-10 h-10 mx-auto rounded-lg mb-2 shadow-sm`} style={{ backgroundColor: activeTheme.colors.primary }}></div>
+                                                        <div className={`h-3 w-2/3 ${isElegant ? 'mx-auto' : ''} rounded-full mb-1`} style={{ backgroundColor: activeTheme.colors.text }}></div>
+                                                        <div className={`h-2 w-1/3 ${isElegant ? 'mx-auto' : ''} rounded-full opacity-30`} style={{ backgroundColor: activeTheme.colors.text }}></div>
+                                                    </div>
+
+                                                    {/* Mini Grid */}
+                                                    <div className={`grid gap-2 ${activeTheme.styles.layoutType === 'grid' ? 'grid-cols-2' : activeTheme.styles.layoutType === 'compact' ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                                                        {[1, 2, 3, 4].map(i => (
+                                                            <div
+                                                                key={i}
+                                                                className="rounded-lg p-1 shadow-sm border border-gray-100/10"
+                                                                style={{
+                                                                    backgroundColor: activeTheme.colors.cardBg,
+                                                                    borderRadius: activeTheme.styles.borderRadius,
+                                                                    height: activeTheme.styles.layoutType === 'masonry' && i % 2 === 0 ? '60px' : '50px'
+                                                                }}
+                                                            >
+                                                                <div className="w-full h-2/3 bg-gray-100/50 rounded-md mb-1"></div>
+                                                                <div className="w-full h-1 bg-gray-200 rounded-full"></div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+
+                                                    {/* Mini CTA */}
+                                                    <div className="absolute bottom-6 inset-x-4">
+                                                        <div className="h-8 w-full rounded-full shadow-lg flex items-center justify-center text-[8px] font-bold text-white overflow-hidden" style={{ backgroundColor: activeTheme.colors.primary }}>
+                                                            SHOP NOW
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })()}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Selection Controls */}
+                            <div className="flex-1 space-y-8 overflow-hidden">
+                                {/* Step 1: Choose Layout (Shape) */}
+                                <div className="space-y-4">
+                                    <h4 className="font-black text-lg flex items-center gap-2">
+                                        <div className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center">1</div>
+                                        اختر الهيكل (التوزيع)
+                                    </h4>
+                                    <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar scroll-smooth">
+                                        {Array.from(new Set(STORE_THEMES.map(t => t.styles.layoutType))).map(layout => {
+                                            const isSelected = STORE_THEMES.find(t => t.id === storeData.theme_id)?.styles.layoutType === layout;
+                                            return (
+                                                <div
+                                                    key={layout}
+                                                    onClick={() => {
+                                                        const firstThemeOfLayout = STORE_THEMES.find(t => t.styles.layoutType === layout);
+                                                        if (firstThemeOfLayout) setStoreData({ ...storeData, theme_id: firstThemeOfLayout.id });
+                                                    }}
+                                                    className={`
+                                                        shrink-0 w-32 p-4 rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-center gap-2
+                                                        ${isSelected ? 'border-primary bg-primary/5 ring-4 ring-primary/10' : 'border-gray-100 hover:border-primary/30'}
+                                                    `}
+                                                >
+                                                    <div className="grid grid-cols-2 gap-1 w-12 h-12 opacity-40">
+                                                        {layout === 'grid' && [1, 2, 3, 4].map(i => <div key={i} className="bg-current rounded-[2px]" />)}
+                                                        {layout === 'masonry' && [1, 2, 3, 4].map(i => <div key={i} className={`bg-current rounded-[2px] ${i % 2 === 0 ? 'h-full' : 'h-2/3'}`} />)}
+                                                        {layout === 'compact' && [1, 2, 3, 4, 5, 6].map(i => <div key={i} className="bg-current rounded-[1px]" />)}
+                                                        {layout === 'modern' && <div className="col-span-2 h-full bg-current rounded-md" />}
+                                                    </div>
+                                                    <span className="text-xs font-bold uppercase tracking-widest">{layout}</span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                {/* Step 2: Choose Style (Colors) */}
+                                <div className="space-y-4">
+                                    <h4 className="font-black text-lg flex items-center gap-2">
+                                        <div className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center">2</div>
+                                        اختر النمط اللوني
+                                    </h4>
+                                    <div className="flex gap-4 overflow-x-auto pb-6 pt-2 no-scrollbar scroll-smooth">
+                                        {(() => {
+                                            const currentLayout = STORE_THEMES.find(t => t.id === storeData.theme_id)?.styles.layoutType;
+                                            return STORE_THEMES.filter(t => t.styles.layoutType === currentLayout || !currentLayout).map((theme) => (
+                                                <div
+                                                    key={theme.id}
+                                                    onClick={() => setStoreData({ ...storeData, theme_id: theme.id })}
+                                                    className={`
+                                                        group shrink-0 w-44 relative overflow-hidden rounded-xl border-2 transition-all duration-300
+                                                        ${storeData.theme_id === theme.id ? 'border-primary bg-primary/5 shadow-md scale-105' : 'border-gray-100 hover:border-primary/40'}
+                                                    `}
+                                                >
+                                                    <div className="p-3">
+                                                        {/* Simple Color Circles */}
+                                                        <div className="flex justify-center gap-1.5 mb-3">
+                                                            {[theme.colors.primary, theme.colors.secondary, theme.colors.accent].map((c, i) => (
+                                                                <div key={i} className="w-5 h-5 rounded-full border border-white shadow-sm" style={{ backgroundColor: c }}></div>
+                                                            ))}
+                                                        </div>
+
+                                                        <div className="text-center">
+                                                            <h5 className="font-black text-[11px] mb-0.5 truncate">{theme.nameAr}</h5>
+                                                            <span className="text-[8px] opacity-40 uppercase font-bold">{theme.category}</span>
+                                                        </div>
+
+                                                        {storeData.theme_id === theme.id && (
+                                                            <div className="absolute top-1 right-1 bg-primary text-white rounded-full p-0.5 shadow-sm">
+                                                                <Check className="w-2.5 h-2.5 stroke-[4]" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ));
+                                        })()}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
