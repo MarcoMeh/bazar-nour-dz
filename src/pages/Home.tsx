@@ -23,10 +23,13 @@ import {
     Zap,
     TrendingUp,
     Store,
-    Truck
+    Truck,
+    Sparkles,
+    MousePointer2
 } from "lucide-react";
 import Autoplay from "embla-carousel-autoplay";
 import SEO from "@/components/SEO";
+import { useInView } from "react-intersection-observer";
 
 // Assets
 import { PageBackground } from "@/type_defs";
@@ -89,6 +92,14 @@ const Home = () => {
     const [quickViewProduct, setQuickViewProduct] = useState<any>(null);
     const [timeLeft, setTimeLeft] = useState({ hours: 12, minutes: 0, seconds: 0 });
     const [heroBackground, setHeroBackground] = useState<string>("");
+
+    // Animation Hooks for Sections
+    const { ref: storesRef, inView: storesInView } = useInView({ triggerOnce: true, threshold: 0.1 });
+    const { ref: categoriesRef, inView: categoriesInView } = useInView({ triggerOnce: true, threshold: 0.1 });
+    const { ref: flashRef, inView: flashInView } = useInView({ triggerOnce: true, threshold: 0.1 });
+    const { ref: trendingRef, inView: trendingInView } = useInView({ triggerOnce: true, threshold: 0.1 });
+    const { ref: arrivalsRef, inView: arrivalsInView } = useInView({ triggerOnce: true, threshold: 0.1 });
+    const { ref: newsletterRef, inView: newsletterInView } = useInView({ triggerOnce: true, threshold: 0.1 });
 
     // Countdown Timer Logic
     useEffect(() => {
@@ -293,105 +304,113 @@ const Home = () => {
 
             {/* 1. HERO SECTION */}
             {settings.hero_visible && (
-                <section className="relative min-h-[65vh] md:min-h-[85vh] flex items-center justify-center overflow-hidden">
+                <section className="relative min-h-[65vh] md:min-h-[90vh] flex items-center justify-center overflow-hidden">
                     {/* Background with Overlay */}
                     <div className="absolute inset-0 z-0">
                         <img
                             src={heroBackground}
                             alt="Hero Background"
-                            className="w-full h-full object-cover object-top md:object-center animate-pulse-slow active:animate-none transition-all duration-700"
+                            className="w-full h-full object-cover object-top md:object-center transform scale-105 animate-subtle-zoom transition-all duration-1000"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-slate-950 via-indigo-950/60 to-transparent"></div>
-                        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
+                        {/* More complex gradient for depth */}
+                        <div className="absolute inset-0 bg-gradient-to-tr from-slate-950 via-slate-900/40 to-indigo-900/20"></div>
+                        <div className="absolute inset-0 bg-black/30"></div>
+                        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 mix-blend-overlay"></div>
                     </div>
 
                     <div className="container mx-auto px-4 relative z-10 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center pt-8 md:pt-0">
                         {/* Text Content */}
-                        <div className="text-white space-y-6 md:space-y-8 text-right order-2 lg:order-1">
-                            <div className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-indigo-500/20 backdrop-blur-md border border-indigo-400/30 animate-fade-in shadow-lg">
-                                <span className="relative flex h-2.5 w-2.5 md:h-3 md:w-3">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-full w-full bg-emerald-400"></span>
-                                </span>
-                                <span className="text-indigo-100 font-bold text-xs md:text-sm tracking-wide">المنصة رقم #1 في الجزائر</span>
+                        <div className="text-white space-y-8 md:space-y-10 text-right order-2 lg:order-1">
+                            <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 animate-fade-in shadow-2xl">
+                                <Sparkles className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                                <span className="text-white font-black text-xs md:text-sm tracking-widest uppercase">الأناقة تبدأ من هنا</span>
                             </div>
 
-                            <h1 className="text-4xl md:text-6xl lg:text-7xl font-black leading-normal md:leading-tight animate-slide-up tracking-wide mb-4">
-                                بازارنا.. <br />
-                                <span className="text-transparent bg-clip-text bg-gradient-to-l from-yellow-300 via-amber-200 to-yellow-100 filter drop-shadow-sm">
-                                    وجهتك الأولى للأناقة
+                            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black leading-tight animate-slide-up tracking-tighter">
+                                <span className="block mb-2">عالمك الخاص</span>
+                                <span className="text-transparent bg-clip-text bg-gradient-to-l from-yellow-300 via-amber-200 to-yellow-100 drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]">
+                                    للتميز والأناقة
                                 </span>
                             </h1>
 
-                            <p className="text-base md:text-xl text-gray-200/90 max-w-xl leading-relaxed animate-slide-up delay-100 font-medium">
-                                أحدث صيحات الموضة من أفضل الماركات والمحلات الجزائرية.
-                                أسعار تنافسية، وتوصيل سريع <span className="text-yellow-400 font-bold">لـ 58 ولاية</span> مع الدفع عند الاستلام.
+                            <p className="text-lg md:text-2xl text-gray-200/90 max-w-xl leading-relaxed animate-slide-up delay-150 font-medium">
+                                اكتشف تشكيلة حصرية من أرقى الماركات الجزائرية.
+                                <span className="text-yellow-400 font-black block mt-2">توصيل لكل الولايات • دفع عند الاستلام</span>
                             </p>
 
-                            {/* Search Bar - Enhanced */}
-                            <form onSubmit={handleSearch} className="relative max-w-lg animate-slide-up delay-200">
+                            {/* Search Bar - WOW Edition */}
+                            <form onSubmit={handleSearch} className="relative max-w-xl animate-slide-up delay-300">
                                 <div className="relative group">
-                                    <div className="absolute -inset-0.5 bg-gradient-to-r from-yellow-400 to-amber-600 rounded-full blur opacity-40 group-hover:opacity-70 transition duration-500"></div>
-                                    <div className="relative flex bg-white rounded-full p-1.5 md:p-2 shadow-2xl items-center">
+                                    <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 via-orange-500 to-amber-600 rounded-full blur-xl opacity-25 group-hover:opacity-60 transition duration-700"></div>
+                                    <div className="relative flex bg-white/95 backdrop-blur-md rounded-full p-2 md:p-3 shadow-2xl border border-white/20 items-center">
                                         <Input
                                             type="text"
-                                            placeholder="ابحث عن فستان، قميص، حذاء رياضي..."
+                                            placeholder="ماذا تريدين أن ترتدي اليوم؟"
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
-                                            className="flex-1 border-none shadow-none focus-visible:ring-0 text-gray-900 text-base md:text-lg h-10 md:h-12 px-4 md:px-6 rounded-full bg-transparent placeholder:text-gray-400"
+                                            className="flex-1 border-none shadow-none focus-visible:ring-0 text-gray-900 text-lg md:text-xl h-10 md:h-14 px-6 rounded-full bg-transparent placeholder:text-gray-400 font-bold"
                                         />
                                         <Button
                                             type="submit"
                                             size="lg"
-                                            className="rounded-full px-6 md:px-8 bg-indigo-600 hover:bg-indigo-700 text-white h-10 md:h-12 transition-all duration-300 hover:scale-105 shadow-md"
+                                            className="rounded-full w-12 h-12 md:w-14 md:h-14 bg-indigo-600 hover:bg-indigo-700 text-white transition-all duration-500 hover:rotate-[360deg] shadow-xl p-0"
                                         >
-                                            <Search className="h-4 w-4 md:h-5 md:w-5" />
+                                            <Search className="h-6 w-6" />
                                         </Button>
                                     </div>
                                 </div>
                             </form>
 
-                            {/* Trust Badges - More Prominent */}
-                            <div className="flex flex-wrap gap-3 md:gap-6 pt-2 md:pt-4 animate-slide-up delay-300">
-                                <div className="flex items-center gap-3 bg-white/5 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 hover:bg-white/10 transition-colors cursor-default">
-                                    <div className="p-2 bg-yellow-400/20 rounded-full text-yellow-400">
-                                        <Truck className="h-5 w-5 md:h-6 md:w-6" />
+                            {/* Trust Badges - Glassmorphism */}
+                            <div className="flex flex-wrap gap-4 pt-4 animate-slide-up delay-500">
+                                <div className="group flex items-center gap-4 bg-white/5 backdrop-blur-2xl px-6 py-4 rounded-2xl border border-white/10 hover:border-white/30 transition-all duration-500 cursor-default hover:-translate-y-2">
+                                    <div className="p-3 bg-yellow-400/20 rounded-xl text-yellow-400 group-hover:bg-yellow-400 group-hover:text-black transition-colors duration-500 shadow-inner">
+                                        <Truck className="h-7 w-7" />
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="text-xs md:text-sm font-bold text-white">توصيل 58 ولاية</span>
-                                        <span className="text-[10px] md:text-xs text-gray-300">سريع ومضمون</span>
+                                        <span className="text-sm font-black text-white uppercase tracking-wider">توصيل 58 ولاية</span>
+                                        <span className="text-xs text-gray-400 font-medium italic">سريع، آمن، ومضمون</span>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-3 bg-white/5 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 hover:bg-white/10 transition-colors cursor-default">
-                                    <div className="p-2 bg-green-400/20 rounded-full text-green-400">
-                                        <Shield className="h-5 w-5 md:h-6 md:w-6" />
+                                <div className="group flex items-center gap-4 bg-white/5 backdrop-blur-2xl px-6 py-4 rounded-2xl border border-white/10 hover:border-white/30 transition-all duration-500 cursor-default hover:-translate-y-2">
+                                    <div className="p-3 bg-emerald-400/20 rounded-xl text-emerald-400 group-hover:bg-emerald-400 group-hover:text-black transition-colors duration-500 shadow-inner">
+                                        <Shield className="h-7 w-7" />
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="text-xs md:text-sm font-bold text-white">الدفع عند الاستلام</span>
-                                        <span className="text-[10px] md:text-xs text-gray-300">تأكد من سلعتك أولاً</span>
+                                        <span className="text-sm font-black text-white uppercase tracking-wider">الدفع عند الاستلام</span>
+                                        <span className="text-xs text-gray-400 font-medium italic">افحص طلبك بكل هدوء</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
-                        {/* Empty div for grid balance */}
-                        <div className="hidden lg:block"></div>
                     </div>
 
+                    {/* Dynamic Section Divider - Gradient Transition */}
+                    <div className="absolute bottom-0 inset-x-0 h-48 bg-gradient-to-t from-[#FAFAFA] to-transparent z-20"></div>
+
                     {/* Scroll Indicator */}
-                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 animate-bounce hidden md:flex flex-col items-center gap-2 text-white/50">
-                        <span className="text-xs">اكتشف المزيد</span>
-                        <ArrowLeft className="h-5 w-5 -rotate-90" />
+                    <div className="absolute bottom-10 left-10 hidden md:flex flex-col items-center gap-4 text-white/40 transition-opacity hover:text-white/80 cursor-pointer group">
+                        <span className="text-[10px] font-black tracking-[0.3em] vertical-text">SCROLL</span>
+                        <div className="w-px h-16 bg-white/20 relative overflow-hidden">
+                            <div className="absolute inset-x-0 h-4 bg-white animate-scroll-line"></div>
+                        </div>
                     </div>
                 </section>
             )}
 
-            {/* 2. FEATURED STORES (Moved after Hero) */}
+            {/* 2. FEATURED STORES */}
             {settings.stores_visible && (
-                <section className="py-24 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
-                    {/* Decorative Elements */}
-                    <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-                    <div className="absolute bottom-0 left-0 w-96 h-96 bg-secondary/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
+                <section
+                    ref={storesRef}
+                    className={`
+                        py-32 bg-white relative overflow-hidden transition-all duration-1000 transform
+                        ${storesInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}
+                    `}
+                >
+                    {/* Decorative Elements - Subtle Gradients */}
+                    <div className="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-[#FAFAFA] to-transparent"></div>
+                    <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2"></div>
+                    <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-500/5 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2"></div>
 
                     <div className="container mx-auto px-4 relative z-10">
                         <div className="text-center mb-16 space-y-4">
@@ -541,12 +560,20 @@ const Home = () => {
                 </section>
             )}
 
-            {/* 2.5 CATEGORIES SECTION (Newly Added) */}
+            {/* 2.5 CATEGORIES SECTION */}
             {settings.categories_visible && (
-                <section className="py-16 bg-white relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-64 h-64 bg-yellow-400/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+                <section
+                    ref={categoriesRef}
+                    className={`
+                        py-24 bg-[#FAFAFA] relative overflow-hidden transition-all duration-1000 delay-200 transform
+                        ${categoriesInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}
+                    `}
+                >
+                    {/* Gradient Transition In */}
+                    <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-white to-transparent"></div>
+
                     <div className="container mx-auto px-4 relative z-10">
-                        <div className="text-center mb-12 animate-fade-in">
+                        <div className="text-center mb-16">
                             <h2 className="text-3xl md:text-5xl font-black mb-4 tracking-tight">تصفح حسب الفئة</h2>
                             <p className="text-gray-500 text-lg">كل ما تبحث عنه في أقسامنا المتنوعة</p>
                         </div>
@@ -587,9 +614,23 @@ const Home = () => {
                 </section>
             )}
 
-            {/* 3. FLASH SALE SECTION (Moved after Stores) */}
+            {/* 3. FLASH SALE SECTION */}
             {settings.flash_sale_visible && (
-                <section className="py-16 bg-gradient-to-br from-red-500 to-orange-600 text-white overflow-hidden relative">
+                <section
+                    ref={flashRef}
+                    className={`
+                        py-32 bg-gradient-to-br from-red-600 via-red-500 to-orange-500 text-white overflow-hidden relative transition-all duration-1000 transform
+                        ${flashInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}
+                    `}
+                >
+                    {/* Seamless Wave-like Transition In */}
+                    <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-[#FAFAFA] to-transparent pointer-events-none"></div>
+
+                    {/* Background Pattern */}
+                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay"></div>
+                    <div className="absolute -top-24 -left-24 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
+                    <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-yellow-400/10 rounded-full blur-3xl"></div>
+
                     <div className="container mx-auto px-4 relative z-10">
                         <div className="flex flex-col md:flex-row items-center justify-between mb-10 gap-6">
                             <div className="flex items-center gap-4">
@@ -653,9 +694,12 @@ const Home = () => {
                 </section>
             )}
 
-            {/* 2.2 FEATURES SECTION (WHY CHOOSE US) */}
+            {/* 2.2 FEATURES SECTION */}
             {settings.features_visible && (
-                <section className="py-16 bg-white border-y border-gray-100">
+                <section className="py-32 bg-white relative">
+                    {/* Seamless Transition In from Orange Flash Sale */}
+                    <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-orange-500 to-transparent opacity-10 pointer-events-none"></div>
+
                     <div className="container mx-auto px-4">
                         <div className="text-center mb-12">
                             <h2 className="text-3xl font-black mb-4">لماذا تختارنا؟</h2>
@@ -690,7 +734,16 @@ const Home = () => {
 
             {/* 4. BEST SELLERS (Trending) */}
             {settings.trending_visible && (
-                <section className="py-24 bg-white">
+                <section
+                    ref={trendingRef}
+                    className={`
+                        py-32 bg-[#FAFAFA] relative transition-all duration-1000 transform
+                        ${trendingInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}
+                    `}
+                >
+                    {/* Gradient Transition In */}
+                    <div className="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-white to-transparent"></div>
+
                     <div className="container mx-auto px-4">
                         <div className="flex items-center justify-between mb-12">
                             <div>
@@ -733,7 +786,16 @@ const Home = () => {
 
             {/* 5. NEW ARRIVALS */}
             {settings.products_visible && (
-                <section className="py-24 bg-[#FAFAFA]">
+                <section
+                    ref={arrivalsRef}
+                    className={`
+                        py-32 bg-white relative transition-all duration-1000 transform
+                        ${arrivalsInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}
+                    `}
+                >
+                    {/* Gradient Transition In */}
+                    <div className="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-[#FAFAFA] to-transparent"></div>
+
                     <div className="container mx-auto px-4">
                         <div className="text-center mb-16">
                             <h2 className="text-3xl md:text-5xl font-black mb-4">وصل حديثاً</h2>
@@ -769,9 +831,23 @@ const Home = () => {
 
             {/* 6. NEWSLETTER SECTION */}
             {settings.newsletter_visible && (
-                <section className="py-20 bg-primary/95 text-white relative overflow-hidden">
-                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-                    <div className="container mx-auto px-4 relative z-10">
+                <section
+                    ref={newsletterRef}
+                    className={`
+                        py-40 bg-slate-950 text-white relative overflow-hidden transition-all duration-1000 transform
+                        ${newsletterInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}
+                    `}
+                >
+                    {/* Gradient Transition In from White */}
+                    <div className="absolute top-0 inset-x-0 h-64 bg-gradient-to-b from-white to-transparent z-10"></div>
+
+                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/asfalt-light.png')] opacity-20 transition-opacity duration-1000 group-hover:opacity-30"></div>
+
+                    {/* Dynamic Glows */}
+                    <div className="absolute top-1/2 left-0 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[120px]"></div>
+                    <div className="absolute top-1/2 right-0 -translate-y-1/2 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px]"></div>
+
+                    <div className="container mx-auto px-4 relative z-20">
                         <div className="flex flex-col md:flex-row items-center justify-between gap-8 md:gap-12">
                             <div className="text-center md:text-right flex-1">
                                 <h2 className="text-3xl md:text-4xl font-black mb-4">انضم لقائمتنا البريدية</h2>
