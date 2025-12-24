@@ -1,6 +1,16 @@
 // src/pages/Checkout.tsx
-import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  Gift,
+  AlertTriangle,
+  Phone,
+  User,
+  MapPin,
+  ChevronRight,
+  ShieldCheck,
+  Truck,
+  MessageCircle
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -18,45 +28,33 @@ import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
-import { Gift, AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-
-interface Wilaya {
-  id: number;
-  code: string;
-  name: string;
-  name_ar: string;
-  home_delivery_price: number;
-  desk_delivery_price: number;
-  created_at?: string;
-}
-
-interface DeliveryMethod {
-  enabled: boolean;
-  price: number;
-}
-
-interface DeliveryMethods {
-  home: DeliveryMethod;
-  desk: DeliveryMethod;
-  error?: string;
-}
+import { QuickWilayaSelector } from "@/components/checkout/QuickWilayaSelector";
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { items, totalPrice, clearCart, ownerId } = useCart();
+  const { items, totalPrice, clearCart } = useCart();
 
   const [wilayas, setWilayas] = useState<Wilaya[]>([]);
   const [loading, setLoading] = useState(false);
   const [calculatingDelivery, setCalculatingDelivery] = useState(false);
 
   const [formData, setFormData] = useState({
-    name: "",
-    phone: "",
-    address: "",
-    wilayaId: "", // store as string for Select; convert to number on submit
-    deliveryType: "home" as "home" | "desktop" // kept as "desktop" for compatibility with existing DB enum if needed, though usually "office" or "desk"
+    name: localStorage.getItem('checkout_name') || "",
+    phone: localStorage.getItem('checkout_phone') || "",
+    address: localStorage.getItem('checkout_address') || "",
+    wilayaId: localStorage.getItem('checkout_wilaya_id') || "",
+    deliveryType: (localStorage.getItem('checkout_delivery_type') as "home" | "desktop") || "home"
   });
+
+  // Save to localStorage on change
+  useEffect(() => {
+    localStorage.setItem('checkout_name', formData.name);
+    localStorage.setItem('checkout_phone', formData.phone);
+    localStorage.setItem('checkout_address', formData.address);
+    if (formData.wilayaId) localStorage.setItem('checkout_wilaya_id', formData.wilayaId);
+    localStorage.setItem('checkout_delivery_type', formData.deliveryType);
+  }, [formData]);
 
   const [deliveryMethods, setDeliveryMethods] = useState<DeliveryMethods>({
     home: { enabled: true, price: 0 },
@@ -66,10 +64,8 @@ const Checkout = () => {
   useEffect(() => {
     if (items.length === 0) navigate("/cart");
     loadWilayas();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Recalculate delivery whenever Wilaya or Cart Items (Store) change
   useEffect(() => {
     if (formData.wilayaId && items.length > 0) {
       calculateDeliveryFees();
@@ -83,58 +79,37 @@ const Checkout = () => {
       .order("id", { ascending: true });
 
     if (error) {
-      console.error(error);
       toast.error("خطأ في تحميل الولايات");
       return;
     }
-
     setWilayas((data as any) || []);
   };
 
   const selectedWilaya = wilayas.find((w) => String(w.id) === formData.wilayaId);
-
-  // Check if all items have free delivery
   const hasFreeDelivery = items.length > 0 && items.every(item => item.is_free_delivery);
 
   const calculateDeliveryFees = async () => {
     if (!selectedWilaya) return;
-
-    // Assuming single-store cart for now
     const storeId = items[0]?.ownerId;
     if (!storeId) return;
 
     setCalculatingDelivery(true);
-    setDeliveryMethods({
-      home: { enabled: false, price: 0 },
-      desk: { enabled: false, price: 0 },
-      error: undefined
-    });
-
     try {
-      // 1. Check for Overrides first (Specific Store + Wilaya rule)
       const { data: overrideData } = await supabase
         .from('store_delivery_overrides')
         .select('*')
         .eq('store_id', storeId)
-        .eq('wilaya_code', selectedWilaya.code) // Assuming wilayas table has 'code' column matching override
+        .eq('wilaya_code', selectedWilaya.code)
         .single();
 
       if (overrideData) {
         setDeliveryMethods({
-          home: {
-            enabled: overrideData.is_home_enabled !== false, // Default true if null, but explicit false disables
-            price: overrideData.price_home || 0
-          },
-          desk: {
-            enabled: overrideData.is_desk_enabled !== false,
-            price: overrideData.price_desk || 0
-          }
+          home: { enabled: overrideData.is_home_enabled !== false, price: overrideData.price_home || 0 },
+          desk: { enabled: overrideData.is_desk_enabled !== false, price: overrideData.price_desk || 0 }
         });
-        setCalculatingDelivery(false);
         return;
       }
 
-      // 2. If no override, check Company Configuration
       const { data: settingsData } = await supabase
         .from('store_delivery_settings')
         .select('company_id')
@@ -142,31 +117,19 @@ const Checkout = () => {
         .single();
 
       if (!settingsData || !settingsData.company_id) {
-        // Fallback to default Wilaya prices if no company set (Legacy behavior)
         setDeliveryMethods({
           home: { enabled: true, price: selectedWilaya.home_delivery_price },
           desk: { enabled: true, price: selectedWilaya.desk_delivery_price }
         });
-        setCalculatingDelivery(false);
         return;
       }
 
-      // 3. Find Zone for this Company & Wilaya
-      // Join: delivery_zones -> zone_wilayas
-      const { data: zoneData, error: zoneError } = await supabase
+      const { data: zoneData } = await supabase
         .from('zone_wilayas')
-        .select(`
-                zone_id,
-                delivery_zones!inner (
-                    id,
-                    price_home,
-                    price_desk,
-                    company_id
-                )
-            `)
+        .select(`zone_id, delivery_zones!inner (id, price_home, price_desk, company_id)`)
         .eq('wilaya_code', selectedWilaya.code)
         .eq('delivery_zones.company_id', settingsData.company_id)
-        .maybeSingle(); // Use maybeSingle to handle "no zone found" gracefully
+        .maybeSingle();
 
       if (zoneData && zoneData.delivery_zones) {
         setDeliveryMethods({
@@ -174,42 +137,30 @@ const Checkout = () => {
           desk: { enabled: true, price: zoneData.delivery_zones.price_desk }
         });
       } else {
-        // 4. No Zone found for this Company & Wilaya => Delivery Not Supported
         setDeliveryMethods({
           home: { enabled: false, price: 0 },
           desk: { enabled: false, price: 0 },
-          error: "نعتذر، التوصيل غير متوفر لهذه الولاية حالياً."
+          error: "التوصيل غير متوفر لهذه الولاية حالياً."
         });
       }
-
     } catch (err) {
-      console.error("Error calculating delivery:", err);
-      // Fallback or keep error state
+      console.error(err);
     } finally {
       setCalculatingDelivery(false);
     }
   };
 
-  // Determine effective price based on selected type and calculation
   const currentMethod = formData.deliveryType === "home" ? deliveryMethods.home : deliveryMethods.desk;
   const deliveryPriceAmount = hasFreeDelivery ? 0 : currentMethod.price;
-
   const finalTotal = totalPrice + deliveryPriceAmount;
 
-  // Product-level availability check
   const allProductsSupportHome = items.every(it => it.is_delivery_home_available !== false);
   const allProductsSupportDesk = items.every(it => it.is_delivery_desk_available !== false);
+  const isDeliveryBlocked = !!deliveryMethods.error || (!deliveryMethods.home.enabled && !deliveryMethods.desk.enabled);
 
-  const isDeliveryBlocked = !!deliveryMethods.error ||
-    (!deliveryMethods.home.enabled && !deliveryMethods.desk.enabled) ||
-    (formData.deliveryType === 'home' && !allProductsSupportHome) ||
-    (formData.deliveryType === 'desktop' && !allProductsSupportDesk);
-
-  // Auto-switch delivery type if current is disabled or unsupported by products
   useEffect(() => {
     const homeDisabled = !deliveryMethods.home.enabled || !allProductsSupportHome;
     const deskDisabled = !deliveryMethods.desk.enabled || !allProductsSupportDesk;
-
     if (formData.deliveryType === 'home' && homeDisabled && !deskDisabled) {
       setFormData(prev => ({ ...prev, deliveryType: 'desktop' }));
     } else if (formData.deliveryType === 'desktop' && deskDisabled && !homeDisabled) {
@@ -217,41 +168,20 @@ const Checkout = () => {
     }
   }, [deliveryMethods, allProductsSupportHome, allProductsSupportDesk, formData.deliveryType]);
 
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!formData.name || !formData.phone || !formData.address || !formData.wilayaId) {
-      toast.error("يرجى ملء جميع الحقول");
+    if (!formData.name || !formData.phone || !formData.wilayaId) {
+      toast.error("يرجى ملء الاسم ورقم الهاتف واختيار الولاية");
       return;
     }
-
-    if (!selectedWilaya) {
-      toast.error("اختر ولاية صحيحة");
-      return;
-    }
-
-    // Final check for blocked delivery
     if (isDeliveryBlocked) {
       toast.error("التوصيل غير متوفر لهذه الولاية");
       return;
     }
 
-    // Check if selected specific method is enabled
-    if (formData.deliveryType === 'home' && (!deliveryMethods.home.enabled || !allProductsSupportHome)) {
-      toast.error("التوصيل للمنزل غير متوفر");
-      return;
-    }
-    if (formData.deliveryType === 'desktop' && (!deliveryMethods.desk.enabled || !allProductsSupportDesk)) {
-      toast.error("التوصيل للمكتب غير متوفر");
-      return;
-    }
-
     setLoading(true);
-
     try {
       const { data: { user } } = await supabase.auth.getUser();
-
       const uniqueStoreIds = Array.from(new Set(items.map(item => item.ownerId).filter((id): id is string => !!id)));
       const orderStoreId = uniqueStoreIds.length === 1 ? uniqueStoreIds[0] : null;
 
@@ -259,13 +189,12 @@ const Checkout = () => {
         store_id: orderStoreId,
         store_ids: uniqueStoreIds,
         user_id: user?.id || null,
-        wilaya_id: selectedWilaya.id,
+        wilaya_id: selectedWilaya?.id,
         full_name: formData.name,
         phone: formData.phone,
-        address: formData.address,
+        address: formData.address || "غير محدد",
         delivery_option: formData.deliveryType,
         total_price: finalTotal,
-        // We might want to save the actual delivery price used
         delivery_price: deliveryPriceAmount
       };
 
@@ -283,191 +212,282 @@ const Checkout = () => {
         items_payload: itemsPayload
       });
 
-      if (error) {
-        console.error("Order creation error:", error);
-        toast.error("فشل إنشاء الطلب: " + error.message);
-        setLoading(false);
-        return;
-      }
-
-      toast.success("تم إرسال الطلب بنجاح!");
+      if (error) throw error;
+      toast.success("تم إرسال الطلب بنجاح! شكراً لثقتك.");
       clearCart();
       navigate("/");
-    } catch (err) {
-      console.error(err);
-      toast.error("حصل خطأ غير متوقع");
+    } catch (err: any) {
+      toast.error("فشل إرسال الطلب: " + (err.message || "خطأ غير متوقع"));
     } finally {
       setLoading(false);
     }
   };
 
+  const handleOrderViaWhatsApp = () => {
+    if (!formData.phone || !formData.name) {
+      toast.error("يرجى إدخال الرقام والاسم أولاً");
+      return;
+    }
+    const storePhone = "213600000000"; // Should be dynamic based on storeId
+    const message = `مرحباً، أود طلب المنتجات التالية:\n${items.map(it => `- ${it.name_ar} (x${it.quantity})`).join('\n')}\nالاسم: ${formData.name}\nالهاتف: ${formData.phone}\nالولاية: ${selectedWilaya?.name_ar || 'غير محدد'}`;
+    window.open(`https://wa.me/${storePhone}?text=${encodeURIComponent(message)}`, '_blank');
+  };
+
   return (
-    <div className="min-h-screen flex flex-col">
-      <main className="flex-1 container mx-auto py-8 px-4">
-        <h1 className="text-3xl font-bold mb-6">إتمام الطلب</h1>
+    <div className="min-h-screen bg-[#F8F9FA] pb-24 lg:pb-8">
+      {/* Header for Mobile */}
+      <div className="lg:hidden bg-white border-b px-4 py-4 sticky top-0 z-50 flex items-center justify-between">
+        <button onClick={() => navigate(-1)} className="p-1"><ChevronRight className="h-6 w-6" /></button>
+        <h1 className="text-xl font-bold">إتمام الطلب</h1>
+        <div className="w-8" />
+      </div>
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* LEFT */}
-          <div className="lg:col-span-2 space-y-6">
-            <Card className="p-6">
-              <h2 className="text-xl font-semibold mb-4">معلومات العميل</h2>
+      <main className="container mx-auto py-6 px-4 max-w-5xl">
+        <div className="flex items-center gap-2 mb-8 hidden lg:flex">
+          <Badge variant="outline" className="text-primary border-primary">خطوة 1 من 1</Badge>
+          <h1 className="text-3xl font-black text-gray-900 tracking-tight">إتمام الطلب السريع ⚡</h1>
+        </div>
 
-              <div className="space-y-4">
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Main Form Fields */}
+          <div className="lg:col-span-7 space-y-6">
+            <Card className="p-5 md:p-8 border-none shadow-xl shadow-gray-200/50 rounded-2xl md:rounded-3xl overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full -mr-16 -mt-16 pointer-events-none" />
+
+              <div className="flex items-center gap-3 mb-8">
+                <div className="p-2.5 bg-primary/10 rounded-xl text-primary"><Phone className="h-5 w-5" /></div>
                 <div>
-                  <Label>الاسم</Label>
-                  <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+                  <h2 className="text-xl font-bold">بيانات التوصيل</h2>
+                  <p className="text-muted-foreground text-xs">أسرع وأسهل طريقة لطلب منتجاتك</p>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                {/* 1. Phone Number - MOST IMPORTANT */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-bold flex items-center gap-2">رقم الهاتف <span className="text-red-500">*</span></Label>
+                  <div className="relative group">
+                    <Input
+                      type="tel"
+                      placeholder="06 / 07 / 05 ..."
+                      className="h-14 text-lg pr-12 font-bold bg-gray-50/50 border-gray-200 focus:bg-white transition-all rounded-xl md:rounded-2xl"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      required
+                      autoFocus
+                    />
+                    <Phone className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-primary transition-colors" />
+                  </div>
                 </div>
 
-                <div>
-                  <Label>الهاتف</Label>
-                  <Input value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
+                {/* 2. Full Name */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-bold flex items-center gap-2">الاسم الكامل <span className="text-red-500">*</span></Label>
+                  <div className="relative group">
+                    <Input
+                      placeholder="اسمك بالكامل"
+                      className="h-14 pr-12 bg-gray-50/50 border-gray-200 focus:bg-white transition-all rounded-xl md:rounded-2xl"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      required
+                    />
+                    <User className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-primary transition-colors" />
+                  </div>
                 </div>
 
-                <div>
-                  <Label>العنوان</Label>
-                  <Input value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} />
+                {/* 3. Wilaya Selection */}
+                <div className="space-y-4 pt-2">
+                  <QuickWilayaSelector
+                    wilayas={wilayas}
+                    selectedId={formData.wilayaId}
+                    onSelect={(id) => setFormData(prev => ({ ...prev, wilayaId: id }))}
+                  />
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-bold flex items-center gap-2">أو اختر من القائمة <span className="text-red-500">*</span></Label>
+                    <Select value={formData.wilayaId} onValueChange={(v) => setFormData({ ...formData, wilayaId: v })}>
+                      <SelectTrigger className="h-14 bg-gray-50/50 border-gray-200 rounded-xl md:rounded-2xl overflow-hidden">
+                        <SelectValue placeholder="قائمة الولايات (58 ولاية)" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-80">
+                        {wilayas.map((w) => (
+                          <SelectItem key={w.id} value={String(w.id)}>{w.code} - {w.name_ar}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
-                <div>
-                  <Label>الولاية</Label>
-                  <Select value={formData.wilayaId} onValueChange={(v) => setFormData({ ...formData, wilayaId: v })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="اختر الولاية" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {wilayas.map((w) => (
-                        <SelectItem key={w.id} value={String(w.id)}>
-                          {w.name_ar || w.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                {/* 4. Address (Optional but helpful) */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-bold flex items-center gap-2">العنوان (اختياري)</Label>
+                  <div className="relative group">
+                    <Input
+                      placeholder="اسم البلدية أو الحي..."
+                      className="h-14 pr-12 bg-gray-50/50 border-gray-200 focus:bg-white transition-all rounded-xl md:rounded-2xl"
+                      value={formData.address}
+                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    />
+                    <MapPin className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-primary transition-colors" />
+                  </div>
                 </div>
               </div>
             </Card>
 
-            <Card className="p-6">
-              <h2 className="text-xl font-semibold mb-4">طريقة التوصيل</h2>
+            <Card className="p-5 md:p-8 border-none shadow-xl shadow-gray-200/50 rounded-2xl md:rounded-3xl">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2.5 bg-primary/10 rounded-xl text-primary"><Truck className="h-5 w-5" /></div>
+                <h2 className="text-xl font-bold">طريقة التوصيل</h2>
+              </div>
 
               {hasFreeDelivery && (
-                <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2">
-                  <Gift className="h-5 w-5 text-green-600" />
-                  <span className="text-green-700 font-medium">🎉 جميع المنتجات في سلتك تتمتع بتوصيل مجاني!</span>
+                <div className="mb-6 p-4 bg-green-50 border border-green-100 rounded-2xl flex items-center gap-3 animate-pulse-slow">
+                  <div className="bg-green-100 p-2 rounded-full"><Gift className="h-5 w-5 text-green-600" /></div>
+                  <span className="text-green-800 text-sm font-bold">مبروك! التوصيل مجاني لطلبك بالكامل 🎁</span>
                 </div>
               )}
 
               {deliveryMethods.error && (
-                <Alert variant="destructive" className="mb-4">
+                <Alert variant="destructive" className="mb-6 rounded-2xl border-red-100 bg-red-50 text-red-900">
                   <AlertTriangle className="h-4 w-4" />
-                  <AlertTitle>تنبيه</AlertTitle>
-                  <AlertDescription>
-                    {deliveryMethods.error}
-                  </AlertDescription>
+                  <AlertDescription className="font-bold">{deliveryMethods.error}</AlertDescription>
                 </Alert>
               )}
 
-              {/* ... existing code ... */}
               {!deliveryMethods.error && (
-                <RadioGroup value={formData.deliveryType} onValueChange={(v) => setFormData({ ...formData, deliveryType: v as "home" | "desktop" })}>
-                  <div className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 border rounded mb-3 transition-colors ${(!deliveryMethods.home.enabled || !allProductsSupportHome) ? 'opacity-50 bg-gray-50' : ''}`}>
-                    <div className="flex items-center mb-2 sm:mb-0">
-                      <RadioGroupItem value="home" id="home" disabled={!deliveryMethods.home.enabled || !allProductsSupportHome} />
-                      <Label htmlFor="home" className="ml-2 cursor-pointer text-sm sm:text-base">
-                        توصيل إلى المنزل
-                        {!deliveryMethods.home.enabled && <span className="block sm:inline text-xs text-red-500 mr-2 sm:mr-1 mt-1 sm:mt-0">(غير متوفر للولاية)</span>}
-                        {deliveryMethods.home.enabled && !allProductsSupportHome && <span className="block sm:inline text-xs text-red-500 mr-2 sm:mr-1 mt-1 sm:mt-0">(غير متوفر لبعض المنتجات)</span>}
-                      </Label>
+                <RadioGroup
+                  value={formData.deliveryType}
+                  onValueChange={(v) => setFormData({ ...formData, deliveryType: v as "home" | "desktop" })}
+                  className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                >
+                  <label
+                    className={cn(
+                      "relative flex flex-col p-4 border-2 rounded-2xl cursor-pointer transition-all active:scale-95",
+                      formData.deliveryType === 'home' ? "border-primary bg-primary/5 shadow-inner" : "border-gray-100 bg-white hover:border-gray-200",
+                      (!deliveryMethods.home.enabled || !allProductsSupportHome) && "opacity-50 cursor-not-allowed grayscale"
+                    )}
+                  >
+                    <RadioGroupItem value="home" id="home_opt" className="sr-only" disabled={!deliveryMethods.home.enabled || !allProductsSupportHome} />
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-bold">توصيل للمنزل</span>
+                      <Truck className={cn("h-5 w-5", formData.deliveryType === 'home' ? "text-primary" : "text-gray-300")} />
                     </div>
-                    <div className="font-bold text-sm sm:text-base w-full sm:w-auto text-left sm:text-right pl-6 sm:pl-0">
-                      {hasFreeDelivery ? (
-                        <Badge variant="secondary" className="bg-green-100 text-green-700">مجاني</Badge>
-                      ) : (
-                        <>{calculatingDelivery ? "..." : deliveryMethods.home.enabled ? `${deliveryMethods.home.price} دج` : "--"}</>
-                      )}
+                    <div className="text-xl font-black text-primary">
+                      {hasFreeDelivery ? "0 دج" : calculatingDelivery ? "..." : `${deliveryMethods.home.price} دج`}
                     </div>
-                  </div>
+                    {!deliveryMethods.home.enabled && <span className="text-[10px] text-red-500 font-bold mt-1">غير متوفر لهذه الولاية</span>}
+                  </label>
 
-                  <div className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 border rounded transition-colors ${(!deliveryMethods.desk.enabled || !allProductsSupportDesk) ? 'opacity-50 bg-gray-50' : ''}`}>
-                    <div className="flex items-center mb-2 sm:mb-0">
-                      <RadioGroupItem value="desktop" id="office" disabled={!deliveryMethods.desk.enabled || !allProductsSupportDesk} />
-                      <Label htmlFor="office" className="ml-2 cursor-pointer text-sm sm:text-base">
-                        استلام من المكتب
-                        {!deliveryMethods.desk.enabled && <span className="block sm:inline text-xs text-red-500 mr-2 sm:mr-1 mt-1 sm:mt-0">(غير متوفر للولاية)</span>}
-                        {deliveryMethods.desk.enabled && !allProductsSupportDesk && <span className="block sm:inline text-xs text-red-500 mr-2 sm:mr-1 mt-1 sm:mt-0">(غير متوفر لبعض المنتجات)</span>}
-                      </Label>
+                  <label
+                    className={cn(
+                      "relative flex flex-col p-4 border-2 rounded-2xl cursor-pointer transition-all active:scale-95",
+                      formData.deliveryType === 'desktop' ? "border-primary bg-primary/5 shadow-inner" : "border-gray-100 bg-white hover:border-gray-200",
+                      (!deliveryMethods.desk.enabled || !allProductsSupportDesk) && "opacity-50 cursor-not-allowed grayscale"
+                    )}
+                  >
+                    <RadioGroupItem value="desktop" id="desk_opt" className="sr-only" disabled={!deliveryMethods.desk.enabled || !allProductsSupportDesk} />
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-bold">استلام من المكتب</span>
+                      <MapPin className={cn("h-5 w-5", formData.deliveryType === 'desktop' ? "text-primary" : "text-gray-300")} />
                     </div>
-                    <div className="font-bold text-sm sm:text-base w-full sm:w-auto text-left sm:text-right pl-6 sm:pl-0">
-                      {hasFreeDelivery ? (
-                        <Badge variant="secondary" className="bg-green-100 text-green-700">مجاني</Badge>
-                      ) : (
-                        <>{calculatingDelivery ? "..." : deliveryMethods.desk.enabled ? `${deliveryMethods.desk.price} دج` : "--"}</>
-                      )}
+                    <div className="text-xl font-black text-primary">
+                      {hasFreeDelivery ? "0 دج" : calculatingDelivery ? "..." : `${deliveryMethods.desk.price} دج`}
                     </div>
-                  </div>
+                    {!deliveryMethods.desk.enabled && <span className="text-[10px] text-red-500 font-bold mt-1">غير متوفر لهذه الولاية</span>}
+                  </label>
                 </RadioGroup>
               )}
             </Card>
           </div>
 
-          {/* RIGHT */}
-          <div>
-            <Card className="p-6 sticky top-28">
-              <h2 className="text-xl font-semibold mb-4">ملخص الطلب</h2>
+          {/* Right Sidebar / Summary */}
+          <div className="lg:col-span-5 space-y-4">
+            <Card className="p-6 md:p-8 border-none shadow-xl shadow-gray-200/50 rounded-2xl md:rounded-3xl sticky top-6">
+              <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+                ملخص الطلب <Badge variant="secondary" className="rounded-lg">{items.length} قطع</Badge>
+              </h2>
 
-              <div className="space-y-3 mb-4 border-b pb-4">
+              <div className="space-y-4 mb-8">
                 {items.map((it) => (
-                  <div key={it.id + (it.color ?? "") + (it.size ?? "")} className="flex justify-between text-sm">
-                    <div>
-                      <div className="font-medium">{it.name_ar}</div>
-                      <div className="text-muted-foreground text-xs">
-                        {it.color && <>لون: {it.color} </>}
-                        {it.size && <>• مقاس: {it.size}</>}
-                      </div>
-                      <div className="text-muted-foreground text-xs">كمية: {it.quantity}</div>
-
-                      {/* Delivery Availability Warning per Product */}
-                      {formData.deliveryType === 'home' && it.is_delivery_home_available === false && (
-                        <div className="text-red-500 text-[10px] font-bold mt-1">لا يوجد توصيل للمنزل لهذا المنتج</div>
-                      )}
-                      {formData.deliveryType === 'desktop' && it.is_delivery_desk_available === false && (
-                        <div className="text-red-500 text-[10px] font-bold mt-1">لا يوجد استلام من المكتب لهذا المنتج</div>
-                      )}
+                  <div key={it.id + (it.color ?? "") + (it.size ?? "")} className="flex gap-4">
+                    <div className="h-16 w-16 bg-gray-100 rounded-xl flex-shrink-0 overflow-hidden">
+                      {it.image && <img src={it.image} alt={it.name_ar} className="h-full w-full object-cover" />}
                     </div>
-                    <div className="font-medium">{(it.price * it.quantity).toFixed(2)} دج</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold text-sm truncate">{it.name_ar}</div>
+                      <div className="text-muted-foreground text-[10px] flex gap-1">
+                        {it.color && <span className="flex items-center gap-0.5"><div className="w-2 h-2 rounded-full border" style={{ backgroundColor: it.color }}></div> {it.color}</span>}
+                        {it.size && <span>| {it.size}</span>}
+                        <span>| x{it.quantity}</span>
+                      </div>
+                      <div className="text-primary font-black text-sm">{(it.price * it.quantity).toFixed(0)} دج</div>
+                    </div>
                   </div>
                 ))}
               </div>
 
-              <div className="flex justify-between">
-                <span>المجموع الفرعي</span>
-                <strong>{totalPrice.toFixed(2)} دج</strong>
+              <div className="space-y-3 pt-6 border-t border-dashed">
+                <div className="flex justify-between text-sm text-gray-500">
+                  <span>سعر المنتجات</span>
+                  <span>{totalPrice.toFixed(0)} دج</span>
+                </div>
+                <div className="flex justify-between text-sm text-gray-500">
+                  <span>رسوم التوصيل</span>
+                  <span className={hasFreeDelivery ? "text-green-600 font-bold" : ""}>
+                    {hasFreeDelivery ? "مجاني" : `${deliveryPriceAmount.toFixed(0)} دج`}
+                  </span>
+                </div>
+                <div className="flex justify-between text-2xl font-black pt-4">
+                  <span>الإجمالي</span>
+                  <span className="text-primary underline decoration-primary/20 underline-offset-8 decoration-4">{finalTotal.toFixed(0)} دج</span>
+                </div>
               </div>
 
-              <div className="flex justify-between">
-                <span>رسوم التوصيل</span>
-                {hasFreeDelivery ? (
-                  <Badge variant="secondary" className="bg-green-100 text-green-700">مجاني 🎁</Badge>
-                ) : (
-                  <strong>{deliveryPriceAmount.toFixed(2)} دج</strong>
-                )}
+              <div className="grid grid-cols-1 gap-3 mt-10">
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="h-16 text-xl font-black rounded-2xl shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all w-full"
+                  disabled={loading || isDeliveryBlocked}
+                >
+                  {loading ? "جاري الإرسال..." : "تأكيد الطلب الآن ✨"}
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="lg"
+                  className="h-14 font-bold rounded-2xl border-green-200 text-green-600 hover:bg-green-50 hover:text-green-700 w-full"
+                  onClick={handleOrderViaWhatsApp}
+                >
+                  <MessageCircle className="h-5 w-5 ml-2" />
+                  اطلب عبر الواتساب
+                </Button>
+
+                <div className="flex items-center justify-center gap-2 mt-4 text-[10px] text-muted-foreground">
+                  <ShieldCheck className="h-4 w-4 text-green-500" />
+                  <span>الدفع عند الاستلام • مراجعة الطلب قبل الاستلام</span>
+                </div>
               </div>
-
-              <hr className="my-4" />
-
-              <div className="flex justify-between text-lg font-bold">
-                <span>الإجمالي</span>
-                <span>{finalTotal.toFixed(2)} دج</span>
-              </div>
-
-              <Button type="submit" className="mt-6 w-full" disabled={loading || isDeliveryBlocked}>
-                {loading ? "جاري الإرسال..." : isDeliveryBlocked ? "التوصيل غير متوفر" : "تأكيد الطلب"}
-              </Button>
             </Card>
-          </div>
 
+            {/* Mobile Fixed Confirmation Bar */}
+            <div className="lg:hidden fixed bottom-0 inset-x-0 p-4 bg-white/80 backdrop-blur-md border-t z-[60] flex items-center justify-between gap-4">
+              <div>
+                <div className="text-xs text-muted-foreground">الإجمالي:</div>
+                <div className="text-lg font-black text-primary">{finalTotal.toFixed(0)} دج</div>
+              </div>
+              <Button
+                onClick={(e) => handleSubmit(e as any)}
+                className="flex-1 h-12 text-lg font-bold rounded-xl"
+                disabled={loading || isDeliveryBlocked}
+              >
+                {loading ? "..." : "تأكيد الطلب"}
+              </Button>
+            </div>
+          </div>
         </form>
       </main>
-
     </div>
   );
 }

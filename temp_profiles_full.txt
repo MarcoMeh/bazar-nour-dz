@@ -1,0 +1,55 @@
+﻿
+              
+referencedRelation: 
+"subcategories"
+              
+referencedColumns: 
+["id"]
+            },
+          ]
+        }
+>       profiles: {
+          Row: {
+            
+address: string | 
+null
+            
+created_at: string
+            email: 
+string
+            
+full_name: string | 
+null
+            id: 
+string
+            phone: 
+string | null
+            role: 
+string
+            
+username: string | 
+null
+          }
+          Insert: {
+            
+address?: string | 
+null
+            
+created_at?: string
+            email: 
+string
+            
+full_name?: string 
+| null
+            id: 
+string
+            phone?: 
+string | null
+            role?: 
+string
+            
+username?: string | 
+null
+          }
+
+

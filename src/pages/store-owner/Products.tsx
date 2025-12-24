@@ -97,6 +97,9 @@ export default function StoreOwnerProducts() {
         colors: [] as string[],
         brand: "",
         material: "",
+        track_inventory: false,
+        low_stock_threshold: "5",
+        variants: [] as any[],
     });
 
     useEffect(() => {
@@ -138,6 +141,47 @@ export default function StoreOwnerProducts() {
         setLoading(false);
     };
 
+    const fetchVariants = async (productId: string) => {
+        const { data, error } = await supabase
+            .from("product_variants")
+            .select("*")
+            .eq("product_id", productId);
+
+        if (error) {
+            console.error("Error fetching variants:", error);
+            return [];
+        }
+        return data || [];
+    };
+
+    const generateVariants = () => {
+        const { colors, sizes } = formData;
+        const newVariants: any[] = [];
+
+        if (colors.length === 0 && sizes.length === 0) {
+            newVariants.push({ color: null, size: null, stock_quantity: 0 });
+        } else if (colors.length > 0 && sizes.length === 0) {
+            colors.forEach(color => newVariants.push({ color, size: null, stock_quantity: 0 }));
+        } else if (colors.length === 0 && sizes.length > 0) {
+            sizes.forEach(size => newVariants.push({ color: null, size, stock_quantity: 0 }));
+        } else {
+            colors.forEach(color => {
+                sizes.forEach(size => {
+                    newVariants.push({ color, size, stock_quantity: 0 });
+                });
+            });
+        }
+
+        // Merge with existing stock if possible (match by color and size)
+        const mergedVariants = newVariants.map(nv => {
+            const existing = formData.variants.find(ev => ev.color === nv.color && ev.size === nv.size);
+            return existing ? { ...nv, stock_quantity: existing.stock_quantity, id: existing.id } : nv;
+        });
+
+        setFormData(prev => ({ ...prev, variants: mergedVariants }));
+        toast.info("تم تحديث قائمة التشكيلات بناءً على الألوان والمقاسات المختارة");
+    };
+
     const resetForm = () => {
         setFormData({
             name_ar: "",
@@ -155,12 +199,17 @@ export default function StoreOwnerProducts() {
             colors: [],
             brand: "",
             material: "",
+            track_inventory: false,
+            low_stock_threshold: "5",
+            variants: [],
         });
         setEditingProduct(null);
     };
 
-    const handleEdit = (product: any) => {
+    const handleEdit = async (product: any) => {
         setEditingProduct(product);
+        const variants = await fetchVariants(product.id);
+
         setFormData({
             name_ar: product.name || "",
             description_ar: product.description || "",
@@ -177,6 +226,9 @@ export default function StoreOwnerProducts() {
             colors: product.colors || [],
             brand: product.brand || "",
             material: product.material || "",
+            track_inventory: product.track_inventory ?? false,
+            low_stock_threshold: product.low_stock_threshold?.toString() || "5",
+            variants: variants,
         });
         setIsDialogOpen(true);
     };
@@ -293,39 +345,64 @@ export default function StoreOwnerProducts() {
         }
 
         const productData = {
-            name: formData.name_ar,
-            description: formData.description_ar || null,
+            name: formData.name_ar, // Use name_ar as the default name
+            name_ar: formData.name_ar,
+            description_ar: formData.description_ar || null,
             price: parseFloat(formData.price),
-            category_id: formData.category_id || null,
+            category_id: formData.category_id,
             subcategory_id: formData.subcategory_id || null,
-            image_url: formData.image_url || null,
+            image_url: formData.image_url,
+            additional_images: formData.additional_images,
             store_id: storeId,
-            is_delivery_home_available: formData.is_delivery_home_available,
-            is_delivery_desk_available: formData.is_delivery_desk_available,
             is_sold_out: formData.is_sold_out,
             is_free_delivery: formData.is_free_delivery,
-            additional_images: formData.additional_images,
             sizes: formData.sizes,
             colors: formData.colors,
             brand: formData.brand || null,
             material: formData.material || null,
+            track_inventory: formData.track_inventory,
+            low_stock_threshold: parseInt(formData.low_stock_threshold) || 5,
         };
 
-        let error;
+        let result;
         if (editingProduct) {
-            ({ error } = await supabase.from("products").update(productData as any).eq("id", editingProduct.id));
+            result = await supabase.from("products").update(productData as any).eq("id", editingProduct.id).select().single();
         } else {
-            ({ error } = await supabase.from("products").insert([productData as any]));
+            result = await supabase.from("products").insert([productData as any]).select().single();
         }
 
-        if (error) {
-            toast.error(getErrorMessage(error));
-        } else {
-            toast.success(editingProduct ? SUCCESS_MESSAGES.PRODUCTS.UPDATED : SUCCESS_MESSAGES.PRODUCTS.CREATED);
-            setIsDialogOpen(false);
-            resetForm();
-            fetchProducts();
+        const { data: savedProduct, error: productError } = result;
+
+        if (productError) {
+            toast.error(getErrorMessage(productError));
+            return;
         }
+
+        // Handle Variants if tracking is enabled
+        if (formData.track_inventory && savedProduct) {
+            // Delete old variants that are no longer present in current selection if editing?
+            // Simplified: Upsert variants
+            const variantsToSave = formData.variants.map(v => ({
+                ...v,
+                product_id: savedProduct.id,
+                stock_quantity: parseInt(v.stock_quantity) || 0
+            }));
+
+            // If editing, we might need to handle deletions. For now, let's upsert everything and trust the uniqueness.
+            const { error: variantError } = await supabase
+                .from("product_variants")
+                .upsert(variantsToSave, { onConflict: 'product_id,color,size' });
+
+            if (variantError) {
+                console.error("Variant Error:", variantError);
+                toast.warning("تم حفظ المنتج ولكن فشل حفظ بيانات المخزون");
+            }
+        }
+
+        toast.success(editingProduct ? "تم تحديث المنتج بنجاح" : "تم نشر المنتج بنجاح");
+        setIsDialogOpen(false);
+        resetForm();
+        fetchProducts();
     };
 
     if (loading) return <LoadingSpinner fullScreen message="جاري تحميل المنتجات..." />;
@@ -504,6 +581,90 @@ export default function StoreOwnerProducts() {
                                         onCheckedChange={(c) => setFormData(prev => ({ ...prev, is_sold_out: c }))}
                                     />
                                 </div>
+                            </div>
+
+                            {/* 6. إدارة المخزون المتقدمة */}
+                            <div className="p-4 bg-amber-50/50 rounded-xl border border-amber-100 space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <div className="p-1.5 bg-amber-100 rounded-lg text-amber-700">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m7.5 4.27 9 5.15" /><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" /><path d="m3.3 7 8.7 5 8.7-5" /><path d="M12 22V12" /></svg>
+                                        </div>
+                                        <h3 className="font-semibold text-sm text-amber-900">إدارة المخزون (تتبع دقيق)</h3>
+                                    </div>
+                                    <Switch
+                                        checked={formData.track_inventory}
+                                        onCheckedChange={(c) => setFormData(prev => ({ ...prev, track_inventory: c }))}
+                                    />
+                                </div>
+
+                                {formData.track_inventory && (
+                                    <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                                        <div className="flex items-center gap-3">
+                                            <Label className="text-xs font-semibold whitespace-nowrap">الإشعار عند انخفاض الكمية لـ:</Label>
+                                            <Input
+                                                type="number"
+                                                className="h-8 w-20 bg-white"
+                                                value={formData.low_stock_threshold}
+                                                onChange={(e) => setFormData(prev => ({ ...prev, low_stock_threshold: e.target.value }))}
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between items-center">
+                                                <Label className="text-xs font-bold">تحديد الكميات حسب المقاس واللون:</Label>
+                                                <Button type="button" variant="outline" size="sm" onClick={generateVariants} className="h-7 text-[10px] bg-white">
+                                                    تحديث القائمة
+                                                </Button>
+                                            </div>
+
+                                            <div className="max-h-60 overflow-y-auto border rounded-lg bg-white">
+                                                <Table className="text-[12px]">
+                                                    <TableHeader className="bg-gray-50 sticky top-0 z-10">
+                                                        <TableRow>
+                                                            <TableHead className="h-8 text-right">اللون</TableHead>
+                                                            <TableHead className="h-8 text-right">المقاس</TableHead>
+                                                            <TableHead className="h-8 text-right">الكمية</TableHead>
+                                                        </TableRow>
+                                                    </TableHeader>
+                                                    <TableBody>
+                                                        {formData.variants.length === 0 ? (
+                                                            <TableRow>
+                                                                <TableCell colSpan={3} className="text-center py-4 text-muted-foreground italic">
+                                                                    اضغط على "تحديث القائمة" بعد اختيار الألوان والمقاسات
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ) : (
+                                                            formData.variants.map((variant, idx) => (
+                                                                <TableRow key={idx}>
+                                                                    <TableCell className="py-2">{variant.color || "—"}</TableCell>
+                                                                    <TableCell className="py-2">{variant.size || "—"}</TableCell>
+                                                                    <TableCell className="py-2">
+                                                                        <Input
+                                                                            type="number"
+                                                                            min="0"
+                                                                            className="h-7 w-16 text-center font-mono"
+                                                                            value={variant.stock_quantity}
+                                                                            onChange={(e) => {
+                                                                                const val = parseInt(e.target.value) || 0;
+                                                                                const newVariants = [...formData.variants];
+                                                                                newVariants[idx].stock_quantity = Math.max(0, val).toString();
+                                                                                setFormData(prev => ({ ...prev, variants: newVariants }));
+                                                                            }}
+                                                                        />
+                                                                    </TableCell>
+                                                                </TableRow>
+                                                            ))
+                                                        )}
+                                                    </TableBody>
+                                                </Table>
+                                            </div>
+                                            <p className="text-[10px] text-amber-600 mt-1">
+                                                * سيتم استخدام هذه الكميات للتحقق من التوفر أثناء الطلب.
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="sticky bottom-0 pt-4 pb-2 bg-white border-t mt-4 flex gap-3">

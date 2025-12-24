@@ -1,0 +1,231 @@
+﻿
+>       orders: {
+          Row: {
+            
+address: string
+            
+created_at: string
+            
+delivery_option: 
+string
+            
+full_name: string
+            
+group_id: string | 
+null
+            id: 
+string
+            phone: 
+string
+            status: 
+string | null
+            
+store_id: string | 
+null
+            
+store_ids: string[] 
+| null
+            
+total_price: number
+            
+user_id: string | 
+null
+            
+wilaya_id: number | 
+null
+          }
+          Insert: {
+            
+address: string
+            
+created_at?: string
+            
+delivery_option: 
+string
+            
+full_name: string
+            
+group_id?: string | 
+null
+            id?: 
+string
+            phone: 
+string
+            
+status?: string | 
+null
+            
+store_id?: string | 
+null
+            
+store_ids?: 
+string[] | null
+            
+total_price: number
+            
+user_id?: string | 
+null
+            
+wilaya_id?: number 
+| null
+          }
+          Update: {
+            
+address?: string
+            
+created_at?: string
+            
+delivery_option?: 
+string
+            
+full_name?: string
+            
+group_id?: string | 
+null
+            id?: 
+string
+            phone?: 
+string
+            
+status?: string | 
+null
+            
+store_id?: string | 
+null
+            
+store_ids?: 
+string[] | null
+            
+total_price?: number
+            
+user_id?: string | 
+null
+            
+wilaya_id?: number 
+| null
+          }
+          
+Relationships: [
+            {
+              
+foreignKeyName: "ord
+ers_store_id_fkey"
+              
+columns: 
+["store_id"]
+              
+isOneToOne: false
+>       
+get_store_orders: {
+          Args: { 
+p_store_id: string }
+          Returns: {
+            
+address: string
+            
+created_at: string
+            
+delivery_option: 
+string
+            
+full_name: string
+            
+group_id: string | 
+null
+            id: 
+string
+            phone: 
+string
+            status: 
+string | null
+            
+store_id: string | 
+null
+            
+store_ids: string[] 
+| null
+            
+total_price: number
+            
+user_id: string | 
+null
+            
+wilaya_id: number | 
+null
+          }[]
+          
+SetofOptions: {
+            from: 
+"*"
+            to: 
+"orders"
+            
+isOneToOne: false
+            
+isSetofReturn: true
+          }
+        }
+        is_admin: { 
+Args: never; 
+Returns: boolean }
+        
+is_store_owner: { 
+Args: never; 
+Returns: boolean }
+      }
+      Enums: {
+        
+delivery_type: 
+"free" | "home" | 
+"desktop" | 
+"sold-out"
+        
+order_status:
+          | 
+"pending"
+          | 
+"processing"
+          | 
+"shipped"
+          | 
+"delivered"
+          | 
+"cancelled"
+        user_role: 
+"admin" | 
+"store_owner" | 
+"customer"
+      }
+      
+CompositeTypes: {
+        [_ in 
+never]: never
+      }
+    }
+  }
+  
+  type DatabaseWitho
+utInternals = 
+Omit<Database, "__In
+ternalSupabase">
+  
+  type 
+DefaultSchema = Data
+baseWithoutInternals
+[Extract<keyof 
+Database, "public">]
+  
+  export type 
+Tables<
+    DefaultSchemaTab
+leNameOrOptions 
+extends
+      | keyof (Defau
+ltSchema["Tables"] 
+& DefaultSchema["Vie
+ws"])
+      | { schema: 
+keyof DatabaseWithou
+tInternals },
+
+

@@ -1,0 +1,141 @@
+﻿
+            
+updated_at?: string 
+| null
+            
+wilaya?: string
+          }
+          
+Relationships: []
+        }
+>       stores: {
+          Row: {
+            
+category_id: string 
+| null
+            
+cover_image_url: 
+string | null
+            
+created_at: string
+            
+description: string 
+| null
+            
+facebook: string | 
+null
+            id: 
+string
+            
+image_url: string | 
+null
+            
+instagram: string | 
+null
+            
+is_active: boolean 
+| null
+            is_manua
+lly_suspended: 
+boolean | null
+            
+location_url: 
+string | null
+            name: 
+string
+            
+opening_hours: 
+string | null
+            
+owner_id: string
+            
+return_policy: 
+string | null
+            slug: 
+string | null
+            subscrip
+tion_end_date: 
+string | null
+            
+theme_id: string | 
+null
+            tiktok: 
+string | null
+            
+whatsapp: string | 
+null
+          }
+          Insert: {
+            
+category_id?: 
+string | null
+            
+cover_image_url?: 
+string | null
+            
+created_at?: string
+            
+description?: 
+string | null
+            
+facebook?: string | 
+null
+            id?: 
+string
+            
+image_url?: string 
+| null
+            
+instagram?: string 
+| null
+            
+is_active?: boolean 
+| null
+            is_manua
+lly_suspended?: 
+boolean | null
+            
+location_url?: 
+string | null
+            name: 
+string
+            
+opening_hours?: 
+string | null
+            
+owner_id: string
+            
+return_policy?: 
+string | null
+            slug?: 
+string | null
+            subscrip
+tion_end_date?: 
+string | null
+            
+theme_id?: string | 
+null
+            
+tiktok?: string | 
+null
+            
+whatsapp?: string | 
+null
+          }
+          Update: {
+            
+category_id?: 
+string | null
+            
+cover_image_url?: 
+string | null
+            
+created_at?: string
+            
+description?: 
+string | null
+            
+facebook?: string | 
+null
+
+

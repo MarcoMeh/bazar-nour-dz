@@ -48,6 +48,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Trigger to call the function on insert to orders
+DROP TRIGGER IF EXISTS on_order_created_notification ON public.orders;
 CREATE TRIGGER on_order_created_notification
   AFTER INSERT ON public.orders
   FOR EACH ROW

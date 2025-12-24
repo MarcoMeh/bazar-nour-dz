@@ -1,0 +1,68 @@
+﻿
+>       
+order_items: {
+          Row: {
+            
+created_at: string
+            id: 
+string
+            
+order_id: string
+            price: 
+number
+            
+product_id: string 
+| null
+            
+quantity: number
+            
+selected_color: 
+string | null
+            
+selected_size: 
+string | null
+          }
+          Insert: {
+            
+created_at?: string
+            id?: 
+string
+            
+order_id: string
+            price: 
+number
+            
+product_id?: string 
+| null
+            
+quantity: number
+            
+selected_color?: 
+string | null
+            
+selected_size?: 
+string | null
+          }
+          Update: {
+            
+created_at?: string
+            id?: 
+string
+            
+order_id?: string
+            price?: 
+number
+            
+product_id?: string 
+| null
+            
+quantity?: number
+            
+selected_color?: 
+string | null
+            
+selected_size?: 
+string | null
+          }
+
+

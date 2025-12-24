@@ -1,0 +1,218 @@
+﻿
+    
+__InternalSupabase: 
+{
+      
+PostgrestVersion: 
+"13.0.5"
+    }
+    public: {
+      Tables: {
+>       categories: 
+{
+          Row: {
+            
+created_at: string
+            id: 
+string
+            
+image_url: string | 
+null
+            name: 
+string
+            slug: 
+string | null
+          }
+          Insert: {
+            
+created_at?: string
+            id?: 
+string
+            
+image_url?: string 
+| null
+            name: 
+string
+            slug?: 
+string | null
+          }
+          Update: {
+            
+created_at?: string
+            id?: 
+string
+            
+image_url?: string 
+| null
+            name?: 
+string
+            slug?: 
+string | null
+          }
+          
+Relationships: []
+        }
+        
+delivery_companies: 
+{
+          Row: {
+            
+address: string | 
+null
+            
+created_at: string 
+| null
+            id: 
+string
+            
+logo_url: string | 
+null
+            name: 
+string
+            
+updated_at?: string 
+| null
+            
+whatsapp_number?: 
+string | null
+          }
+          
+Relationships: []
+        }
+>       
+store_categories: {
+          Row: {
+            
+category_id: string
+            
+created_at: string 
+| null
+            id: 
+string
+            
+store_id: string
+          }
+          Insert: {
+            
+category_id: string
+            
+created_at?: string 
+| null
+            id?: 
+string
+            
+store_id: string
+          }
+          Update: {
+            
+category_id?: string
+            
+created_at?: string 
+| null
+            id?: 
+string
+            
+store_id?: string
+          }
+          
+Relationships: [
+            {
+              
+foreignKeyName: "sto
+re_categories_catego
+ry_id_fkey"
+              
+columns: 
+["category_id"]
+              
+isOneToOne: false
+              
+referencedRelation: 
+"categories"
+              
+referencedColumns: 
+["id"]
+            },
+            {
+              
+foreignKeyName: "sto
+re_categories_store_
+id_fkey"
+              
+columns: 
+["store_id"]
+              
+isOneToOne: false
+              
+referencedRelation: 
+"profiles"
+              
+referencedColumns: 
+["id"]
+            },
+          ]
+        }
+>       
+subcategories: {
+          Row: {
+            
+category_id: string
+            
+created_at: string
+            id: 
+string
+            
+image_url: string | 
+null
+            name: 
+string
+            slug: 
+string | null
+          }
+          Insert: {
+            
+category_id: string
+            
+created_at?: string
+            id?: 
+string
+            
+image_url?: string 
+| null
+            name: 
+string
+            slug?: 
+string | null
+          }
+          Update: {
+            
+category_id?: string
+            
+created_at?: string
+            id?: 
+string
+            
+image_url?: string 
+| null
+            name?: 
+string
+            slug?: 
+string | null
+          }
+          
+Relationships: [
+            {
+              
+foreignKeyName: "sub
+categories_category_
+id_fkey"
+              
+columns: 
+["category_id"]
+              
+isOneToOne: false
+              
+referencedRelation: 
+"categories"
+
+

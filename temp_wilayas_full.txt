@@ -1,0 +1,185 @@
+﻿
+              
+referencedRelation: 
+"stores"
+              
+referencedColumns: 
+["id"]
+            },
+          ]
+        }
+>       wilayas: {
+          Row: {
+            code: 
+string
+            
+created_at: string
+            desk_del
+ivery_available: 
+boolean | null
+            desk_del
+ivery_price: number 
+| null
+            home_del
+ivery_available: 
+boolean | null
+            home_del
+ivery_price: number 
+| null
+            id: 
+number
+            name: 
+string
+            
+name_ar: string
+          }
+          Insert: {
+            code: 
+string
+            
+created_at?: string
+            desk_del
+ivery_available?: 
+boolean | null
+            desk_del
+ivery_price?: 
+number | null
+            home_del
+ivery_available?: 
+boolean | null
+            home_del
+ivery_price?: 
+number | null
+            id?: 
+number
+            name: 
+string
+            
+name_ar: string
+          }
+          Update: {
+            code?: 
+string
+            
+created_at?: string
+            desk_del
+ivery_available?: 
+boolean | null
+            desk_del
+ivery_price?: 
+number | null
+            home_del
+ivery_available?: 
+boolean | null
+            home_del
+ivery_price?: 
+number | null
+            id?: 
+number
+            name?: 
+string
+            
+name_ar?: string
+          }
+          
+Relationships: []
+        }
+>       
+zone_wilayas: {
+          Row: {
+            
+created_at: string 
+| null
+            id: 
+string
+            
+wilaya_code: string
+            
+zone_id: string | 
+null
+          }
+          Insert: {
+            
+created_at?: string 
+| null
+            id?: 
+string
+            
+wilaya_code: string
+            
+zone_id?: string | 
+null
+          }
+          Update: {
+            
+created_at?: string 
+| null
+            id?: 
+string
+            
+wilaya_code?: string
+            
+zone_id?: string | 
+null
+          }
+          
+Relationships: [
+            {
+              
+foreignKeyName: "zon
+e_wilayas_zone_id_fk
+ey"
+              
+columns: ["zone_id"]
+              
+isOneToOne: false
+              
+referencedRelation: 
+"delivery_zones"
+              
+referencedColumns: 
+["id"]
+            },
+          ]
+        }
+      }
+      Views: {
+        [_ in 
+never]: never
+      }
+      Functions: {
+        
+create_order: {
+          Args: { 
+items_payload: 
+Json; 
+order_payload: Json 
+}
+          Returns: 
+string
+        }
+        create_profi
+le_for_user: {
+          Args: {
+            
+user_address: string
+            
+user_email: string
+            
+user_full_name: 
+string
+            
+user_id: string
+            
+user_phone: string
+            
+user_role: string
+          }
+          Returns: 
+undefined
+        }
+        extend_store
+_subscription: {
+          Args: {
+
+

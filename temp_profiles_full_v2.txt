@@ -1,0 +1,106 @@
+﻿
+>       profiles: {
+          Row: {
+            
+address: string | 
+null
+            
+created_at: string
+            email: 
+string
+            
+full_name: string | 
+null
+            id: 
+string
+            phone: 
+string | null
+            role: 
+string
+            
+username: string | 
+null
+          }
+          Insert: {
+            
+address?: string | 
+null
+            
+created_at?: string
+            email: 
+string
+            
+full_name?: string 
+| null
+            id: 
+string
+            phone?: 
+string | null
+            role?: 
+string
+            
+username?: string | 
+null
+          }
+          Update: {
+            
+address?: string | 
+null
+            
+created_at?: string
+            email?: 
+string
+            
+full_name?: string 
+| null
+            id?: 
+string
+            phone?: 
+string | null
+            role?: 
+string
+            
+username?: string | 
+null
+          }
+          
+Relationships: []
+        }
+        reviews: {
+          Row: {
+            
+comment: string | 
+null
+            
+created_at: string
+            id: 
+string
+            
+is_approved: 
+boolean | null
+            
+product_id: string
+            rating: 
+number
+            
+user_name: string
+          }
+          Insert: {
+            
+comment?: string | 
+null
+            
+created_at?: string
+            id?: 
+string
+            
+is_approved?: 
+boolean | null
+            
+product_id: string
+            rating: 
+number
+            
+user_name: string
+
+

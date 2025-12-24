@@ -24,14 +24,15 @@ import { getColorHex, isPearlColor } from '@/lib/colors';
 
 interface Product {
   id: string;
-  name: string; // Changed from name_ar
-  description?: string; // Changed from description_ar
+  name: string;
+  name_ar: string;
+  description?: string;
+  description_ar?: string;
   price: number;
   image_url?: string;
   additional_images?: string[];
-  images?: string[]; // Keep for backward compatibility
+  images?: string[];
   category_id?: string;
-
   is_delivery_home_available: boolean;
   is_delivery_desk_available: boolean;
   is_sold_out: boolean;
@@ -39,6 +40,14 @@ interface Product {
   store_id: string;
   colors?: string[];
   sizes?: string[];
+  track_inventory: boolean;
+}
+
+interface Variant {
+  id: string;
+  color: string | null;
+  size: string | null;
+  stock_quantity: number;
 }
 
 
@@ -51,6 +60,7 @@ const ProductDetail = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [variants, setVariants] = useState<Variant[]>([]);
   const [api, setApi] = useState<CarouselApi>();
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
 
@@ -79,10 +89,9 @@ const ProductDetail = () => {
 
   const fetchProduct = async () => {
     setLoading(true);
-    // Explicitly select fields to be safe, including store_id
     const { data, error } = (await supabase
       .from('products')
-      .select('*, store_id, is_delivery_home_available, is_delivery_desk_available, is_sold_out, is_free_delivery, colors, sizes, additional_images')
+      .select('*, store_id, is_delivery_home_available, is_delivery_desk_available, is_sold_out, is_free_delivery, colors, sizes, additional_images, track_inventory')
       .eq('id', id)
       .maybeSingle()) as { data: Product | null; error: PostgrestError | null };
 
@@ -98,30 +107,49 @@ const ProductDetail = () => {
       return;
     }
 
-    console.log("Fetched Product (Raw):", JSON.stringify(data, null, 2));
-    console.log("Product Store ID:", data.store_id);
     setProduct(data);
+
+    if (data.track_inventory) {
+      const { data: variantData, error: variantError } = await supabase
+        .from('product_variants')
+        .select('*')
+        .eq('product_id', id);
+
+      if (!variantError && variantData) {
+        setVariants(variantData);
+      }
+    }
+
     setLoading(false);
   };
 
   const handleAddToCart = () => {
     if (product && !product.is_sold_out) {
-      // Validate Color Selection
       if (product.colors && product.colors.length > 0 && !selectedColor) {
         toast.error('الرجاء اختيار اللون');
         return;
       }
 
-      // Validate Size Selection
       if (product.sizes && product.sizes.length > 0 && !selectedSize) {
         toast.error('الرجاء اختيار المقاس');
         return;
       }
 
-      console.log("Adding to cart with store_id:", product.store_id);
+      if (product.track_inventory) {
+        const matchingVariant = variants.find(v =>
+          (v.color === selectedColor || (v.color === null && !selectedColor)) &&
+          (v.size === selectedSize || (v.size === null && !selectedSize))
+        );
+
+        if (matchingVariant && matchingVariant.stock_quantity <= 0) {
+          toast.error('عذراً، هذا الاختيار غير متوفر حالياً.');
+          return;
+        }
+      }
+
       addItem({
         id: product.id,
-        name_ar: product.name, // Map name to name_ar for CartContext
+        name_ar: product.name_ar,
         price: product.price,
         image_url: product.image_url,
         ownerId: product.store_id,
@@ -156,7 +184,6 @@ const ProductDetail = () => {
       <div className="min-h-screen flex flex-col">
         <main className="flex-1 container mx-auto px-4 py-8">
           <div className="grid md:grid-cols-2 gap-8 mb-12">
-            {/* Image Skeleton */}
             <div className="space-y-4">
               <Skeleton className="w-full h-96 rounded-lg" />
               <div className="grid grid-cols-4 gap-2">
@@ -165,19 +192,15 @@ const ProductDetail = () => {
                 ))}
               </div>
             </div>
-
-            {/* Info Skeleton */}
             <div className="space-y-6">
               <div>
                 <Skeleton className="h-10 w-3/4 mb-4" />
                 <Skeleton className="h-8 w-1/4 mb-6" />
               </div>
-
               <div className="flex gap-2 mb-4">
                 <Skeleton className="h-8 w-24 rounded-full" />
                 <Skeleton className="h-8 w-24 rounded-full" />
               </div>
-
               <div className="mb-6">
                 <Skeleton className="h-6 w-16 mb-3" />
                 <div className="flex gap-3">
@@ -186,7 +209,6 @@ const ProductDetail = () => {
                   ))}
                 </div>
               </div>
-
               <div className="mb-6">
                 <Skeleton className="h-6 w-16 mb-3" />
                 <div className="flex gap-3">
@@ -195,7 +217,6 @@ const ProductDetail = () => {
                   ))}
                 </div>
               </div>
-
               <Skeleton className="h-32 w-full rounded-lg" />
               <Skeleton className="h-12 w-full rounded-lg" />
             </div>
@@ -227,7 +248,6 @@ const ProductDetail = () => {
         </Button>
 
         <div className="grid md:grid-cols-2 gap-8 mb-12">
-          {/* Images Section */}
           <div className="space-y-4 relative">
             {product.is_sold_out && (
               <div className="absolute top-4 left-4 bg-red-600 text-white text-lg px-4 py-2 rounded-full shadow-xl z-10 font-bold">
@@ -262,7 +282,6 @@ const ProductDetail = () => {
               </Card>
             )}
 
-            {/* Thumbnail Gallery */}
             {allImages.length > 1 && (
               <div className="grid grid-cols-4 gap-2">
                 {allImages.map((image, index) => (
@@ -285,7 +304,6 @@ const ProductDetail = () => {
             )}
           </div>
 
-          {/* Product Info Section */}
           <div className="space-y-6">
             <div>
               <h1 className="text-3xl md:text-4xl font-bold mb-4">
@@ -296,7 +314,6 @@ const ProductDetail = () => {
               </div>
             </div>
 
-            {/* Product Status / Delivery Info */}
             <div className="flex flex-wrap gap-2 mb-4">
               {product.is_free_delivery && (
                 <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 text-sm px-3 py-1.5 rounded-full font-medium">
@@ -315,7 +332,6 @@ const ProductDetail = () => {
               )}
             </div>
 
-            {/* Color Selection */}
             {product.colors && product.colors.length > 0 && (
               <div className="mb-6">
                 <h3 className="font-semibold mb-3">اللون:</h3>
@@ -338,7 +354,6 @@ const ProductDetail = () => {
               </div>
             )}
 
-            {/* Size Selection */}
             {product.sizes && product.sizes.length > 0 && (
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-3">
@@ -370,6 +385,36 @@ const ProductDetail = () => {
               </div>
             )}
 
+            {product.track_inventory && (selectedColor || selectedSize || (!product.colors?.length && !product.sizes?.length)) && (
+              <div className="animate-in fade-in slide-in-from-top-2">
+                {(() => {
+                  const matchingVariant = variants.find(v =>
+                    (v.color === selectedColor || (v.color === null && !selectedColor)) &&
+                    (v.size === selectedSize || (v.size === null && !selectedSize))
+                  );
+
+                  if (matchingVariant) {
+                    if (matchingVariant.stock_quantity <= 0) {
+                      return (
+                        <div className="p-3 bg-red-50 border border-red-100 rounded-lg text-red-700 text-sm font-bold flex items-center gap-2">
+                          <span className="w-2 h-2 bg-red-600 rounded-full animate-pulse" />
+                          عذراً، هذا الاختيار غير متوفر حالياً
+                        </div>
+                      );
+                    } else if (matchingVariant.stock_quantity <= 5) {
+                      return (
+                        <div className="p-3 bg-amber-50 border border-amber-100 rounded-lg text-amber-700 text-sm font-bold flex items-center gap-2">
+                          <span className="w-2 h-2 bg-amber-600 rounded-full animate-pulse" />
+                          بقي {matchingVariant.stock_quantity} قطع فقط! اطلب الآن
+                        </div>
+                      );
+                    }
+                  }
+                  return null;
+                })()}
+              </div>
+            )}
+
             {product.description && (
               <Card className="p-6 bg-muted/50 border-muted">
                 <h2 className="text-xl font-semibold mb-3">وصف المنتج</h2>
@@ -379,27 +424,38 @@ const ProductDetail = () => {
               </Card>
             )}
 
-            {/* Add to Cart / Sold Out Button */}
-            {product.is_sold_out ? (
-              <Button
-                size="lg"
-                disabled
-                className="w-full bg-red-500 text-white cursor-not-allowed shadow-lg"
-              >
-                نفد
-              </Button>
-            ) : (
-              <Button
-                size="lg"
-                onClick={handleAddToCart}
-                className="w-full shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                <ShoppingCart className="ml-2 h-5 w-5" />
-                إضافة إلى السلة
-              </Button>
-            )}
+            {(() => {
+              const matchingVariant = product.track_inventory ? variants.find(v =>
+                (v.color === selectedColor || (v.color === null && !selectedColor)) &&
+                (v.size === selectedSize || (v.size === null && !selectedSize))
+              ) : null;
 
-            {/* Features (Original) */}
+              const isOutOfStock = product.is_sold_out || (product.track_inventory && matchingVariant && matchingVariant.stock_quantity <= 0);
+
+              if (isOutOfStock) {
+                return (
+                  <Button
+                    size="lg"
+                    disabled
+                    className="w-full bg-red-500 text-white cursor-not-allowed shadow-lg"
+                  >
+                    نفد
+                  </Button>
+                );
+              }
+
+              return (
+                <Button
+                  size="lg"
+                  onClick={handleAddToCart}
+                  className="w-full shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  <ShoppingCart className="ml-2 h-5 w-5" />
+                  إضافة إلى السلة
+                </Button>
+              );
+            })()}
+
             <div className="grid grid-cols-2 gap-4">
               <Card className="p-4 text-center border-muted hover:border-accent/40 transition-all duration-300">
                 <Truck className="h-8 w-8 mx-auto mb-2 text-primary" />
@@ -415,39 +471,48 @@ const ProductDetail = () => {
           </div>
         </div>
 
-        {/* Reviews Section */}
         <ReviewsSection productId={product.id} />
       </main>
 
-      {/* Size Guide Modal */}
       <SizeGuideModal
         open={sizeGuideOpen}
         onOpenChange={setSizeGuideOpen}
         category="mens"
       />
 
-      {/* Mobile Sticky Add to Cart Bar */}
       <div className="fixed bottom-[64px] left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-gray-200 md:hidden z-40 animate-slide-up">
-        {product.is_sold_out ? (
-          <Button
-            size="lg"
-            disabled
-            className="w-full bg-red-500 text-white cursor-not-allowed shadow-lg rounded-full"
-          >
-            نفد
-          </Button>
-        ) : (
-          <Button
-            size="lg"
-            onClick={handleAddToCart}
-            className="w-full shadow-lg hover:shadow-xl transition-all duration-300 rounded-full bg-gradient-to-r from-primary to-secondary"
-          >
-            <ShoppingCart className="ml-2 h-5 w-5" />
-            إضافة إلى السلة
-          </Button>
-        )}
-      </div>
+        {(() => {
+          const matchingVariant = product.track_inventory ? variants.find(v =>
+            (v.color === selectedColor || (v.color === null && !selectedColor)) &&
+            (v.size === selectedSize || (v.size === null && !selectedSize))
+          ) : null;
 
+          const isOutOfStock = product.is_sold_out || (product.track_inventory && matchingVariant && matchingVariant.stock_quantity <= 0);
+
+          if (isOutOfStock) {
+            return (
+              <Button
+                size="lg"
+                disabled
+                className="w-full bg-red-500 text-white cursor-not-allowed shadow-lg rounded-full"
+              >
+                نفد
+              </Button>
+            );
+          }
+
+          return (
+            <Button
+              size="lg"
+              onClick={handleAddToCart}
+              className="w-full shadow-lg hover:shadow-xl transition-all duration-300 rounded-full bg-gradient-to-r from-primary to-secondary"
+            >
+              <ShoppingCart className="ml-2 h-5 w-5" />
+              إضافة إلى السلة
+            </Button>
+          );
+        })()}
+      </div>
     </div>
   );
 };
