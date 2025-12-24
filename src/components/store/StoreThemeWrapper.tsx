@@ -2,82 +2,107 @@ import React, { useEffect } from 'react';
 import { STORE_THEMES, StoreTheme } from '@/config/themes';
 
 interface StoreThemeWrapperProps {
-    themeId: string;
-    children: React.ReactNode;
+  themeId: string;
+  customColors?: {
+    primary?: string;
+    secondary?: string;
+    background?: string;
+    text?: string;
+  };
+  children: React.ReactNode;
 }
 
-export const StoreThemeWrapper: React.FC<StoreThemeWrapperProps> = ({ themeId, children }) => {
-    const theme = STORE_THEMES.find((t) => t.id === themeId) || STORE_THEMES[0];
+export const StoreThemeWrapper: React.FC<StoreThemeWrapperProps> = ({ themeId, customColors, children }) => {
+  const theme = STORE_THEMES.find((t) => t.id === themeId) || STORE_THEMES[0];
 
-    useEffect(() => {
-        const root = document.documentElement;
-        const colors = theme.colors;
-        const styles = theme.styles;
+  useEffect(() => {
+    const root = document.documentElement;
+    // Start with default theme colors
+    const colors = { ...theme.colors };
 
-        // Core Colors
-        root.style.setProperty('--store-primary', colors.primary);
-        root.style.setProperty('--store-secondary', colors.secondary);
-        root.style.setProperty('--store-accent', colors.accent);
-        root.style.setProperty('--store-background', colors.background);
-        root.style.setProperty('--store-text', colors.text);
-        root.style.setProperty('--store-card-bg', colors.cardBg);
+    // Override with custom colors if provided
+    if (customColors?.primary) colors.primary = customColors.primary;
+    if (customColors?.secondary) colors.secondary = customColors.secondary;
+    if (customColors?.background) colors.background = customColors.background;
+    if (customColors?.text) colors.text = customColors.text;
 
-        // Style Variables
-        root.style.setProperty('--store-radius', styles.borderRadius);
-        root.style.setProperty('--store-shadow', styles.cardShadow);
+    const styles = theme.styles;
 
-        // Font Variables
-        root.style.setProperty('--store-font', theme.typography.fontFamily);
-        root.style.setProperty('--store-heading-font', theme.typography.headingFont);
+    // Core Colors
+    root.style.setProperty('--store-primary', colors.primary);
+    root.style.setProperty('--store-secondary', colors.secondary);
+    root.style.setProperty('--store-accent', colors.accent);
+    root.style.setProperty('--store-background', colors.background);
+    root.style.setProperty('--store-text', colors.text);
+    root.style.setProperty('--store-card-bg', colors.cardBg);
 
-        // Component Styles
-        root.style.setProperty('--store-nav-style', styles.navStyle);
-        root.style.setProperty('--store-header-style', styles.headerStyle);
-        root.style.setProperty('--store-card-style', styles.cardStyle);
-        root.style.setProperty('--store-layout', styles.layoutType);
+    // Style Variables
+    root.style.setProperty('--store-radius', styles.borderRadius);
+    root.style.setProperty('--store-shadow', styles.cardShadow);
 
-        // Load Fonts Dynamically
-        const fontFamilies = [theme.typography.fontFamily, theme.typography.headingFont];
-        fontFamilies.forEach(font => {
-            if (font && !font.includes('sans-serif') && !font.includes('serif')) {
-                const fontName = font.split(',')[0].replace(/['"]/g, '').replace(/ /g, '+');
-                if (!document.getElementById(`font-${fontName}`)) {
-                    const link = document.createElement('link');
-                    link.id = `font-${fontName}`;
-                    link.rel = 'stylesheet';
-                    link.href = `https://fonts.googleapis.com/css2?family=${fontName}:wght@400;500;600;700;800;900&display=swap`;
-                    document.head.appendChild(link);
-                }
-            }
-        });
+    // Font Variables
+    root.style.setProperty('--store-font', theme.typography.fontFamily);
+    root.style.setProperty('--store-heading-font', theme.typography.headingFont);
 
-        // Special case for Anton and Playfair
-        ['Anton', 'Playfair+Display'].forEach(fontName => {
-            if ((theme.typography.fontFamily.includes(fontName.replace('+', ' ')) || theme.typography.headingFont.includes(fontName.replace('+', ' '))) && !document.getElementById(`font-${fontName}`)) {
-                const link = document.createElement('link');
-                link.id = `font-${fontName}`;
-                link.rel = 'stylesheet';
-                link.href = `https://fonts.googleapis.com/css2?family=${fontName}:wght@400;700;900&display=swap`;
-                document.head.appendChild(link);
-            }
-        });
+    // Component Styles
+    root.style.setProperty('--store-nav-style', styles.navStyle);
+    root.style.setProperty('--store-header-style', styles.headerStyle);
+    root.style.setProperty('--store-card-style', styles.cardStyle);
+    root.style.setProperty('--store-layout', styles.layoutType);
 
-    }, [theme]);
+    // Load Fonts Dynamically
+    const fontFamilies = [theme.typography.fontFamily, theme.typography.headingFont];
+    fontFamilies.forEach(font => {
+      if (font && !font.includes('sans-serif') && !font.includes('serif')) {
+        const fontName = font.split(',')[0].replace(/['"]/g, '').replace(/ /g, '+');
+        if (!document.getElementById(`font-${fontName}`)) {
+          const link = document.createElement('link');
+          link.id = `font-${fontName}`;
+          link.rel = 'stylesheet';
+          link.href = `https://fonts.googleapis.com/css2?family=${fontName}:wght@400;500;600;700;800;900&display=swap`;
+          document.head.appendChild(link);
+        }
+      }
+    });
 
-    return (
-        <div
-            className={`min-h-screen transition-all duration-700 ease-in-out theme-anim-${theme.styles.animations}`}
-            style={{
-                backgroundColor: theme.colors.background,
-                color: theme.colors.text,
-                fontFamily: theme.typography.fontFamily
-            }}
-        >
-            <style dangerouslySetInnerHTML={{
-                __html: `
+    // Special case for Anton and Playfair
+    ['Anton', 'Playfair+Display'].forEach(fontName => {
+      if ((theme.typography.fontFamily.includes(fontName.replace('+', ' ')) || theme.typography.headingFont.includes(fontName.replace('+', ' '))) && !document.getElementById(`font-${fontName}`)) {
+        const link = document.createElement('link');
+        link.id = `font-${fontName}`;
+        link.rel = 'stylesheet';
+        link.href = `https://fonts.googleapis.com/css2?family=${fontName}:wght@400;700;900&display=swap`;
+        document.head.appendChild(link);
+      }
+    });
+
+  }, [theme, customColors]);
+
+  const getActiveColors = () => {
+    const colors = { ...theme.colors };
+    if (customColors?.primary) colors.primary = customColors.primary;
+    if (customColors?.secondary) colors.secondary = customColors.secondary;
+    if (customColors?.background) colors.background = customColors.background;
+    if (customColors?.text) colors.text = customColors.text;
+    return colors;
+  };
+
+  const activeColors = getActiveColors();
+
+  return (
+    <div
+      className={`min-h-screen transition-all duration-700 ease-in-out theme-anim-${theme.styles.animations}`}
+      style={{
+        backgroundColor: activeColors.background,
+        color: activeColors.text,
+        fontFamily: theme.typography.fontFamily
+      }}
+    >
+      <style dangerouslySetInnerHTML={{
+        __html: `
         :root {
           --primary: var(--store-primary);
-          --primary-foreground: ${theme.colors.background === '#ffffff' || theme.colors.background === '#f8fafc' ? 'white' : 'var(--store-background)'};
+          --primary-foreground: ${activeColors.background === '#ffffff' || activeColors.background === '#f8fafc' ? 'white' : 'var(--store-background)'};
         }
         
         h1, h2, h3, h4, h5, h6 {
@@ -156,7 +181,7 @@ export const StoreThemeWrapper: React.FC<StoreThemeWrapperProps> = ({ themeId, c
           border: 2px solid var(--store-background);
         }
       `}} />
-            {children}
-        </div>
-    );
+      {children}
+    </div>
+  );
 };

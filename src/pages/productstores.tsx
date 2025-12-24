@@ -168,7 +168,6 @@ const ProductStores = () => {
                   </h1>
                   <div className={`flex ${isElegant ? 'justify-center' : ''} items-center gap-4 text-sm opacity-80 font-semibold`}>
                     <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4 text-[var(--store-primary)]" /> {store.address || "الجزائر"}</span>
-                    <span className="flex items-center gap-1.5"><Star className="w-4 h-4 text-yellow-500 fill-yellow-500" /> 4.9 (120 تقييم)</span>
                   </div>
                 </div>
                 {store.description && (

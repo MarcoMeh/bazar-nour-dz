@@ -269,8 +269,8 @@ const ProductDetail = () => {
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
+                <CarouselPrevious className="hidden md:flex" />
+                <CarouselNext className="hidden md:flex" />
               </Carousel>
             ) : (
               <Card className="overflow-hidden border-muted bg-gray-50">

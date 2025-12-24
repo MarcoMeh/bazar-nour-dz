@@ -121,7 +121,7 @@ export const Footer = () => {
                         <div className="flex items-center justify-between">
                             <Link to="/" className="inline-block">
                                 {settings?.logo_url ? (
-                                    <img src={settings.logo_url} alt={settings.site_name} className="h-8 w-auto brightness-0 invert opacity-90" />
+                                    <img src={settings.logo_url} alt={settings.site_name} className="h-8 w-auto object-contain opacity-90" />
                                 ) : (
                                     <h3 className="text-xl font-bold text-white tracking-tight">{settings?.site_name || "بازارنا"}</h3>
                                 )}
@@ -152,14 +152,14 @@ export const Footer = () => {
                                 <span>•</span>
                                 <Link to="/terms-conditions" className="hover:text-slate-300">الشروط والأحكام</Link>
                             </div>
-                            <p>© {new Date().getFullYear()} {settings?.site_name || "بازارنا"}</p>
+                            <p>© {new Date().getFullYear()} bazzarna</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Desktop Footer Bottom - Hidden on Mobile */}
                 <div className="hidden md:flex mt-8 pt-8 border-t border-slate-800/50 justify-between items-center gap-4 text-xs text-slate-500">
-                    <p>© {new Date().getFullYear()} {settings?.site_name || "بازارنا"}. جميع الحقوق محفوظة.</p>
+                    <p>© {new Date().getFullYear()} bazzarna. جميع الحقوق محفوظة.</p>
                     <div className="flex gap-6">
                         <Link to="/privacy-policy" className="hover:text-slate-300 transition-colors">سياسة الخصوصية</Link>
                         <Link to="/terms-conditions" className="hover:text-slate-300 transition-colors">الشروط والأحكام</Link>

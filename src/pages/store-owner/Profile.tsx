@@ -55,6 +55,10 @@ export default function StoreOwnerProfile() {
         cover_image_url: "",
         subscription_end_date: "",
         theme_id: "default",
+        primary_color: "",
+        secondary_color: "",
+        background_color: "",
+        text_color: "",
     });
 
     const [categories, setCategories] = useState<any[]>([]);
@@ -118,6 +122,10 @@ export default function StoreOwnerProfile() {
                     cover_image_url: storeData.cover_image_url || "",
                     subscription_end_date: storeData.subscription_end_date || "",
                     theme_id: storeData.theme_id || "default",
+                    primary_color: storeData.primary_color || "",
+                    secondary_color: storeData.secondary_color || "",
+                    background_color: storeData.background_color || "",
+                    text_color: storeData.text_color || "",
                 });
             }
 
@@ -236,6 +244,10 @@ export default function StoreOwnerProfile() {
                         location_url: storeData.location_url || null,
                         return_policy: storeData.return_policy || null,
                         theme_id: storeData.theme_id,
+                        primary_color: storeData.primary_color || null,
+                        secondary_color: storeData.secondary_color || null,
+                        background_color: storeData.background_color || null,
+                        text_color: storeData.text_color || null,
                     })
                     .eq("id", storeData.id);
 
@@ -301,6 +313,14 @@ export default function StoreOwnerProfile() {
             </div>
         );
     }
+
+    const activeTheme = STORE_THEMES.find(t => t.id === storeData.theme_id) || STORE_THEMES[0];
+    const previewColors = {
+        primary: storeData.primary_color || activeTheme.colors.primary,
+        secondary: storeData.secondary_color || activeTheme.colors.secondary,
+        background: storeData.background_color || activeTheme.colors.background,
+        text: storeData.text_color || activeTheme.colors.text
+    };
 
     return (
         <div className="p-4 md:p-8 space-y-4 md:space-y-6">
@@ -604,7 +624,7 @@ export default function StoreOwnerProfile() {
                                     <div
                                         className="aspect-[9/16] rounded-3xl border-8 border-gray-900 shadow-2xl overflow-hidden relative"
                                         style={{
-                                            backgroundColor: STORE_THEMES.find(t => t.id === storeData.theme_id)?.colors.background
+                                            backgroundColor: previewColors.background
                                         }}
                                     >
                                         <div className="absolute top-0 inset-x-0 h-4 bg-gray-900 flex justify-center items-center">
@@ -613,7 +633,6 @@ export default function StoreOwnerProfile() {
 
                                         {/* Mini Store Content */}
                                         {(() => {
-                                            const activeTheme = STORE_THEMES.find(t => t.id === storeData.theme_id) || STORE_THEMES[0];
                                             const isElegant = activeTheme.styles.headerStyle === 'elegant';
                                             const isBold = activeTheme.styles.headerStyle === 'bold';
 
@@ -621,9 +640,9 @@ export default function StoreOwnerProfile() {
                                                 <div className="p-3 h-full overflow-hidden" style={{ fontFamily: activeTheme.typography.fontFamily }}>
                                                     {/* Mini Header */}
                                                     <div className={`mt-4 mb-4 ${isElegant ? 'text-center' : ''}`}>
-                                                        <div className={`w-10 h-10 mx-auto rounded-lg mb-2 shadow-sm`} style={{ backgroundColor: activeTheme.colors.primary }}></div>
-                                                        <div className={`h-3 w-2/3 ${isElegant ? 'mx-auto' : ''} rounded-full mb-1`} style={{ backgroundColor: activeTheme.colors.text }}></div>
-                                                        <div className={`h-2 w-1/3 ${isElegant ? 'mx-auto' : ''} rounded-full opacity-30`} style={{ backgroundColor: activeTheme.colors.text }}></div>
+                                                        <div className={`w-10 h-10 mx-auto rounded-lg mb-2 shadow-sm`} style={{ backgroundColor: previewColors.primary }}></div>
+                                                        <div className={`h-3 w-2/3 ${isElegant ? 'mx-auto' : ''} rounded-full mb-1`} style={{ backgroundColor: previewColors.text }}></div>
+                                                        <div className={`h-2 w-1/3 ${isElegant ? 'mx-auto' : ''} rounded-full opacity-30`} style={{ backgroundColor: previewColors.text }}></div>
                                                     </div>
 
                                                     {/* Mini Grid */}
@@ -633,7 +652,7 @@ export default function StoreOwnerProfile() {
                                                                 key={i}
                                                                 className="rounded-lg p-1 shadow-sm border border-gray-100/10"
                                                                 style={{
-                                                                    backgroundColor: activeTheme.colors.cardBg,
+                                                                    backgroundColor: 'rgba(255,255,255,0.1)',
                                                                     borderRadius: activeTheme.styles.borderRadius,
                                                                     height: activeTheme.styles.layoutType === 'masonry' && i % 2 === 0 ? '60px' : '50px'
                                                                 }}
@@ -646,7 +665,7 @@ export default function StoreOwnerProfile() {
 
                                                     {/* Mini CTA */}
                                                     <div className="absolute bottom-6 inset-x-4">
-                                                        <div className="h-8 w-full rounded-full shadow-lg flex items-center justify-center text-[8px] font-bold text-white overflow-hidden" style={{ backgroundColor: activeTheme.colors.primary }}>
+                                                        <div className="h-8 w-full rounded-full shadow-lg flex items-center justify-center text-[8px] font-bold text-white overflow-hidden" style={{ backgroundColor: previewColors.primary }}>
                                                             SHOP NOW
                                                         </div>
                                                     </div>
@@ -693,48 +712,113 @@ export default function StoreOwnerProfile() {
                                     </div>
                                 </div>
 
-                                {/* Step 2: Choose Style (Colors) */}
+                                {/* Step 2: Customize Colors */}
                                 <div className="space-y-4">
-                                    <h4 className="font-black text-lg flex items-center gap-2">
-                                        <div className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center">2</div>
-                                        اختر النمط اللوني
-                                    </h4>
-                                    <div className="flex gap-4 overflow-x-auto pb-6 pt-2 no-scrollbar scroll-smooth">
-                                        {(() => {
-                                            const currentLayout = STORE_THEMES.find(t => t.id === storeData.theme_id)?.styles.layoutType;
-                                            return STORE_THEMES.filter(t => t.styles.layoutType === currentLayout || !currentLayout).map((theme) => (
-                                                <div
-                                                    key={theme.id}
-                                                    onClick={() => setStoreData({ ...storeData, theme_id: theme.id })}
-                                                    className={`
-                                                        group shrink-0 w-44 relative overflow-hidden rounded-xl border-2 transition-all duration-300
-                                                        ${storeData.theme_id === theme.id ? 'border-primary bg-primary/5 shadow-md scale-105' : 'border-gray-100 hover:border-primary/40'}
-                                                    `}
-                                                >
-                                                    <div className="p-3">
-                                                        {/* Simple Color Circles */}
-                                                        <div className="flex justify-center gap-1.5 mb-3">
-                                                            {[theme.colors.primary, theme.colors.secondary, theme.colors.accent].map((c, i) => (
-                                                                <div key={i} className="w-5 h-5 rounded-full border border-white shadow-sm" style={{ backgroundColor: c }}></div>
-                                                            ))}
-                                                        </div>
+                                    <div className="flex items-center justify-between">
+                                        <h4 className="font-black text-lg flex items-center gap-2">
+                                            <div className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center">2</div>
+                                            تخصيص الألوان
+                                        </h4>
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => setStoreData({
+                                                ...storeData,
+                                                primary_color: "",
+                                                secondary_color: "",
+                                                background_color: "",
+                                                text_color: ""
+                                            })}
+                                            className="text-xs text-muted-foreground hover:text-destructive"
+                                        >
+                                            إعادة تعيين للأصل
+                                        </Button>
+                                    </div>
 
-                                                        <div className="text-center">
-                                                            <h5 className="font-black text-[11px] mb-0.5 truncate">{theme.nameAr}</h5>
-                                                            <span className="text-[8px] opacity-40 uppercase font-bold">{theme.category}</span>
-                                                        </div>
-
-                                                        {storeData.theme_id === theme.id && (
-                                                            <div className="absolute top-1 right-1 bg-primary text-white rounded-full p-0.5 shadow-sm">
-                                                                <Check className="w-2.5 h-2.5 stroke-[4]" />
-                                                            </div>
-                                                        )}
-                                                    </div>
+                                    <div className="grid gap-6 md:grid-cols-2">
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-bold text-muted-foreground uppercase">اللون الرئيسي (الأزرار والعناوين)</Label>
+                                            <div className="flex gap-2">
+                                                <div className="h-10 w-10 rounded-lg shadow-sm border overflow-hidden shrink-0">
+                                                    <input
+                                                        type="color"
+                                                        value={storeData.primary_color || activeTheme.colors.primary}
+                                                        onChange={(e) => setStoreData({ ...storeData, primary_color: e.target.value })}
+                                                        className="w-[150%] h-[150%] -translate-x-[25%] -translate-y-[25%] cursor-pointer"
+                                                    />
                                                 </div>
-                                            ));
-                                        })()}
+                                                <Input
+                                                    value={storeData.primary_color || activeTheme.colors.primary}
+                                                    onChange={(e) => setStoreData({ ...storeData, primary_color: e.target.value })}
+                                                    className="font-mono text-sm uppercase"
+                                                    placeholder={activeTheme.colors.primary}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-bold text-muted-foreground uppercase">اللون الثانوي (التفاصيل والايقونات)</Label>
+                                            <div className="flex gap-2">
+                                                <div className="h-10 w-10 rounded-lg shadow-sm border overflow-hidden shrink-0">
+                                                    <input
+                                                        type="color"
+                                                        value={storeData.secondary_color || activeTheme.colors.secondary}
+                                                        onChange={(e) => setStoreData({ ...storeData, secondary_color: e.target.value })}
+                                                        className="w-[150%] h-[150%] -translate-x-[25%] -translate-y-[25%] cursor-pointer"
+                                                    />
+                                                </div>
+                                                <Input
+                                                    value={storeData.secondary_color || activeTheme.colors.secondary}
+                                                    onChange={(e) => setStoreData({ ...storeData, secondary_color: e.target.value })}
+                                                    className="font-mono text-sm uppercase"
+                                                    placeholder={activeTheme.colors.secondary}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-bold text-muted-foreground uppercase">لون الخلفية (كامل المتجر)</Label>
+                                            <div className="flex gap-2">
+                                                <div className="h-10 w-10 rounded-lg shadow-sm border overflow-hidden shrink-0">
+                                                    <input
+                                                        type="color"
+                                                        value={storeData.background_color || activeTheme.colors.background}
+                                                        onChange={(e) => setStoreData({ ...storeData, background_color: e.target.value })}
+                                                        className="w-[150%] h-[150%] -translate-x-[25%] -translate-y-[25%] cursor-pointer"
+                                                    />
+                                                </div>
+                                                <Input
+                                                    value={storeData.background_color || activeTheme.colors.background}
+                                                    onChange={(e) => setStoreData({ ...storeData, background_color: e.target.value })}
+                                                    className="font-mono text-sm uppercase"
+                                                    placeholder={activeTheme.colors.background}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-bold text-muted-foreground uppercase">لون النص</Label>
+                                            <div className="flex gap-2">
+                                                <div className="h-10 w-10 rounded-lg shadow-sm border overflow-hidden shrink-0">
+                                                    <input
+                                                        type="color"
+                                                        value={storeData.text_color || activeTheme.colors.text}
+                                                        onChange={(e) => setStoreData({ ...storeData, text_color: e.target.value })}
+                                                        className="w-[150%] h-[150%] -translate-x-[25%] -translate-y-[25%] cursor-pointer"
+                                                    />
+                                                </div>
+                                                <Input
+                                                    value={storeData.text_color || activeTheme.colors.text}
+                                                    onChange={(e) => setStoreData({ ...storeData, text_color: e.target.value })}
+                                                    className="font-mono text-sm uppercase"
+                                                    placeholder={activeTheme.colors.text}
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
+
                             </div>
                         </div>
                     </CardContent>

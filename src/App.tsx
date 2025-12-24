@@ -14,6 +14,7 @@ import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import NotFound from "./pages/NotFound";
 import About from "./pages/About";
+import Contact from "./pages/Contact";
 import ProductStores from "./pages/productstores";
 import MyOrders from "./pages/MyOrders";
 import Profile from "./pages/Profile";
@@ -116,6 +117,8 @@ const App = () => {
                         <Route path="/" element={<Home />} />
                         <Route path="/products" element={<Products />} />
                         <Route path="/product/:id" element={<ProductDetail />} />
+                        <Route path="/about" element={<About />} />
+                        <Route path="/contact" element={<Contact />} />
                         <Route path="/stores" element={<Stores />} />
                         <Route path="/store/:slug" element={<ProductStores />} />
                         <Route path="/cart" element={<Cart />} />
