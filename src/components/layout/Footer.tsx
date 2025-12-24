@@ -3,6 +3,12 @@ import { Link } from "react-router-dom";
 import { Facebook, Instagram, Phone, Mail, MapPin } from "lucide-react";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { supabase } from "@/integrations/supabase/client";
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion";
 
 export const Footer = () => {
     const { data: settings } = useSiteSettings();
@@ -19,133 +25,163 @@ export const Footer = () => {
         fetchCategories();
     }, []);
 
+    const SocialLink = ({ href, icon: Icon, label }: { href: string; icon: any; label: string }) => (
+        <a
+            href={href}
+            target="_blank"
+            rel="noreferrer"
+            className="bg-white/5 p-2 rounded-full hover:bg-white/10 hover:text-white text-slate-300 transition-all border border-white/5"
+            aria-label={label}
+        >
+            <Icon className="h-4 w-4 md:h-5 md:w-5" />
+        </a>
+    );
+
     return (
-        <footer className="bg-green-600 text-white mt-auto">
-            <div className="container py-6 md:py-12">
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-                    {/* About - Full width on mobile, 1 col on desktop */}
-                    <div className="col-span-2 lg:col-span-1 space-y-3 md:space-y-4">
+        <footer className="bg-slate-950 text-slate-200 mt-auto border-t border-slate-800">
+            <div className="container py-8 md:py-12">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                    {/* Brand Section */}
+                    <div className="space-y-4 text-center md:text-right">
                         <Link to="/" className="inline-block">
                             {settings?.logo_url ? (
-                                <img src={settings.logo_url} alt={settings.site_name} className="h-8 md:h-12 w-auto brightness-0 invert" />
+                                <img src={settings.logo_url} alt={settings.site_name} className="h-10 md:h-12 w-auto brightness-0 invert opacity-90" />
                             ) : (
-                                <h3 className="text-lg md:text-xl font-bold text-white">{settings?.site_name || "بازارنا"}</h3>
+                                <h3 className="text-2xl font-bold text-white tracking-tight">{settings?.site_name || "بازارنا"}</h3>
                             )}
                         </Link>
-                        <p className="text-xs md:text-sm text-white/90 leading-relaxed max-w-xs hidden md:block">
+                        <p className="text-sm text-slate-400 leading-relaxed max-w-xs mx-auto md:mx-0">
                             منصتك الأولى للتسوق الإلكتروني في الجزائر. نجمع لك أفضل المحلات والمنتجات في مكان واحد.
                         </p>
-                    </div>
 
-                    {/* Quick Links */}
-                    <div className="space-y-2 md:space-y-4">
-                        <h3 className="text-base md:text-lg font-semibold text-white">روابط سريعة</h3>
-                        <ul className="space-y-1.5 md:space-y-2 text-xs md:text-sm">
-                            <li>
-                                <Link to="/products" className="hover:text-white/80 transition-colors">
-                                    المنتجات
-                                </Link>
-                            </li>
-                            <li>
-                                <Link to="/stores" className="hover:text-white/80 transition-colors">
-                                    المحلات
-                                </Link>
-                            </li>
-                            <li>
-                                <Link to="/about" className="hover:text-white/80 transition-colors">
-                                    من نحن
-                                </Link>
-                            </li>
-                            <li>
-                                <Link to="/contact" className="hover:text-white/80 transition-colors">
-                                    اتصل بنا
-                                </Link>
-                            </li>
-                        </ul>
-                    </div>
-
-                    {/* Categories - Dynamic */}
-                    <div className="space-y-2 md:space-y-4">
-                        <h3 className="text-base md:text-lg font-semibold text-white">التصنيفات</h3>
-                        <ul className="space-y-1.5 md:space-y-2 text-xs md:text-sm">
-                            {categories.map((cat) => (
-                                <li key={cat.id}>
-                                    <Link to={`/products?categoryId=${cat.id}`} className="hover:text-white/80 transition-colors">
-                                        {cat.name}
-                                    </Link>
-                                </li>
-                            ))}
-                            {categories.length === 0 && (
-                                <li>
-                                    <Link to="/products" className="hover:text-white/80 transition-colors">
-                                        تصفح الكل
-                                    </Link>
-                                </li>
-                            )}
-                        </ul>
-                    </div>
-
-                    {/* Contact & Social - Full width on mobile */}
-                    <div className="col-span-2 lg:col-span-1 space-y-3 md:space-y-4">
-                        <h3 className="text-base md:text-lg font-semibold text-white">تواصل معنا</h3>
-
-                        {/* Social Media - Compact row */}
-                        <div className="flex gap-3">
-                            {settings?.facebook_url && (
-                                <a href={settings.facebook_url} target="_blank" rel="noreferrer" className="bg-white/10 p-1.5 md:p-2 rounded-full hover:bg-white/20 hover:text-white transition-all">
-                                    <Facebook className="h-4 w-4 md:h-5 md:w-5" />
-                                    <span className="sr-only">Facebook</span>
-                                </a>
-                            )}
-                            {settings?.instagram_url && (
-                                <a href={settings.instagram_url} target="_blank" rel="noreferrer" className="bg-white/10 p-1.5 md:p-2 rounded-full hover:bg-white/20 hover:text-white transition-all">
-                                    <Instagram className="h-4 w-4 md:h-5 md:w-5" />
-                                    <span className="sr-only">Instagram</span>
-                                </a>
-                            )}
+                        <div className="flex gap-3 justify-center md:justify-start pt-2">
+                            {settings?.facebook_url && <SocialLink href={settings.facebook_url} icon={Facebook} label="Facebook" />}
+                            {settings?.instagram_url && <SocialLink href={settings.instagram_url} icon={Instagram} label="Instagram" />}
                             {settings?.tiktok_url && (
-                                <a href={settings.tiktok_url} target="_blank" rel="noreferrer" className="bg-white/10 p-1.5 md:p-2 rounded-full hover:bg-white/20 hover:text-white transition-all">
+                                <a href={settings.tiktok_url} target="_blank" rel="noreferrer" className="bg-white/5 p-2 rounded-full hover:bg-white/10 hover:text-white text-slate-300 transition-all border border-white/5">
                                     <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 md:w-5 md:h-5">
                                         <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
                                     </svg>
-                                    <span className="sr-only">TikTok</span>
                                 </a>
                             )}
                         </div>
+                    </div>
 
-                        {/* Contact Info */}
-                        <div className="text-xs md:text-sm text-white/90 space-y-1.5 md:space-y-2 mt-2 md:mt-4">
+                    {/* Desktop Navigation - Hidden on Mobile */}
+                    <div className="hidden md:block space-y-4">
+                        <h3 className="text-lg font-semibold text-white">روابط سريعة</h3>
+                        <ul className="space-y-2 text-sm text-slate-400">
+                            <li><Link to="/products" className="hover:text-primary transition-colors">المنتجات</Link></li>
+                            <li><Link to="/stores" className="hover:text-primary transition-colors">المحلات</Link></li>
+                            <li><Link to="/about" className="hover:text-primary transition-colors">من نحن</Link></li>
+                            <li><Link to="/contact" className="hover:text-primary transition-colors">اتصل بنا</Link></li>
+                        </ul>
+                    </div>
+
+                    {/* Desktop Categories - Hidden on Mobile */}
+                    <div className="hidden md:block space-y-4">
+                        <h3 className="text-lg font-semibold text-white">التصنيفات</h3>
+                        <ul className="space-y-2 text-sm text-slate-400">
+                            {categories.map((cat) => (
+                                <li key={cat.id}>
+                                    <Link to={`/products?categoryId=${cat.id}`} className="hover:text-primary transition-colors">{cat.name}</Link>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    {/* Contact Info - Desktop */}
+                    <div className="hidden md:block space-y-4">
+                        <h3 className="text-lg font-semibold text-white">تواصل معنا</h3>
+                        <ul className="space-y-3 text-sm text-slate-400">
                             {settings?.phone_number && (
-                                <div className="flex items-center gap-2">
-                                    <Phone className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                                <li className="flex items-center gap-2">
+                                    <Phone className="h-4 w-4 text-primary" />
                                     <span dir="ltr">{settings.phone_number}</span>
-                                </div>
+                                </li>
                             )}
                             {settings?.email && (
-                                <div className="flex items-center gap-2">
-                                    <Mail className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                                <li className="flex items-center gap-2">
+                                    <Mail className="h-4 w-4 text-primary" />
                                     <a href={`mailto:${settings.email}`} className="hover:text-white">{settings.email}</a>
-                                </div>
+                                </li>
                             )}
                             {settings?.address && (
-                                <div className="flex items-center gap-2">
-                                    <MapPin className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                                <li className="flex items-center gap-2">
+                                    <MapPin className="h-4 w-4 text-primary" />
                                     <span>{settings.address}</span>
-                                </div>
+                                </li>
                             )}
-                        </div>
+                        </ul>
+                    </div>
+
+                    {/* Mobile Accordion Navigation */}
+                    <div className="md:hidden col-span-1 border-t border-slate-800/50 -mx-4 px-4 bg-slate-900/30">
+                        <Accordion type="single" collapsible className="w-full">
+                            <AccordionItem value="links" className="border-slate-800">
+                                <AccordionTrigger className="text-slate-200 hover:text-white no-underline text-sm">روابط سريعة</AccordionTrigger>
+                                <AccordionContent>
+                                    <ul className="space-y-3 pt-1 pr-1 text-sm text-slate-400">
+                                        <li><Link to="/products" className="block hover:text-primary">المنتجات</Link></li>
+                                        <li><Link to="/stores" className="block hover:text-primary">المحلات</Link></li>
+                                        <li><Link to="/about" className="block hover:text-primary">من نحن</Link></li>
+                                        <li><Link to="/contact" className="block hover:text-primary">اتصل بنا</Link></li>
+                                    </ul>
+                                </AccordionContent>
+                            </AccordionItem>
+
+                            <AccordionItem value="categories" className="border-slate-800">
+                                <AccordionTrigger className="text-slate-200 hover:text-white no-underline text-sm">التصنيفات</AccordionTrigger>
+                                <AccordionContent>
+                                    <ul className="space-y-3 pt-1 pr-1 text-sm text-slate-400">
+                                        {categories.map((cat) => (
+                                            <li key={cat.id}>
+                                                <Link to={`/products?categoryId=${cat.id}`} className="block hover:text-primary">{cat.name}</Link>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </AccordionContent>
+                            </AccordionItem>
+
+                            <AccordionItem value="contact" className="border-slate-800 border-b-0">
+                                <AccordionTrigger className="text-slate-200 hover:text-white no-underline text-sm">معلومات التواصل</AccordionTrigger>
+                                <AccordionContent>
+                                    <ul className="space-y-3 pt-1 pr-1 text-sm text-slate-400">
+                                        {settings?.phone_number && (
+                                            <li className="flex items-center gap-2">
+                                                <Phone className="h-4 w-4 text-primary" />
+                                                <span dir="ltr">{settings.phone_number}</span>
+                                            </li>
+                                        )}
+                                        {settings?.email && (
+                                            <li className="flex items-center gap-2">
+                                                <Mail className="h-4 w-4 text-primary" />
+                                                <a href={`mailto:${settings.email}`}>{settings.email}</a>
+                                            </li>
+                                        )}
+                                        {settings?.address && (
+                                            <li className="flex items-center gap-2">
+                                                <MapPin className="h-4 w-4 text-primary" />
+                                                <span>{settings.address}</span>
+                                            </li>
+                                        )}
+                                    </ul>
+                                </AccordionContent>
+                            </AccordionItem>
+                        </Accordion>
                     </div>
                 </div>
 
-                <div className="mt-6 pt-6 border-t border-white/20 text-center text-xs md:text-sm text-white/80 flex flex-col md:flex-row justify-between items-center gap-3">
+                <div className="mt-8 pt-8 border-t border-slate-800/50 text-center flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
                     <p>© {new Date().getFullYear()} {settings?.site_name || "بازارنا"}. جميع الحقوق محفوظة.</p>
-                    <div className="flex gap-3 md:gap-4">
-                        <Link to="/privacy-policy" className="hover:text-white transition-colors">سياسة الخصوصية</Link>
-                        <Link to="/terms-conditions" className="hover:text-white transition-colors">الشروط والأحكام</Link>
+                    <div className="flex gap-6">
+                        <Link to="/privacy-policy" className="hover:text-slate-300 transition-colors">سياسة الخصوصية</Link>
+                        <Link to="/terms-conditions" className="hover:text-slate-300 transition-colors">الشروط والأحكام</Link>
                     </div>
                 </div>
             </div>
+
+            <div className="h-16 md:hidden"></div>
         </footer>
     );
 };
-

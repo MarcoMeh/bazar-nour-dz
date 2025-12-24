@@ -115,108 +115,12 @@ DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Authent
 CREATE POLICY "Authenticated can update orders" ON public.orders FOR UPDATE USING (auth.role() = 'authenticated');
 END IF; END $$;
 
--- Insert Algerian wilayas
-INSERT INTO public.wilayas (code, name_ar, delivery_price)
-SELECT x.code, x.name_ar, x.delivery_price
-FROM (VALUES
-('01', 'أدرار', 400),
-('02', 'الشلف', 400),
-('03', 'الأغواط', 400),
-('04', 'أم البواقي', 400),
-('05', 'باتنة', 400),
-('06', 'بجاية', 400),
-('07', 'بسكرة', 400),
-('08', 'بشار', 400),
-('09', 'البليدة', 400),
-('10', 'البويرة', 400),
-('11', 'تمنراست', 400),
-('12', 'تبسة', 400),
-('13', 'تلمسان', 400),
-('14', 'تيارت', 400),
-('15', 'تيزي وزو', 400),
-('16', 'الجزائر', 400),
-('17', 'الجلفة', 400),
-('18', 'جيجل', 400),
-('19', 'سطيف', 400),
-('20', 'سعيدة', 400),
-('21', 'سكيكدة', 400),
-('22', 'سيدي بلعباس', 400),
-('23', 'عنابة', 400),
-('24', 'قالمة', 400),
-('25', 'قسنطينة', 400),
-('26', 'المدية', 400),
-('27', 'مستغانم', 400),
-('28', 'المسيلة', 400),
-('29', 'معسكر', 400),
-('30', 'ورقلة', 400),
-('31', 'وهران', 400),
-('32', 'البيض', 400),
-('33', 'إليزي', 400),
-('34', 'برج بوعريريج', 400),
-('35', 'بومرداس', 400),
-('36', 'الطارف', 400),
-('37', 'تندوف', 400),
-('38', 'تيسمسيلت', 400),
-('39', 'الوادي', 400),
-('40', 'خنشلة', 400),
-('41', 'سوق أهراس', 400),
-('42', 'تيبازة', 400),
-('43', 'ميلة', 400),
-('44', 'عين الدفلى', 400),
-('45', 'النعامة', 400),
-('46', 'عين تموشنت', 400),
-('47', 'غرداية', 400),
-('48', 'غليزان', 400),
-('49', 'تيميمون', 400),
-('50', 'برج باجي مختار', 400),
-('51', 'أولاد جلال', 400),
-('52', 'بني عباس', 400),
-('53', 'عين صالح', 400),
-('54', 'عين قزام', 400),
-('55', 'تقرت', 400),
-('56', 'جانت', 400),
-('57', 'المغير', 400),
-('58', 'المنيعة', 400)
-) AS x(code, name_ar, delivery_price)
-WHERE NOT EXISTS (SELECT 1 FROM public.wilayas w WHERE w.code = x.code);
+-- CLEANUP: Remove duplicated wilayas if any (keeping the latest ID)
+-- DELETE FROM public.wilayas a USING public.wilayas b WHERE a.id < b.id AND a.code = b.code;
 
--- Insert sample categories
-INSERT INTO public.categories (name, name_ar, slug)
-SELECT x.name, x.name_ar, x.slug
-FROM (VALUES
-('Clothing', 'ملابس', 'clothing'),
-('Electronics', 'إلكترونيات', 'electronics'),
-('Decoration', 'ديكور', 'decoration'),
-('Beauty', 'مواد تجميل', 'beauty')
-) AS x(name, name_ar, slug)
-WHERE NOT EXISTS (SELECT 1 FROM public.categories c WHERE c.slug = x.slug);
-
--- Insert sample products
-INSERT INTO public.products (category_id, name, name_ar, description, description_ar, price, image_url) 
-SELECT 
-  c.id,
-  'Summer Dress',
-  'فستان صيفي',
-  'Beautiful summer dress for women',
-  'فستان صيفي جميل للنساء',
-  2500.00,
-  ''
-FROM public.categories c 
-WHERE c.slug = 'clothing'
-  AND NOT EXISTS (SELECT 1 FROM public.products WHERE name = 'Summer Dress');
-
-INSERT INTO public.products (category_id, name, name_ar, description, description_ar, price, image_url) 
-SELECT 
-  c.id,
-  'Wireless Headphones',
-  'سماعات لاسلكية',
-  'High-quality wireless headphones',
-  'سماعات لاسلكية عالية الجودة',
-  4500.00,
-  ''
-FROM public.categories c 
-WHERE c.slug = 'electronics'
-  AND NOT EXISTS (SELECT 1 FROM public.products WHERE name = 'Wireless Headphones');
+-- CLEANUP: Remove demo data (Careful: This template assumes these slugs/names are for demo only)
+-- DELETE FROM public.products WHERE name IN ('Summer Dress', 'Wireless Headphones');
+-- DELETE FROM public.categories WHERE slug IN ('clothing', 'electronics', 'decoration', 'beauty');
 
 -- Create updated_at trigger function
 CREATE OR REPLACE FUNCTION public.update_updated_at_column()
