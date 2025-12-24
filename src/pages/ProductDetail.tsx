@@ -480,7 +480,7 @@ const ProductDetail = () => {
         category="mens"
       />
 
-      <div className="fixed bottom-[64px] left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-gray-200 md:hidden z-40 animate-slide-up">
+      <div className="fixed bottom-[74px] left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-gray-200 md:hidden z-40 animate-slide-up shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
         {(() => {
           const matchingVariant = product.track_inventory ? variants.find(v =>
             (v.color === selectedColor || (v.color === null && !selectedColor)) &&

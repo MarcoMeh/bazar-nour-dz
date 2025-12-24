@@ -49,9 +49,70 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 </head>
 
-<body>
-  <div id="root"></div>
-  <script type="module" src="/src/main.tsx"></script>
+<style>
+  #splash-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background-color: #fff;
+    background-image: url('https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?q=80&w=2070&auto=format&fit=crop');
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.5s ease-out;
+  }
+
+  #splash-screen::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+  }
+
+  .splash-logo {
+    width: 120px;
+    height: 120px;
+    position: relative;
+    z-index: 10;
+    animation: pulse 2s infinite;
+    background: white;
+    border-radius: 50%;
+    padding: 10px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  }
+
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+    }
+
+    50% {
+      transform: scale(1.05);
+    }
+
+    100% {
+      transform: scale(1);
+    }
+  }
+</style>
+<div id="splash-screen">
+  <img src="/pwa-192x192.png" alt="Logo" class="splash-logo" />
+</div>
+<div id="root"></div>
+<script type="module" src="/src/main.tsx"></script>
+<script>
+  // Fallback: Remove splash screen after 3 seconds if app fails to mount or handle it
+  setTimeout(() => {
+    const splash = document.getElementById('splash-screen');
+    if (splash && splash.style.opacity !== '0') {
+      splash.style.opacity = '0';
+      setTimeout(() => splash.remove(), 500);
+    }
+  }, 3000);
+</script>
 </body>
 
 </html>

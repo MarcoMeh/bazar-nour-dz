@@ -84,95 +84,108 @@ const queryClient = new QueryClient({
   },
 });
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ErrorBoundary>
-      <TooltipProvider>
-        <AdminProvider>
-          <AuthProvider>
-            <WishlistProvider>
-              <CartProvider>
-                <Toaster />
-                <Sonner />
-                <OrderNotificationListener />
-                <BrowserRouter>
-                  <OfflineIndicator />
-                  <ScrollToTop />
-                  <Routes>
-                    {/* Public Routes */}
-                    <Route element={<Layout />}>
-                      <Route path="/" element={<Home />} />
-                      <Route path="/products" element={<Products />} />
-                      <Route path="/product/:id" element={<ProductDetail />} />
-                      <Route path="/stores" element={<Stores />} />
-                      <Route path="/store/:slug" element={<ProductStores />} />
-                      <Route path="/cart" element={<Cart />} />
-                      <Route path="/wishlist" element={<Wishlist />} />
-                      <Route path="/brands" element={<Brands />} />
-                      <Route path="/brands/:slug" element={<BrandProducts />} />
-                      <Route path="/sale" element={<Sale />} />
-                      <Route path="/new-arrivals" element={<NewArrivals />} />
-                      <Route path="/checkout" element={<Checkout />} />
-                      <Route path="/my-orders" element={<MyOrders />} />
-                      <Route path="/profile" element={<Profile />} />
-                      <Route path="/login" element={<Login />} />
-                      <Route path="/about" element={<About />} />
-                      <Route path="/seller-register" element={<SellerRegister />} />
-                      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                      <Route path="/terms-conditions" element={<Terms />} />
-                    </Route>
+const App = () => {
+  // Remove splash screen when App mounts
+  import("react").then(({ useEffect }) => {
+    useEffect(() => {
+      const splash = document.getElementById('splash-screen');
+      if (splash) {
+        splash.style.opacity = '0';
+        setTimeout(() => splash.remove(), 500);
+      }
+    }, []);
+  });
 
-                    {/* Admin Routes - Protected */}
-                    <Route
-                      path="/admin"
-                      element={
-                        <ProtectedRoute requiredRole="admin">
-                          <AdminLayout />
-                        </ProtectedRoute>
-                      }
-                    >
-                      <Route index element={<AdminDashboard />} />
-                      <Route path="products" element={<AdminProducts />} />
-                      <Route path="categories" element={<AdminCategories />} />
-                      <Route path="store-categories" element={<AdminStoreCategories />} />
-                      <Route path="orders" element={<AdminOrders />} />
-                      <Route path="stores" element={<AdminStores />} />
-                      <Route path="delivery" element={<AdminDelivery />} />
-                      <Route path="finance" element={<AdminFinance />} />
-                      <Route path="control" element={<AdminControl />} />
-                      <Route path="reviews" element={<AdminReviews />} />
-                      <Route path="store-registrations" element={<AdminStoreRegistrations />} />
-                      <Route path="backgrounds" element={<PageBackgrounds />} />
-                      <Route path="settings" element={<AdminSettings />} />
-                    </Route>
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ErrorBoundary>
+        <TooltipProvider>
+          <AdminProvider>
+            <AuthProvider>
+              <WishlistProvider>
+                <CartProvider>
+                  <Toaster />
+                  <Sonner />
+                  <OrderNotificationListener />
+                  <BrowserRouter>
+                    <OfflineIndicator />
+                    <ScrollToTop />
+                    <Routes>
+                      {/* Public Routes */}
+                      <Route element={<Layout />}>
+                        <Route path="/" element={<Home />} />
+                        <Route path="/products" element={<Products />} />
+                        <Route path="/product/:id" element={<ProductDetail />} />
+                        <Route path="/stores" element={<Stores />} />
+                        <Route path="/store/:slug" element={<ProductStores />} />
+                        <Route path="/cart" element={<Cart />} />
+                        <Route path="/wishlist" element={<Wishlist />} />
+                        <Route path="/brands" element={<Brands />} />
+                        <Route path="/brands/:slug" element={<BrandProducts />} />
+                        <Route path="/sale" element={<Sale />} />
+                        <Route path="/new-arrivals" element={<NewArrivals />} />
+                        <Route path="/checkout" element={<Checkout />} />
+                        <Route path="/my-orders" element={<MyOrders />} />
+                        <Route path="/profile" element={<Profile />} />
+                        <Route path="/login" element={<Login />} />
+                        <Route path="/about" element={<About />} />
+                        <Route path="/seller-register" element={<SellerRegister />} />
+                        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                        <Route path="/terms-conditions" element={<Terms />} />
+                      </Route>
 
-                    {/* Store Owner Routes - Protected */}
-                    <Route
-                      path="/store-dashboard"
-                      element={
-                        <ProtectedRoute requiredRole="store_owner">
-                          <StoreOwnerLayout />
-                        </ProtectedRoute>
-                      }
-                    >
-                      <Route index element={<StoreOwnerDashboard />} />
-                      <Route path="products" element={<StoreOwnerProducts />} />
-                      <Route path="orders" element={<StoreOwnerOrders />} />
-                      <Route path="delivery" element={<StoreOwnerDelivery />} />
-                      <Route path="profile" element={<StoreOwnerProfile />} />
-                    </Route>
+                      {/* Admin Routes - Protected */}
+                      <Route
+                        path="/admin"
+                        element={
+                          <ProtectedRoute requiredRole="admin">
+                            <AdminLayout />
+                          </ProtectedRoute>
+                        }
+                      >
+                        <Route index element={<AdminDashboard />} />
+                        <Route path="products" element={<AdminProducts />} />
+                        <Route path="categories" element={<AdminCategories />} />
+                        <Route path="store-categories" element={<AdminStoreCategories />} />
+                        <Route path="orders" element={<AdminOrders />} />
+                        <Route path="stores" element={<AdminStores />} />
+                        <Route path="delivery" element={<AdminDelivery />} />
+                        <Route path="finance" element={<AdminFinance />} />
+                        <Route path="control" element={<AdminControl />} />
+                        <Route path="reviews" element={<AdminReviews />} />
+                        <Route path="store-registrations" element={<AdminStoreRegistrations />} />
+                        <Route path="backgrounds" element={<PageBackgrounds />} />
+                        <Route path="settings" element={<AdminSettings />} />
+                      </Route>
 
-                    {/* 404 */}
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </BrowserRouter>
-              </CartProvider>
-            </WishlistProvider>
-          </AuthProvider>
-        </AdminProvider>
-      </TooltipProvider>
-    </ErrorBoundary>
-  </QueryClientProvider>
-);
+                      {/* Store Owner Routes - Protected */}
+                      <Route
+                        path="/store-dashboard"
+                        element={
+                          <ProtectedRoute requiredRole="store_owner">
+                            <StoreOwnerLayout />
+                          </ProtectedRoute>
+                        }
+                      >
+                        <Route index element={<StoreOwnerDashboard />} />
+                        <Route path="products" element={<StoreOwnerProducts />} />
+                        <Route path="orders" element={<StoreOwnerOrders />} />
+                        <Route path="delivery" element={<StoreOwnerDelivery />} />
+                        <Route path="profile" element={<StoreOwnerProfile />} />
+                      </Route>
+
+                      {/* 404 */}
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </BrowserRouter>
+                </CartProvider>
+              </WishlistProvider>
+            </AuthProvider>
+          </AdminProvider>
+        </TooltipProvider>
+      </ErrorBoundary>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

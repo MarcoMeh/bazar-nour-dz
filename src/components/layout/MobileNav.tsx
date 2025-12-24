@@ -37,11 +37,7 @@ export const MobileNav = () => {
             icon: ShoppingCart,
             count: totalItems
         },
-        {
-            name: "حسابي",
-            path: "/profile", // Or /login if not logged in, but /profile usually redirects
-            icon: User
-        }
+
     ];
 
     return (
@@ -52,8 +48,8 @@ export const MobileNav = () => {
                         key={item.path}
                         to={item.path}
                         className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${isActive(item.path)
-                                ? "text-primary font-bold"
-                                : "text-gray-500 hover:text-gray-900"
+                            ? "text-primary font-bold"
+                            : "text-gray-500 hover:text-gray-900"
                             }`}
                     >
                         <div className="relative">

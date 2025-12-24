@@ -307,7 +307,7 @@ const Checkout = () => {
                     <Label className="text-sm font-bold flex items-center gap-2">أو اختر من القائمة <span className="text-red-500">*</span></Label>
                     <Select value={formData.wilayaId} onValueChange={(v) => setFormData({ ...formData, wilayaId: v })}>
                       <SelectTrigger className="h-14 bg-gray-50/50 border-gray-200 rounded-xl md:rounded-2xl overflow-hidden">
-                        <SelectValue placeholder="قائمة الولايات (58 ولاية)" />
+                        <SelectValue placeholder="قائمة الولايات (69 ولاية)" />
                       </SelectTrigger>
                       <SelectContent className="max-h-80">
                         {wilayas.map((w) => (

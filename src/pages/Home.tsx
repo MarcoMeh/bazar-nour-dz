@@ -368,7 +368,7 @@ const Home = () => {
                                         <Truck className="h-7 w-7" />
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="text-sm font-black text-white uppercase tracking-wider">توصيل 58 ولاية</span>
+                                        <span className="text-sm font-black text-white uppercase tracking-wider">توصيل 69 ولاية</span>
                                         <span className="text-xs text-gray-400 font-medium italic">سريع، آمن، ومضمون</span>
                                     </div>
                                 </div>
@@ -495,8 +495,8 @@ const Home = () => {
                                                     </div>
                                                 </Link>
 
-                                                {/* ✅ 2. Store Info Overlay - pointer-events-none lets clicks pass to background */}
-                                                <div className="absolute bottom-0 left-0 right-0 p-8 text-center text-white transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 z-10 pointer-events-none">
+                                                {/* ✅ 2. Store Info Overlay - Visible on mobile default, hover on desktop */}
+                                                <div className="absolute bottom-0 left-0 right-0 p-8 text-center text-white transform translate-y-0 md:translate-y-4 md:group-hover:translate-y-0 transition-transform duration-500 z-10 pointer-events-none">
 
                                                     {/* Store Logo/Avatar */}
                                                     <div className="relative mx-auto w-16 h-16 mb-4">
@@ -510,15 +510,15 @@ const Home = () => {
                                                         </div>
                                                     </div>
 
-                                                    <h3 className="text-2xl font-bold mb-2 tracking-tight group-hover:text-primary-foreground transition-colors">
+                                                    <h3 className="text-2xl font-bold mb-2 tracking-tight md:group-hover:text-primary-foreground transition-colors">
                                                         {store.name}
                                                     </h3>
-                                                    <p className="text-sm text-gray-300 line-clamp-2 mb-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100">
+                                                    <p className="text-sm text-gray-300 line-clamp-2 mb-6 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-500 delay-100">
                                                         {store.description || "متجر مميز يقدم أفضل المنتجات والخدمات"}
                                                     </p>
 
                                                     {/* ✅ 3. Button - Re-enable pointer events so hover effects work */}
-                                                    <div className="pointer-events-auto">
+                                                    <div className="pointer-events-auto opacity-100 md:opacity-100">
                                                         <Button
                                                             asChild
                                                             size="sm"
@@ -532,7 +532,7 @@ const Home = () => {
                                                 </div>
 
                                                 {/* Quick Action Helper */}
-                                                <div className="absolute top-4 right-4 bg-white/10 backdrop-blur-md rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-x-4 group-hover:translate-x-0 z-10 pointer-events-none">
+                                                <div className="absolute top-4 right-4 bg-white/10 backdrop-blur-md rounded-full p-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 transform translate-x-0 md:translate-x-4 md:group-hover:translate-x-0 z-10 pointer-events-none">
                                                     <ArrowLeft className="h-5 w-5 text-white transform rotate-45" />
                                                 </div>
                                             </div>
@@ -718,7 +718,7 @@ const Home = () => {
                                     <Truck className="h-8 w-8" />
                                 </div>
                                 <h3 className="text-xl font-bold mb-2">توصيل سريع</h3>
-                                <p className="text-gray-500 text-sm">توصيل لجميع ولايات الجزائر (58 ولاية) في وقت قياسي.</p>
+                                <p className="text-gray-500 text-sm">توصيل لجميع ولايات الجزائر (69 ولاية) في وقت قياسي.</p>
                             </div>
                             <div className="flex flex-col items-center text-center p-6 bg-gray-50 rounded-2xl hover:shadow-lg transition-all duration-300 group">
                                 <div className="p-4 bg-white rounded-full shadow-md mb-4 text-blue-500 group-hover:scale-110 transition-transform">

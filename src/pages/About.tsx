@@ -104,7 +104,7 @@ const About = () => {
                   </div>
                   <h3 className="text-3xl font-bold">للمتسوقين الأذكياء</h3>
                   <p className="text-slate-600 leading-relaxed text-lg">
-                    تجربة تسوق آمنة وممتعة. تصفح آلاف المنتجات من متاجر موثوقة، قارن الأسعار، واطلب بضغطة زر مع ضمان التوصيل لـ 58 ولاية والدفع عند الاستلام.
+                    تجربة تسوق آمنة وممتعة. تصفح آلاف المنتجات من متاجر موثوقة، قارن الأسعار، واطلب بضغطة زر مع ضمان التوصيل لـ 69 ولاية والدفع عند الاستلام.
                   </p>
                   <ul className="space-y-3 text-slate-500">
                     <li className="flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-indigo-600" /> حماية المشتري</li>
@@ -155,7 +155,7 @@ const About = () => {
                     <p className="text-slate-500">عميل يثق بنا</p>
                   </div>
                   <div className="border-r-4 border-indigo-600 pr-4">
-                    <h4 className="text-3xl font-bold text-slate-900">58</h4>
+                    <h4 className="text-3xl font-bold text-slate-900">69</h4>
                     <p className="text-slate-500">ولاية نغطيها</p>
                   </div>
                 </div>

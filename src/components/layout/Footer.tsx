@@ -115,64 +115,50 @@ export const Footer = () => {
                         </ul>
                     </div>
 
-                    {/* Mobile Accordion Navigation */}
-                    <div className="md:hidden col-span-1 border-t border-slate-800/50 -mx-4 px-4 bg-slate-900/30">
-                        <Accordion type="single" collapsible className="w-full">
-                            <AccordionItem value="links" className="border-slate-800">
-                                <AccordionTrigger className="text-slate-200 hover:text-white no-underline text-sm">روابط سريعة</AccordionTrigger>
-                                <AccordionContent>
-                                    <ul className="space-y-3 pt-1 pr-1 text-sm text-slate-400">
-                                        <li><Link to="/products" className="block hover:text-primary">المنتجات</Link></li>
-                                        <li><Link to="/stores" className="block hover:text-primary">المحلات</Link></li>
-                                        <li><Link to="/about" className="block hover:text-primary">من نحن</Link></li>
-                                        <li><Link to="/contact" className="block hover:text-primary">اتصل بنا</Link></li>
-                                    </ul>
-                                </AccordionContent>
-                            </AccordionItem>
+                    {/* Mobile Compact Footer - Replaces Accordion */}
+                    <div className="md:hidden col-span-1 space-y-6 pt-2">
+                        {/* 1. Logo & Socials Row */}
+                        <div className="flex items-center justify-between">
+                            <Link to="/" className="inline-block">
+                                {settings?.logo_url ? (
+                                    <img src={settings.logo_url} alt={settings.site_name} className="h-8 w-auto brightness-0 invert opacity-90" />
+                                ) : (
+                                    <h3 className="text-xl font-bold text-white tracking-tight">{settings?.site_name || "بازارنا"}</h3>
+                                )}
+                            </Link>
 
-                            <AccordionItem value="categories" className="border-slate-800">
-                                <AccordionTrigger className="text-slate-200 hover:text-white no-underline text-sm">التصنيفات</AccordionTrigger>
-                                <AccordionContent>
-                                    <ul className="space-y-3 pt-1 pr-1 text-sm text-slate-400">
-                                        {categories.map((cat) => (
-                                            <li key={cat.id}>
-                                                <Link to={`/products?categoryId=${cat.id}`} className="block hover:text-primary">{cat.name}</Link>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </AccordionContent>
-                            </AccordionItem>
+                            <div className="flex gap-3">
+                                {settings?.facebook_url && <SocialLink href={settings.facebook_url} icon={Facebook} label="Facebook" />}
+                                {settings?.instagram_url && <SocialLink href={settings.instagram_url} icon={Instagram} label="Instagram" />}
+                            </div>
+                        </div>
 
-                            <AccordionItem value="contact" className="border-slate-800 border-b-0">
-                                <AccordionTrigger className="text-slate-200 hover:text-white no-underline text-sm">معلومات التواصل</AccordionTrigger>
-                                <AccordionContent>
-                                    <ul className="space-y-3 pt-1 pr-1 text-sm text-slate-400">
-                                        {settings?.phone_number && (
-                                            <li className="flex items-center gap-2">
-                                                <Phone className="h-4 w-4 text-primary" />
-                                                <span dir="ltr">{settings.phone_number}</span>
-                                            </li>
-                                        )}
-                                        {settings?.email && (
-                                            <li className="flex items-center gap-2">
-                                                <Mail className="h-4 w-4 text-primary" />
-                                                <a href={`mailto:${settings.email}`}>{settings.email}</a>
-                                            </li>
-                                        )}
-                                        {settings?.address && (
-                                            <li className="flex items-center gap-2">
-                                                <MapPin className="h-4 w-4 text-primary" />
-                                                <span>{settings.address}</span>
-                                            </li>
-                                        )}
-                                    </ul>
-                                </AccordionContent>
-                            </AccordionItem>
-                        </Accordion>
+                        {/* 2. Compact Contact Info */}
+                        <div className="grid grid-cols-2 gap-2 text-xs text-slate-400 border-y border-slate-800/50 py-3">
+                            <div className="flex items-center gap-2">
+                                <Phone className="h-3 w-3 text-primary" />
+                                <span dir="ltr">{settings?.phone_number || "+213 555 123 456"}</span>
+                            </div>
+                            <div className="flex items-center gap-2 justify-end">
+                                <span className="truncate max-w-[120px]">{settings?.email || "contact@bazzarna.com"}</span>
+                                <Mail className="h-3 w-3 text-primary" />
+                            </div>
+                        </div>
+
+                        {/* 3. Legal & Copyright */}
+                        <div className="text-center space-y-2 text-[10px] text-slate-500">
+                            <div className="flex justify-center gap-4">
+                                <Link to="/privacy-policy" className="hover:text-slate-300">سياسة الخصوصية</Link>
+                                <span>•</span>
+                                <Link to="/terms-conditions" className="hover:text-slate-300">الشروط والأحكام</Link>
+                            </div>
+                            <p>© {new Date().getFullYear()} {settings?.site_name || "بازارنا"}</p>
+                        </div>
                     </div>
                 </div>
 
-                <div className="mt-8 pt-8 border-t border-slate-800/50 text-center flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
+                {/* Desktop Footer Bottom - Hidden on Mobile */}
+                <div className="hidden md:flex mt-8 pt-8 border-t border-slate-800/50 justify-between items-center gap-4 text-xs text-slate-500">
                     <p>© {new Date().getFullYear()} {settings?.site_name || "بازارنا"}. جميع الحقوق محفوظة.</p>
                     <div className="flex gap-6">
                         <Link to="/privacy-policy" className="hover:text-slate-300 transition-colors">سياسة الخصوصية</Link>
@@ -181,7 +167,8 @@ export const Footer = () => {
                 </div>
             </div>
 
-            <div className="h-16 md:hidden"></div>
+            {/* Mobile Bottom Spacing for Nav */}
+            <div className="h-20 md:hidden"></div>
         </footer>
     );
 };
