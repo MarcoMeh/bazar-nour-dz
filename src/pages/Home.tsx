@@ -15,17 +15,19 @@ import {
 import { ProductCard } from "@/components/ProductCard";
 import { QuickViewModal } from "@/components/QuickViewModal";
 import {
+    Zap,
+    TrendingUp,
+    Store as StoreIcon,
+    Truck,
+    Sparkles,
+    MousePointer2,
+    Shirt,
+    ShoppingBag as BagIcon,
     ArrowLeft,
     Search,
     Shield,
     Clock,
-    Star,
-    Zap,
-    TrendingUp,
-    Store,
-    Truck,
-    Sparkles,
-    MousePointer2
+    Star
 } from "lucide-react";
 import Autoplay from "embla-carousel-autoplay";
 import SEO from "@/components/SEO";
@@ -302,20 +304,50 @@ const Home = () => {
                 image={heroBackground || '/og-image.png'}
             />
 
+            <style>
+                {`
+                @keyframes float-particle {
+                    0%, 100% { transform: translate(0, 0); opacity: 0; }
+                    50% { transform: translate(100px, -100px); opacity: 0.5; }
+                }
+                .3d-perspective {
+                    perspective: 1000px;
+                }
+                .3d-card {
+                    transform-style: preserve-3d;
+                    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+                }
+                .3d-card:hover {
+                    transform: translateZ(20px) rotateX(2deg) rotateY(-2deg);
+                }
+                `}
+            </style>
+
             {/* 1. HERO SECTION */}
             {settings.hero_visible && (
                 <section className="relative min-h-[65vh] md:min-h-[90vh] flex items-center justify-center overflow-hidden">
                     {/* Background with Overlay */}
-                    <div className="absolute inset-0 z-0">
+                    <div className="absolute inset-0 z-0 overflow-hidden">
                         <img
                             src={heroBackground}
                             alt="Hero Background"
                             className="w-full h-full object-cover object-top md:object-center transform scale-105 animate-subtle-zoom transition-all duration-1000"
                         />
+                        {/* 3D Floating Elements */}
+                        <div className="absolute top-[15%] right-[10%] opacity-20 transform-gpu animate-float blur-[1px]">
+                            <Shirt className="w-48 h-48 md:w-64 md:h-64 text-white rotate-[15deg]" strokeWidth={0.5} />
+                        </div>
+                        <div className="absolute bottom-[25%] left-[5%] opacity-10 transform-gpu animate-float-slow blur-[2px]">
+                            <BagIcon className="w-40 h-40 md:w-56 md:h-56 text-white rotate-[-12deg]" strokeWidth={0.5} />
+                        </div>
+                        <div className="absolute top-[40%] left-[15%] opacity-20 transform-gpu animate-float-reverse">
+                            <Sparkles className="w-16 h-16 text-yellow-300 blur-[1px]" />
+                        </div>
+
                         {/* More complex gradient for depth */}
-                        <div className="absolute inset-0 bg-gradient-to-tr from-slate-950 via-slate-900/40 to-indigo-900/20"></div>
-                        <div className="absolute inset-0 bg-black/30"></div>
-                        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 mix-blend-overlay"></div>
+                        <div className="absolute inset-0 bg-gradient-to-tr from-slate-950 via-slate-900/60 to-indigo-950/40"></div>
+                        <div className="absolute inset-0 bg-black/20"></div>
+                        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay"></div>
                     </div>
 
                     <div className="container mx-auto px-4 relative z-10 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center pt-8 pb-12 md:pt-0 md:pb-0">
@@ -426,7 +458,7 @@ const Home = () => {
                         </div>
 
                         {/* Category Filter Tabs */}
-                        <div className="flex flex-wrap justify-center gap-3 mb-16 animate-slide-up delay-100">
+                        <div className={`flex flex-wrap justify-center gap-3 mb-16 transition-all duration-1000 delay-300 ${storesInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
                             <button
                                 onClick={() => setSelectedStoreCategory("all")}
                                 className={`px-6 py-3 rounded-full text-sm font-bold transition-all duration-300 transform hover:scale-105 ${selectedStoreCategory === "all"
@@ -451,7 +483,7 @@ const Home = () => {
                         </div>
 
                         {/* Stores Grid */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 3d-perspective">
                             {loading ? (
                                 [1, 2, 3, 4, 5, 6, 7, 8].map(i => (
                                     <div key={i} className="space-y-4">
@@ -469,7 +501,7 @@ const Home = () => {
                                     .map((store, index) => (
                                         <div
                                             key={store.id}
-                                            className="group relative flex flex-col items-center"
+                                            className="group relative flex flex-col items-center 3d-card"
                                         >
                                             <div className="relative w-full aspect-[4/5] rounded-[2.5rem] overflow-hidden bg-white shadow-2xl transition-all duration-500 group-hover:shadow-[0_20px_50px_rgba(0,0,0,0.15)] group-hover:-translate-y-2 border border-gray-100">
 
@@ -488,7 +520,7 @@ const Home = () => {
                                                             />
                                                         ) : (
                                                             <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-200">
-                                                                <Store className="h-20 w-20" />
+                                                                <StoreIcon className="h-20 w-20" />
                                                             </div>
                                                         )}
                                                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-500"></div>
@@ -543,7 +575,7 @@ const Home = () => {
 
                         {stores.length === 0 && !loading && (
                             <div className="text-center py-20 opacity-50">
-                                <Store className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                                <StoreIcon className="h-16 w-16 mx-auto mb-4 text-gray-300" />
                                 <p className="text-xl">لا توجد متاجر متاحة حالياً</p>
                             </div>
                         )}
@@ -588,7 +620,7 @@ const Home = () => {
                                     <Link
                                         key={cat.id}
                                         to={`/products?categoryId=${cat.id}`}
-                                        className="group flex flex-col items-center gap-4 p-4 rounded-2xl hover:bg-gray-50 transition-all duration-300"
+                                        className="group flex flex-col items-center gap-4 p-4 rounded-2xl hover:bg-gray-50 transition-all duration-300 3d-card"
                                     >
                                         <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-gray-100 group-hover:border-primary/30 shadow-lg group-hover:shadow-2xl transition-all duration-300 relative bg-white">
                                             {cat.image_url ? (
@@ -722,7 +754,7 @@ const Home = () => {
                             </div>
                             <div className="flex flex-col items-center text-center p-6 bg-gray-50 rounded-2xl hover:shadow-lg transition-all duration-300 group">
                                 <div className="p-4 bg-white rounded-full shadow-md mb-4 text-blue-500 group-hover:scale-110 transition-transform">
-                                    <Store className="h-8 w-8" />
+                                    <StoreIcon className="h-8 w-8" />
                                 </div>
                                 <h3 className="text-xl font-bold mb-2">خيارات متنوعة</h3>
                                 <p className="text-gray-500 text-sm">مئات المتاجر وآلاف المنتجات في مكان واحد لتلبية جميع احتياجاتك.</p>
@@ -767,11 +799,14 @@ const Home = () => {
                                 ))
                                 : bestSellers.length > 0 ? (
                                     bestSellers.map((product) => (
-                                        <ProductCard
-                                            key={product.id}
-                                            {...product}
-                                            onQuickView={setQuickViewProduct}
-                                        />
+                                        <div key={product.id} className="3d-perspective">
+                                            <div className="3d-card h-full">
+                                                <ProductCard
+                                                    {...product}
+                                                    onQuickView={setQuickViewProduct}
+                                                />
+                                            </div>
+                                        </div>
                                     ))
                                 ) : (
                                     <div className="col-span-full text-center py-12 text-gray-400">
@@ -810,11 +845,12 @@ const Home = () => {
                                     <Skeleton key={i} className="h-[400px] rounded-2xl" />
                                 ))
                                 : newestProducts.map((product) => (
-                                    <ProductCard
-                                        key={product.id}
-                                        {...product}
-                                        onQuickView={setQuickViewProduct}
-                                    />
+                                    <div key={product.id} className="3d-card h-full">
+                                        <ProductCard
+                                            {...product}
+                                            onQuickView={setQuickViewProduct}
+                                        />
+                                    </div>
                                 ))}
                         </div>
 
