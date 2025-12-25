@@ -73,7 +73,7 @@ export const ProductCard = ({
   };
 
   return (
-    <div className={cn("group flex flex-col space-y-3 relative store-card p-2", className)}>
+    <div className={cn("group flex flex-col space-y-3 relative store-card p-2 h-full", className)}>
       <Link to={`/product/${id}`} className="block relative group-hover:-translate-y-1 transition-transform duration-300">
         <div
           className="relative aspect-[4/5] md:aspect-square w-full overflow-hidden bg-gray-50/50"
@@ -143,8 +143,8 @@ export const ProductCard = ({
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="font-black text-gray-900 text-base">
-            {price.toLocaleString()} <span className="text-[10px] font-normal text-gray-500">دج</span>
+          <span className="font-black text-[var(--store-text)] text-base">
+            {price.toLocaleString()} <span className="text-[10px] font-normal opacity-80">دج</span>
           </span>
           {brand && <span className="text-[9px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-md">{brand}</span>}
         </div>

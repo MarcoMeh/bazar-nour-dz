@@ -388,7 +388,7 @@ const Products = () => {
   } : {};
 
   return (
-    <div className={`min-h-screen ${!pageBackground ? 'bg-gradient-to-br from-background via-background to-muted/20' : 'relative'}`} style={containerStyle}>
+    <div className={`min-h-screen overflow-x-hidden ${!pageBackground ? 'bg-gradient-to-br from-background via-background to-muted/20' : 'relative'}`} style={containerStyle}>
       {pageBackground && (
         <div className="absolute inset-0 bg-background/90 backdrop-blur-[2px] z-0"></div>
       )}

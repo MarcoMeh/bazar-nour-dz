@@ -41,6 +41,11 @@ interface StoreDetails {
   location_url?: string;
   return_policy?: string;
   theme_id?: string;
+  primary_color?: string;
+  secondary_color?: string;
+  background_color?: string;
+  text_color?: string;
+  phone_numbers?: string[];
 }
 
 const CATEGORY_IDS = {
@@ -111,6 +116,12 @@ const ProductStores = () => {
     minPrice: priceRange[0], maxPrice: priceRange[1], sortBy: "created_at", sortOrder: "desc",
   });
 
+  const TikTokIcon = ({ className }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" className={className} fill="currentColor">
+      <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1 .05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z" />
+    </svg>
+  );
+
   if (loadingStore) return <LoadingSpinner fullScreen message="جاري تجهيز المتجر..." />;
   if (!store) return <div className="min-h-screen flex items-center justify-center">المتجر غير موجود</div>;
 
@@ -129,20 +140,20 @@ const ProductStores = () => {
           )}
 
           {/* Cover Image Banner */}
-          {store.cover_image_url && !isMinimal && (
-            <div className={`w-full ${isElegant ? 'h-48 md:h-72' : 'h-32 md:h-60'} bg-gray-100 relative`}>
+          {store.cover_image_url && (
+            <div className={`w-full ${isElegant ? 'h-48 md:h-80' : 'h-40 md:h-64'} bg-gray-100 relative group`}>
               <img
                 src={store.cover_image_url}
                 alt="Cover"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
-              <div className={`absolute inset-0 bg-gradient-to-t ${isElegant ? 'from-black/60' : 'from-black/30'} to-transparent`} />
+              <div className={`absolute inset-0 bg-gradient-to-t ${isElegant ? 'from-black/80 via-black/20' : 'from-black/60'} to-transparent`} />
             </div>
           )}
 
           {/* Store Info Container */}
-          <div className={`relative px-6 pb-8 ${store.cover_image_url && !isMinimal ? '-mt-16 md:-mt-24' : 'pt-8'}`}>
-            <div className={`flex flex-col ${isElegant ? 'md:items-center' : 'md:flex-row md:items-end'} gap-6`}>
+          <div className={`relative px-6 pb-8 ${store.cover_image_url ? '-mt-16 md:-mt-24' : 'pt-8'}`}>
+            <div className={`flex flex-col ${isElegant || theme.styles.layoutType === 'grid' || theme.styles.layoutType === 'modern' ? 'md:items-center' : 'md:flex-row md:items-end'} gap-6`}>
 
               {/* Logo & Status */}
               <div className="relative shrink-0">
@@ -160,91 +171,129 @@ const ProductStores = () => {
                 </div>
               </div>
 
-              {/* Name & Details */}
-              <div className={`flex-1 ${isElegant ? 'text-center' : 'text-right'} space-y-2`}>
-                <div className="flex flex-col gap-1">
-                  <h1 className={`${isBold ? 'text-4xl md:text-6xl uppercase tracking-tighter' : isElegant ? 'text-4xl md:text-5xl italic' : 'text-3xl md:text-4xl'} font-black`}>
+              <div className={`flex-1 ${isElegant || theme.styles.layoutType === 'grid' || theme.styles.layoutType === 'modern' ? 'text-center items-center' : 'text-right'} flex flex-col space-y-2`}>
+                <div className="flex flex-col gap-1 w-full">
+                  <h1 className={`${isBold ? 'text-4xl md:text-6xl uppercase tracking-tighter' : isElegant ? 'text-4xl md:text-5xl italic' : 'text-3xl md:text-4xl'} font-black w-full`}>
                     {store.name}
                   </h1>
-                  <div className={`flex ${isElegant ? 'justify-center' : ''} items-center gap-4 text-sm opacity-80 font-semibold`}>
+                  <div className={`flex flex-wrap ${isElegant || theme.styles.layoutType === 'grid' || theme.styles.layoutType === 'modern' ? 'justify-center' : ''} items-center gap-4 text-sm opacity-80 font-semibold w-full`}>
                     <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4 text-[var(--store-primary)]" /> {store.address || "الجزائر"}</span>
+                    {/* Social Media Icons */}
+                    <div className="flex items-center gap-3">
+                      {store.phone && (
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <button className="bg-white/10 hover:bg-[var(--store-primary)] hover:text-white p-2 rounded-full transition-all">
+                              <Phone className="w-4 h-4" />
+                            </button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-md" dir="rtl">
+                            <DialogHeader>
+                              <DialogTitle className="flex items-center gap-2">
+                                <Store className="w-5 h-5 text-primary" />
+                                معلومات {store.name}
+                              </DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-4 py-4">
+                              {store.opening_hours && (
+                                <div className="space-y-2">
+                                  <h4 className="font-semibold flex items-center gap-2 text-sm text-gray-900">
+                                    <Clock className="w-4 h-4 text-primary" />
+                                    ساعات العمل
+                                  </h4>
+                                  <p className="text-sm text-gray-600 leading-relaxed bg-gray-50 p-3 rounded-md whitespace-pre-wrap">
+                                    {store.opening_hours}
+                                  </p>
+                                </div>
+                              )}
+                              <div className="space-y-4 pt-4">
+                                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                  <div className="flex items-center gap-3">
+                                    <Phone className="w-5 h-5 text-gray-500" />
+                                    <div>
+                                      <p className="text-sm font-medium">رقم الهاتف الرئيسي</p>
+                                      <p className="text-lg font-bold" dir="ltr">{store.phone}</p>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {store.phone_numbers && store.phone_numbers.length > 0 && (
+                                  <div className="space-y-2">
+                                    <p className="text-sm font-medium text-muted-foreground mr-1">أرقام إضافية:</p>
+                                    {store.phone_numbers.map((phone, idx) => (
+                                      <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                        <div className="flex items-center gap-3">
+                                          <Phone className="w-5 h-5 text-gray-400" />
+                                          <p className="text-lg font-bold" dir="ltr">{phone}</p>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                              {store.location_url && (
+                                <div className="space-y-2">
+                                  <h4 className="font-semibold flex items-center gap-2 text-sm text-gray-900">
+                                    <MapPin className="w-4 h-4 text-primary" />
+                                    الموقع
+                                  </h4>
+                                  <a
+                                    href={store.location_url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="flex items-center gap-2 text-sm text-blue-600 hover:underline bg-blue-50 p-3 rounded-md"
+                                  >
+                                    <MapPin className="w-4 h-4" />
+                                    عرض على خرائط جوجل
+                                  </a>
+                                </div>
+                              )}
+                              {store.return_policy && (
+                                <div className="space-y-2">
+                                  <h4 className="font-semibold flex items-center gap-2 text-sm text-gray-900">
+                                    <FileText className="w-4 h-4 text-primary" />
+                                    سياسة الاستبدال والاسترجاع
+                                  </h4>
+                                  <p className="text-sm text-gray-600 leading-relaxed bg-gray-50 p-3 rounded-md whitespace-pre-wrap">
+                                    {store.return_policy}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      )}
+                      {store.whatsapp && (
+                        <a href={`https://wa.me/${store.whatsapp}`} target="_blank" rel="noopener noreferrer" className="bg-white/10 hover:bg-[var(--store-primary)] hover:text-white p-2 rounded-full transition-all">
+                          <MessageCircle className="w-4 h-4" />
+                        </a>
+                      )}
+                      {store.facebook && (
+                        <a href={store.facebook} target="_blank" rel="noopener noreferrer" className="bg-white/10 hover:bg-[var(--store-primary)] hover:text-white p-2 rounded-full transition-all">
+                          <Facebook className="w-4 h-4" />
+                        </a>
+                      )}
+                      {store.instagram && (
+                        <a href={store.instagram} target="_blank" rel="noopener noreferrer" className="bg-white/10 hover:bg-[var(--store-primary)] hover:text-white p-2 rounded-full transition-all">
+                          <Instagram className="w-4 h-4" />
+                        </a>
+                      )}
+                      {store.tiktok && (
+                        <a href={store.tiktok} target="_blank" rel="noopener noreferrer" className="bg-white/10 hover:bg-[var(--store-primary)] hover:text-white p-2 rounded-full transition-all">
+                          <TikTokIcon className="w-4 h-4" />
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
                 {store.description && (
-                  <p className={`text-base mt-4 max-w-3xl leading-relaxed opacity-90 ${isElegant ? 'mx-auto' : ''}`}>
+                  <p className={`text-base mt-4 max-w-3xl leading-relaxed opacity-90 ${isElegant || theme.styles.layoutType === 'grid' || theme.styles.layoutType === 'modern' ? 'mx-auto text-center' : ''}`}>
                     {store.description}
                   </p>
                 )}
               </div>
 
-              {/* Action Buttons */}
               <div className={`flex flex-wrap ${isElegant ? 'justify-center' : 'md:justify-end'} gap-3 w-full md:w-auto`}>
-                {store.whatsapp && (
-                  <a href={`https://wa.me/${store.whatsapp}`} target="_blank" rel="noreferrer" className="flex-1 md:flex-none">
-                    <Button className="store-btn w-full px-6 h-12 gap-2 shadow-lg hover:scale-105">
-                      <MessageCircle className="w-5 h-5" />
-                      <span className="font-bold">واتساب</span>
-                    </Button>
-                  </a>
-                )}
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" className={`flex-1 md:flex-none h-12 px-6 gap-2 rounded-xl border-2 transition-all ${isBold ? 'border-black hover:bg-black hover:text-white' : 'border-gray-200 hover:border-[var(--store-primary)]'}`}>
-                      <Store className="w-5 h-5" />
-                      <span className="font-bold">معلومات</span>
-                    </Button>
-                  </DialogTrigger>
-                  {/* ... (Keep DialogContent same as before) ... */}
-                  <DialogContent className="sm:max-w-md" dir="rtl">
-                    <DialogHeader>
-                      <DialogTitle className="flex items-center gap-2">
-                        <Store className="w-5 h-5 text-primary" />
-                        معلومات {store.name}
-                      </DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                      {store.opening_hours && (
-                        <div className="space-y-2">
-                          <h4 className="font-semibold flex items-center gap-2 text-sm text-gray-900">
-                            <Clock className="w-4 h-4 text-primary" />
-                            ساعات العمل
-                          </h4>
-                          <p className="text-sm text-gray-600 leading-relaxed bg-gray-50 p-3 rounded-md whitespace-pre-wrap">
-                            {store.opening_hours}
-                          </p>
-                        </div>
-                      )}
-                      {store.location_url && (
-                        <div className="space-y-2">
-                          <h4 className="font-semibold flex items-center gap-2 text-sm text-gray-900">
-                            <MapPin className="w-4 h-4 text-primary" />
-                            الموقع
-                          </h4>
-                          <a
-                            href={store.location_url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="flex items-center gap-2 text-sm text-blue-600 hover:underline bg-blue-50 p-3 rounded-md"
-                          >
-                            <MapPin className="w-4 h-4" />
-                            عرض على خرائط جوجل
-                          </a>
-                        </div>
-                      )}
-                      {store.return_policy && (
-                        <div className="space-y-2">
-                          <h4 className="font-semibold flex items-center gap-2 text-sm text-gray-900">
-                            <FileText className="w-4 h-4 text-primary" />
-                            سياسة الاستبدال والاسترجاع
-                          </h4>
-                          <p className="text-sm text-gray-600 leading-relaxed bg-gray-50 p-3 rounded-md whitespace-pre-wrap">
-                            {store.return_policy}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </DialogContent>
-                </Dialog>
               </div>
             </div>
           </div>
@@ -255,19 +304,28 @@ const ProductStores = () => {
 
   const getGridClass = () => {
     const { layoutType } = theme.styles;
-    if (layoutType === 'masonry') return 'grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-start';
-    if (layoutType === 'compact') return 'grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2';
-    if (layoutType === 'modern') return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8';
-    return 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 px-2 md:px-0';
+    if (layoutType === 'masonry') return 'grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-start gap-4';
+    if (layoutType === 'compact') return 'grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3';
+    if (layoutType === 'modern') return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8';
+    // Default Grid
+    return 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 px-0';
   };
 
   return (
-    <StoreThemeWrapper themeId={themeId}>
+    <StoreThemeWrapper
+      themeId={themeId}
+      customColors={store ? {
+        primary: store.primary_color,
+        secondary: store.secondary_color,
+        background: store.background_color,
+        text: store.text_color
+      } : undefined}
+    >
       <SEO title={store.name} description={store.description || ""} image={store.image_url} />
 
       {renderHeader()}
 
-      <div className="container mx-auto px-4 pb-20">
+      <div className="container mx-auto px-4 pb-20 overflow-x-hidden">
 
         {/* Advanced Search Bar */}
         <div className="sticky top-4 z-40 mb-12">
@@ -360,6 +418,16 @@ const ProductStores = () => {
             </div>
           </div>
           <div className="flex gap-4">
+            {store.phone && (
+              <a href={`tel:${store.phone}`} className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white shadow-xl text-gray-700 hover:scale-110 transition-transform">
+                <Phone className="w-6 h-6" />
+              </a>
+            )}
+            {store.whatsapp && (
+              <a href={`https://wa.me/${store.whatsapp}`} target="_blank" rel="noreferrer" className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white shadow-xl text-[#25D366] hover:scale-110 transition-transform">
+                <MessageCircle className="w-6 h-6" />
+              </a>
+            )}
             {store.facebook && (
               <a href={store.facebook} target="_blank" rel="noreferrer" className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white shadow-xl text-[#1877F2] hover:scale-110 transition-transform">
                 <Facebook className="w-6 h-6 fill-current" />
@@ -368,6 +436,11 @@ const ProductStores = () => {
             {store.instagram && (
               <a href={store.instagram} target="_blank" rel="noreferrer" className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white shadow-xl text-[#E4405F] hover:scale-110 transition-transform">
                 <Instagram className="w-6 h-6" />
+              </a>
+            )}
+            {store.tiktok && (
+              <a href={store.tiktok} target="_blank" rel="noreferrer" className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white shadow-xl text-black hover:scale-110 transition-transform">
+                <TikTokIcon className="w-6 h-6" />
               </a>
             )}
           </div>

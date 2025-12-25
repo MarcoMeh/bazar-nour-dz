@@ -6,7 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Loader2, User, Store, Upload, Save, MapPin, Phone, Lock, ImageIcon, Star, Check, Palette, Eye } from "lucide-react";
+import {
+    Loader2, User, Store, Upload, Save, MapPin, Phone, Lock, ImageIcon, Star, Check, Palette, Eye,
+    Plus, Trash2, Facebook, Instagram, Hash, ExternalLink, Clock, FileText, CheckCircle2,
+    LayoutDashboard, Package, ShoppingCart, Settings
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
     Select,
@@ -59,6 +63,7 @@ export default function StoreOwnerProfile() {
         secondary_color: "",
         background_color: "",
         text_color: "",
+        phone_numbers: [] as string[],
     });
 
     const [categories, setCategories] = useState<any[]>([]);
@@ -68,6 +73,24 @@ export default function StoreOwnerProfile() {
             fetchData();
         }
     }, [user]);
+
+    const handleAddPhone = () => {
+        setStoreData({
+            ...storeData,
+            phone_numbers: [...storeData.phone_numbers, ""]
+        });
+    };
+
+    const handlePhoneChange = (index: number, value: string) => {
+        const newPhones = [...storeData.phone_numbers];
+        newPhones[index] = value;
+        setStoreData({ ...storeData, phone_numbers: newPhones });
+    };
+
+    const handleRemovePhone = (index: number) => {
+        const newPhones = storeData.phone_numbers.filter((_, i) => i !== index);
+        setStoreData({ ...storeData, phone_numbers: newPhones });
+    };
 
     const fetchData = async () => {
         try {
@@ -126,6 +149,7 @@ export default function StoreOwnerProfile() {
                     secondary_color: storeData.secondary_color || "",
                     background_color: storeData.background_color || "",
                     text_color: storeData.text_color || "",
+                    phone_numbers: storeData.phone_numbers || [],
                 });
             }
 
@@ -248,6 +272,7 @@ export default function StoreOwnerProfile() {
                         secondary_color: storeData.secondary_color || null,
                         background_color: storeData.background_color || null,
                         text_color: storeData.text_color || null,
+                        phone_numbers: storeData.phone_numbers.filter(p => p.trim() !== ""),
                     })
                     .eq("id", storeData.id);
 
@@ -443,6 +468,44 @@ export default function StoreOwnerProfile() {
                                 onChange={(e) => setStoreData({ ...storeData, description: e.target.value })}
                                 placeholder="وصف مختصر للمتجر وما يقدمه"
                             />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label>أرقام الهاتف الإضافية</Label>
+                            <div className="space-y-3">
+                                {storeData.phone_numbers.map((phone, index) => (
+                                    <div key={index} className="flex gap-2 relative">
+                                        <div className="relative flex-1">
+                                            <Phone className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
+                                            <Input
+                                                value={phone}
+                                                onChange={(e) => handlePhoneChange(index, e.target.value)}
+                                                className="pr-9"
+                                                placeholder="0X XX XX XX XX"
+                                                dir="ltr"
+                                            />
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            variant="destructive"
+                                            size="icon"
+                                            onClick={() => handleRemovePhone(index)}
+                                            className="shrink-0"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                ))}
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={handleAddPhone}
+                                    className="w-full border-dashed"
+                                >
+                                    <Plus className="mr-2 h-4 w-4" />
+                                    إضافة رقم هاتف آخر
+                                </Button>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>

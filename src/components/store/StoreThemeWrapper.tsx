@@ -21,8 +21,12 @@ export const StoreThemeWrapper: React.FC<StoreThemeWrapperProps> = ({ themeId, c
     const colors = { ...theme.colors };
 
     // Override with custom colors if provided
+    // Override with custom colors if provided
     if (customColors?.primary) colors.primary = customColors.primary;
-    if (customColors?.secondary) colors.secondary = customColors.secondary;
+    if (customColors?.secondary) {
+      colors.secondary = customColors.secondary;
+      colors.cardBg = customColors.secondary;
+    }
     if (customColors?.background) colors.background = customColors.background;
     if (customColors?.text) colors.text = customColors.text;
 
@@ -81,7 +85,11 @@ export const StoreThemeWrapper: React.FC<StoreThemeWrapperProps> = ({ themeId, c
   const getActiveColors = () => {
     const colors = { ...theme.colors };
     if (customColors?.primary) colors.primary = customColors.primary;
-    if (customColors?.secondary) colors.secondary = customColors.secondary;
+    if (customColors?.secondary) {
+      colors.secondary = customColors.secondary;
+      // User requested secondary color to replace white backgrounds
+      colors.cardBg = customColors.secondary;
+    }
     if (customColors?.background) colors.background = customColors.background;
     if (customColors?.text) colors.text = customColors.text;
     return colors;
@@ -142,7 +150,7 @@ export const StoreThemeWrapper: React.FC<StoreThemeWrapperProps> = ({ themeId, c
           border: 1px solid transparent;
         }
 
-        ${theme.styles.cardStyle === 'minimalist' ? '.store-card { border: none; box-shadow: none; background: transparent; }' : ''}
+        ${(theme.styles.cardStyle === 'minimalist' && !customColors?.secondary) ? '.store-card { border: none; box-shadow: none; background: transparent; }' : ''}
         ${theme.styles.cardStyle === 'bordered' ? '.store-card { border: 2px solid var(--store-text); box-shadow: 6px 6px 0px var(--store-text); }' : ''}
         ${theme.styles.cardStyle === 'glass' ? `
           .store-card { 
