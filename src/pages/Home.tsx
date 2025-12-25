@@ -318,7 +318,7 @@ const Home = () => {
                         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 mix-blend-overlay"></div>
                     </div>
 
-                    <div className="container mx-auto px-4 relative z-10 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center pt-8 md:pt-0">
+                    <div className="container mx-auto px-4 relative z-10 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center pt-8 pb-12 md:pt-0 md:pb-0">
                         {/* Text Content */}
                         <div className="text-white space-y-8 md:space-y-10 text-right order-2 lg:order-1">
                             <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 animate-fade-in shadow-2xl">
@@ -386,7 +386,7 @@ const Home = () => {
                     </div>
 
                     {/* Dynamic Section Divider - Gradient Transition */}
-                    <div className="absolute bottom-0 inset-x-0 h-48 bg-gradient-to-t from-[#FAFAFA] to-transparent z-20"></div>
+                    <div className="absolute bottom-0 inset-x-0 h-16 md:h-24 bg-gradient-to-t from-[#FAFAFA] to-transparent z-0"></div>
 
                     {/* Scroll Indicator */}
                     <div className="absolute bottom-10 left-10 hidden md:flex flex-col items-center gap-4 text-white/40 transition-opacity hover:text-white/80 cursor-pointer group">

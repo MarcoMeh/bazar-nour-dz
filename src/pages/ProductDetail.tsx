@@ -368,14 +368,14 @@ const ProductDetail = () => {
                     دليل المقاسات
                   </Button>
                 </div>
-                <div className="flex flex-wrap gap-3">
+                <div className="flex overflow-x-auto pb-4 gap-3 scrollbar-none items-center">
                   {product.sizes.map((size) => (
                     <button
                       key={size}
                       onClick={() => setSelectedSize(size)}
-                      className={`min-w-[3rem] h-10 px-3 rounded-lg border-2 font-medium transition-all ${selectedSize === size
-                        ? 'border-primary bg-primary/5 text-primary'
-                        : 'border-gray-200 hover:border-gray-300'
+                      className={`min-w-[3.5rem] h-12 px-4 rounded-xl border-2 font-bold transition-all shrink-0 flex items-center justify-center ${selectedSize === size
+                        ? 'border-primary bg-primary/10 text-primary shadow-sm scale-105'
+                        : 'border-slate-200 hover:border-slate-300 text-slate-600'
                         }`}
                     >
                       {size}

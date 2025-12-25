@@ -54,7 +54,7 @@ export const ColorSelector = ({ selectedColors, onColorsChange }: ColorSelectorP
                 className={`w-8 h-8 rounded-full shadow-sm ${color.border ? 'border border-gray-200' : ''}`}
                 style={{ backgroundColor: color.hex }}
             />
-            <span className="text-[10px] whitespace-nowrap font-medium text-gray-700">{color.name}</span>
+            <span className="text-[10px] text-center font-medium text-gray-700 leading-tight">{color.name}</span>
         </button>
     );
 
@@ -62,7 +62,7 @@ export const ColorSelector = ({ selectedColors, onColorsChange }: ColorSelectorP
         <div className="space-y-4">
             {/* Primary Colors Grid */}
             <div className="space-y-2">
-                <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2">
+                <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 gap-4">
                     {primaryColors.map(renderColorButton)}
                 </div>
             </div>
@@ -91,7 +91,7 @@ export const ColorSelector = ({ selectedColors, onColorsChange }: ColorSelectorP
             {/* Other Colors Grid */}
             {showAllColors && (
                 <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                    <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2 p-3 bg-gray-50/50 rounded-xl border border-gray-100">
+                    <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 gap-4 p-3 bg-gray-50/50 rounded-xl border border-gray-100">
                         {otherColors.map(renderColorButton)}
                     </div>
                 </div>
