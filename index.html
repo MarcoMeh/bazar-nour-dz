@@ -54,43 +54,34 @@
     position: fixed;
     inset: 0;
     z-index: 99999;
-    background-color: #ffffff;
+    background-color: #fff;
+    background-image: url('https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?q=80&w=2070&auto=format&fit=crop');
+    background-size: cover;
+    background-position: center;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    transition: opacity 0.4s ease-out;
+    transition: opacity 0.5s ease-out;
   }
 
   #splash-screen::before {
-    display: none;
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
   }
 
   .splash-logo {
-    width: 220px;
-    height: 220px;
+    width: 120px;
+    height: 120px;
     position: relative;
     z-index: 10;
-    animation: smoothPulse 2.5s infinite ease-in-out;
-    background: #000000;
-    border-radius: 40px;
-    padding: 30px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
-    object-fit: contain;
-  }
-
-  @keyframes smoothPulse {
-
-    0%,
-    100% {
-      transform: scale(1);
-      opacity: 1;
-    }
-
-    50% {
-      transform: scale(1.03);
-      opacity: 0.95;
-    }
+    animation: pulse 2s infinite;
+    background: white;
+    border-radius: 50%;
+    padding: 10px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
   }
 
   @keyframes pulse {
