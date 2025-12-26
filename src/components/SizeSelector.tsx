@@ -54,20 +54,21 @@ export const SizeSelector = ({ selectedSizes, onSizesChange }: SizeSelectorProps
                     أرقام
                 </button>
             </div>
-
-            <div className="flex overflow-x-auto pb-2 gap-2 scrollbar-none">
-                {currentSizes.map((size) => (
-                    <Button
-                        key={size}
-                        type="button"
-                        variant={selectedSizes.includes(size) ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => toggleSize(size)}
-                        className="min-w-[60px] shrink-0"
-                    >
-                        {size}
-                    </Button>
-                ))}
+            <div className="w-full">
+                <div className="flex overflow-x-auto pb-2 gap-2 scrollbar-none items-center">
+                    {currentSizes.map((size) => (
+                        <Button
+                            key={size}
+                            type="button"
+                            variant={selectedSizes.includes(size) ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => toggleSize(size)}
+                            className="min-w-[42px] px-1.5 h-8 shrink-0 text-[10px]"
+                        >
+                            {size}
+                        </Button>
+                    ))}
+                </div>
             </div>
 
             <div className="flex gap-2 items-end">

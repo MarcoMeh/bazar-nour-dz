@@ -637,9 +637,11 @@ const Home = () => {
                             </div>
                         )}
 
-                        <div className="mt-10 text-center md:hidden">
+                        <div className="mt-12 flex justify-center md:hidden">
                             <Link to="/products">
-                                <Button variant="outline" className="rounded-full w-full">شاهد كل الاقسام</Button>
+                                <Button variant="outline" className="rounded-full px-12 h-12 font-bold border-gray-200 hover:bg-gray-50 transition-colors shadow-sm">
+                                    شاهد كل الأقسام
+                                </Button>
                             </Link>
                         </div>
                     </div>

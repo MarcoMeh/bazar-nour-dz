@@ -409,8 +409,12 @@ const ProductStores = () => {
       <div className="py-12 bg-black/5 backdrop-blur-sm mt-20">
         <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-[var(--store-primary)] flex items-center justify-center text-white font-black text-xl shadow-lg">
-              {store.name.charAt(0)}
+            <div className="w-12 h-12 rounded-full bg-[var(--store-primary)] flex items-center justify-center text-white font-black text-xl shadow-lg overflow-hidden border-2 border-white/10">
+              {store.image_url ? (
+                <img src={store.image_url} alt={store.name} className="w-full h-full object-cover" />
+              ) : (
+                store.name.charAt(0)
+              )}
             </div>
             <div>
               <h4 className="font-black text-lg">{store.name}</h4>

@@ -423,12 +423,12 @@ export default function StoreOwnerProducts() {
                         </Button>
                     </DialogTrigger>
 
-                    <DialogContent className="max-w-xl max-h-[95vh] overflow-y-auto p-0 gap-0 bg-white rounded-2xl">
-                        <DialogHeader className="p-6 pb-2 border-b">
-                            <DialogTitle>{editingProduct ? "تعديل بيانات المنتج" : "إضافة منتج جديد"}</DialogTitle>
+                    <DialogContent className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[95vw] sm:max-w-xl max-h-[92vh] overflow-y-auto overflow-x-hidden p-0 bg-white rounded-2xl shadow-2xl border-none focus-visible:outline-none">
+                        <DialogHeader className="p-4 border-b sticky top-0 bg-white z-10 text-right">
+                            <DialogTitle className="text-lg font-bold">{editingProduct ? "تعديل بيانات المنتج" : "إضافة منتج جديد"}</DialogTitle>
                         </DialogHeader>
 
-                        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                        <form onSubmit={handleSubmit} className="p-4 space-y-5 overflow-x-hidden">
 
                             {/* 1. القسم الأساسي: الصورة والاسم */}
                             <div className="space-y-4">
@@ -541,40 +541,46 @@ export default function StoreOwnerProducts() {
                                 <Label>الوصف</Label>
                                 <Textarea placeholder="اكتب تفاصيل المنتج..." className="min-h-[80px]" value={formData.description_ar} onChange={(e) => setFormData((prev) => ({ ...prev, description_ar: e.target.value }))} />
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div><Label className="mb-2 block">المقاسات</Label><SizeSelector selectedSizes={formData.sizes} onSizesChange={(sizes) => setFormData((prev) => ({ ...prev, sizes }))} /></div>
-                                    <div><Label className="mb-2 block">الألوان</Label><ColorSelector selectedColors={formData.colors} onColorsChange={(colors) => setFormData((prev) => ({ ...prev, colors }))} /></div>
+                                <div className="space-y-6">
+                                    <div className="p-4 bg-gray-50/50 rounded-xl border border-gray-100">
+                                        <Label className="mb-3 block font-bold text-gray-700">المقاسات المتاحة</Label>
+                                        <SizeSelector selectedSizes={formData.sizes} onSizesChange={(sizes) => setFormData((prev) => ({ ...prev, sizes }))} />
+                                    </div>
+                                    <div className="p-4 bg-gray-50/50 rounded-xl border border-gray-100">
+                                        <Label className="mb-3 block font-bold text-gray-700">الألوان المتاحة</Label>
+                                        <ColorSelector selectedColors={formData.colors} onColorsChange={(colors) => setFormData((prev) => ({ ...prev, colors }))} />
+                                    </div>
                                 </div>
                             </div>
 
                             {/* 5. الإعدادات (Switches Grid) */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                                <div className="flex items-center justify-between p-3.5 border rounded-xl hover:bg-slate-50 transition-colors bg-white">
-                                    <Label htmlFor="home_delivery" className="flex-1 cursor-pointer text-sm font-semibold">توصيل منزل</Label>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                                <div className="flex items-center justify-between p-3 border rounded-xl hover:bg-slate-50 transition-colors bg-white gap-2">
+                                    <Label htmlFor="home_delivery" className="flex-1 cursor-pointer text-xs font-semibold text-right">توصيل منزل</Label>
                                     <Switch
                                         id="home_delivery"
                                         checked={formData.is_delivery_home_available}
                                         onCheckedChange={(c) => setFormData(prev => ({ ...prev, is_delivery_home_available: c }))}
                                     />
                                 </div>
-                                <div className="flex items-center justify-between p-3.5 border rounded-xl hover:bg-slate-50 transition-colors bg-white">
-                                    <Label htmlFor="office_delivery" className="flex-1 cursor-pointer text-sm font-semibold">توصيل مكتب</Label>
+                                <div className="flex items-center justify-between p-3 border rounded-xl hover:bg-slate-50 transition-colors bg-white gap-2">
+                                    <Label htmlFor="office_delivery" className="flex-1 cursor-pointer text-xs font-semibold text-right">توصيل مكتب</Label>
                                     <Switch
                                         id="office_delivery"
                                         checked={formData.is_delivery_desk_available}
                                         onCheckedChange={(c) => setFormData(prev => ({ ...prev, is_delivery_desk_available: c }))}
                                     />
                                 </div>
-                                <div className="flex items-center justify-between p-3.5 border rounded-xl hover:bg-green-50/30 border-green-100 transition-colors bg-white">
-                                    <Label htmlFor="free_delivery" className="flex-1 cursor-pointer text-sm font-semibold text-green-700">توصيل مجاني</Label>
+                                <div className="flex items-center justify-between p-3 border rounded-xl hover:bg-green-50/30 border-green-100 transition-colors bg-white gap-2">
+                                    <Label htmlFor="free_delivery" className="flex-1 cursor-pointer text-xs font-semibold text-green-700 text-right">توصيل مجاني</Label>
                                     <Switch
                                         id="free_delivery"
                                         checked={formData.is_free_delivery}
                                         onCheckedChange={(c) => setFormData(prev => ({ ...prev, is_free_delivery: c }))}
                                     />
                                 </div>
-                                <div className="flex items-center justify-between p-3.5 border rounded-xl hover:bg-red-50/30 border-red-100 transition-colors bg-white">
-                                    <Label htmlFor="sold_out" className="flex-1 cursor-pointer text-sm font-semibold text-red-600">نفد المخزون</Label>
+                                <div className="flex items-center justify-between p-3 border rounded-xl hover:bg-red-50/30 border-red-100 transition-colors bg-white gap-2">
+                                    <Label htmlFor="sold_out" className="flex-1 cursor-pointer text-xs font-semibold text-red-600 text-right">نفد المخزون</Label>
                                     <Switch
                                         id="sold_out"
                                         checked={formData.is_sold_out}

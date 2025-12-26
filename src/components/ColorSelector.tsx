@@ -39,30 +39,34 @@ export const ColorSelector = ({ selectedColors, onColorsChange }: ColorSelectorP
 
     const renderColorButton = (color: any) => (
         <button
-            key={color.name}
+            key={color.id}
             type="button"
-            onClick={() => toggleColor(color.name)}
+            onClick={() => onColorsChange(
+                selectedColors.includes(color.name)
+                    ? selectedColors.filter(c => c !== color.name)
+                    : [...selectedColors, color.name]
+            )}
             className={`
-              flex flex-col items-center gap-1 p-2 rounded-lg border-2 transition-all hover:scale-105 active:scale-95
-              ${selectedColors.includes(color.name)
-                    ? 'border-primary bg-primary/5 shadow-sm'
-                    : 'border-gray-100 hover:border-gray-200 hover:bg-white'
+                flex flex-col items-center gap-1 p-1 rounded-lg transition-all border-2 shrink-0 min-w-0
+                ${selectedColors.includes(color.name)
+                    ? 'border-primary bg-primary/5 shadow-sm scale-105'
+                    : 'border-transparent hover:border-gray-100 hover:bg-gray-50'
                 }
             `}
         >
             <div
-                className={`w-8 h-8 rounded-full shadow-sm ${color.border ? 'border border-gray-200' : ''}`}
+                className={`w-7 h-7 rounded-full shadow-sm ${color.border ? 'border border-gray-200' : ''}`}
                 style={{ backgroundColor: color.hex }}
             />
-            <span className="text-[10px] text-center font-medium text-gray-700 leading-tight">{color.name}</span>
+            <span className="text-[9px] text-center font-medium text-gray-700 leading-tight truncate w-full px-0.5">{color.name}</span>
         </button>
     );
 
     return (
         <div className="space-y-4">
             {/* Primary Colors Grid */}
-            <div className="space-y-2">
-                <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 gap-4">
+            <div className="space-y-2 w-full overflow-x-hidden">
+                <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2">
                     {primaryColors.map(renderColorButton)}
                 </div>
             </div>
@@ -90,8 +94,8 @@ export const ColorSelector = ({ selectedColors, onColorsChange }: ColorSelectorP
 
             {/* Other Colors Grid */}
             {showAllColors && (
-                <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                    <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 gap-4 p-3 bg-gray-50/50 rounded-xl border border-gray-100">
+                <div className="animate-in fade-in slide-in-from-top-2 duration-300 w-full overflow-x-hidden">
+                    <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2 p-2 bg-gray-50/50 rounded-xl border border-gray-100">
                         {otherColors.map(renderColorButton)}
                     </div>
                 </div>

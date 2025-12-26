@@ -471,7 +471,9 @@ const ProductDetail = () => {
           </div>
         </div>
 
-        <ReviewsSection productId={product.id} />
+        <div className="mt-16 bg-slate-50/50 p-4 md:p-8 rounded-2xl border border-slate-100">
+          <ReviewsSection productId={product.id} />
+        </div>
       </main>
 
       <SizeGuideModal

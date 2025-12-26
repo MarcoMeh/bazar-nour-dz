@@ -78,11 +78,13 @@ export const StoreOwnerSidebar = ({ onLinkClick }: StoreOwnerSidebarProps) => {
             </nav>
 
             <div className="border-t p-3 md:p-4 mt-auto space-y-2">
-                <Link to="/">
-                    <Button variant="outline" className="w-full justify-start gap-3 text-base md:text-sm">
-                        <Store className="h-5 w-5" />
-                        الرئيسية
-                    </Button>
+                <Link
+                    to="/"
+                    onClick={onLinkClick}
+                    className="flex items-center gap-3 rounded-lg px-3 py-3 md:py-2 text-base md:text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-200"
+                >
+                    <Store className="h-5 w-5" />
+                    الرئيسية
                 </Link>
 
                 {/* View Store Button - visible only if storeId is resolved (or logic to fetch it) */}

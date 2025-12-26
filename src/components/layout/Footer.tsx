@@ -43,8 +43,8 @@ export const Footer = () => {
         <footer className="bg-slate-950 text-slate-200 mt-auto border-t border-slate-800">
             <div className="container py-8 md:py-12">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                    {/* Brand Section */}
-                    <div className="space-y-4 text-center md:text-right">
+                    {/* Brand Section - Hidden on Mobile to prevent duplication */}
+                    <div className="hidden md:block space-y-4 text-right">
                         <Link to="/" className="inline-block group">
                             <div className="flex items-center gap-3">
                                 <img

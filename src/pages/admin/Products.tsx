@@ -356,12 +356,12 @@ export default function AdminProducts() {
                             إضافة منتج
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                        <DialogHeader>
-                            <DialogTitle>{editingId ? "تعديل منتج" : "إضافة منتج جديد"}</DialogTitle>
-                            <DialogDescription>أدخل تفاصيل المنتج</DialogDescription>
+                    <DialogContent className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-hidden p-0 border-none shadow-2xl focus-visible:outline-none">
+                        <DialogHeader className="p-4 border-b text-right">
+                            <DialogTitle className="text-lg font-bold">{editingId ? "تعديل منتج" : "إضافة منتج جديد"}</DialogTitle>
+                            <DialogDescription className="text-xs">أدخل تفاصيل المنتج</DialogDescription>
                         </DialogHeader>
-                        <div className="grid gap-4 py-4">
+                        <div className="p-4 grid gap-4 overflow-x-hidden">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="grid gap-2">
                                     <Label>الاسم</Label>
@@ -480,17 +480,58 @@ export default function AdminProducts() {
                                 )}
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="border p-4 rounded-lg space-y-4">
+                            <div className="flex flex-col gap-4">
+                                <div className="border p-4 rounded-lg space-y-4 bg-slate-50/30">
                                     <div className="flex items-center justify-between">
-                                        <Label>الألوان</Label>
+                                        <Label className="font-bold">المقاسات</Label>
+                                        <Switch
+                                            checked={formData.has_sizes}
+                                            onCheckedChange={(checked) => setFormData({ ...formData, has_sizes: checked })}
+                                        />
+                                    </div>
+                                    {formData.has_sizes && (
+                                        <div className="space-y-3 p-2 bg-white rounded-md border border-slate-100">
+                                            <div className="flex gap-2">
+                                                <Input
+                                                    value={inputSize}
+                                                    onChange={(e) => setInputSize(e.target.value)}
+                                                    placeholder="أضف مقاس..."
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') {
+                                                            e.preventDefault();
+                                                            handleAddSize();
+                                                        }
+                                                    }}
+                                                />
+                                                <Button type="button" onClick={handleAddSize} size="icon">
+                                                    <Plus className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2">
+                                                {formData.sizes.map((size, index) => (
+                                                    <Badge key={index} variant="outline" className="px-2 py-1 flex items-center gap-1">
+                                                        {size}
+                                                        <X
+                                                            className="h-3 w-3 cursor-pointer hover:text-destructive"
+                                                            onClick={() => handleRemoveSize(size)}
+                                                        />
+                                                    </Badge>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="border p-4 rounded-lg space-y-4 bg-slate-50/30">
+                                    <div className="flex items-center justify-between">
+                                        <Label className="font-bold">الألوان</Label>
                                         <Switch
                                             checked={formData.has_colors}
                                             onCheckedChange={(checked) => setFormData({ ...formData, has_colors: checked })}
                                         />
                                     </div>
                                     {formData.has_colors && (
-                                        <div className="space-y-3">
+                                        <div className="space-y-3 p-2 bg-white rounded-md border border-slate-100">
                                             <div className="flex gap-2">
                                                 <Input
                                                     value={inputColor}
@@ -515,47 +556,6 @@ export default function AdminProducts() {
                                                         <X
                                                             className="h-3 w-3 cursor-pointer hover:text-destructive"
                                                             onClick={() => handleRemoveColor(color)}
-                                                        />
-                                                    </Badge>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="border p-4 rounded-lg space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <Label>المقاسات</Label>
-                                        <Switch
-                                            checked={formData.has_sizes}
-                                            onCheckedChange={(checked) => setFormData({ ...formData, has_sizes: checked })}
-                                        />
-                                    </div>
-                                    {formData.has_sizes && (
-                                        <div className="space-y-3">
-                                            <div className="flex gap-2">
-                                                <Input
-                                                    value={inputSize}
-                                                    onChange={(e) => setInputSize(e.target.value)}
-                                                    placeholder="أضف مقاس..."
-                                                    onKeyDown={(e) => {
-                                                        if (e.key === 'Enter') {
-                                                            e.preventDefault();
-                                                            handleAddSize();
-                                                        }
-                                                    }}
-                                                />
-                                                <Button type="button" onClick={handleAddSize} size="icon">
-                                                    <Plus className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                            <div className="flex flex-wrap gap-2">
-                                                {formData.sizes.map((size, index) => (
-                                                    <Badge key={index} variant="outline" className="px-2 py-1 flex items-center gap-1">
-                                                        {size}
-                                                        <X
-                                                            className="h-3 w-3 cursor-pointer hover:text-destructive"
-                                                            onClick={() => handleRemoveSize(size)}
                                                         />
                                                     </Badge>
                                                 ))}

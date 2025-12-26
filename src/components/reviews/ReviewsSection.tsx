@@ -88,7 +88,7 @@ export const ReviewsSection = ({ productId }: ReviewsSectionProps) => {
     };
 
     return (
-        <div className="space-y-8 mt-12 bg-slate-50 p-6 rounded-2xl">
+        <div className="space-y-8 mt-12">
             <h2 className="text-2xl font-bold flex items-center gap-2">
                 <Star className="fill-yellow-400 text-yellow-400" />
                 التقييمات والآراء

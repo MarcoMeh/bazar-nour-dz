@@ -72,11 +72,12 @@ export const AdminSidebar = () => {
         })}
       </nav>
       <div className="border-t p-4 space-y-2">
-        <Link to="/">
-          <Button variant="outline" className="w-full justify-start gap-3">
-            <Store className="h-5 w-5" />
-            الرئيسية
-          </Button>
+        <Link
+          to="/"
+          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+        >
+          <Store className="h-5 w-5" />
+          الرئيسية
         </Link>
         <Button variant="ghost" className="w-full justify-start gap-3 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={handleLogout}>
           <LogOut className="h-5 w-5" />

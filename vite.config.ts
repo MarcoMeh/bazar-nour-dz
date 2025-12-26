@@ -15,8 +15,8 @@ export default defineConfig(({ mode }) => ({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'robots.txt', 'sitemap.xml'],
       manifest: {
-        name: 'Bazarna - بازارنا',
-        short_name: 'Bazarna',
+        name: 'Bazzarna - بازارنا',
+        short_name: 'Bazzarna',
         description: 'وجهتك الأولى للتسوق الإلكتروني في الجزائر',
         theme_color: '#1e3a5f',
         background_color: '#ffffff',
