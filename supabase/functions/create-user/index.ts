@@ -19,7 +19,7 @@ serve(async (req) => {
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
         )
 
-        const { email, password, fullName, phone, address, storeName, role } = await req.json()
+        const { email, password, fullName, phone, address, storeName, role, description } = await req.json()
 
         // 1. Create the user in Auth
         const { data: userData, error: userError } = await supabaseAdmin.auth.admin.createUser({
@@ -37,9 +37,6 @@ serve(async (req) => {
         const userId = userData.user.id
 
         // 2. Update the profile with additional details
-        // Note: The 'handle_new_user' trigger might have already created the profile, 
-        // so we should try to update it. If not, we insert.
-        // However, since we are admin, we can just upsert.
         const { error: profileError } = await supabaseAdmin
             .from('profiles')
             .upsert({
@@ -55,39 +52,69 @@ serve(async (req) => {
 
         if (profileError) throw profileError
 
-        // 3. Create the Store (Category) if provided
+        // 3. Create the Store in the 'stores' table
+        let storeId = null;
+        if (storeName) {
+            const { data: storeData, error: storeError } = await supabaseAdmin
+                .from('stores')
+                .insert({
+                    owner_id: userId,
+                    name: storeName,
+                    description: description || null,
+                    is_active: true,
+                    phone_numbers: phone ? [phone] : []
+                })
+                .select()
+                .single()
+
+            if (storeError) throw storeError
+            storeId = storeData.id
+        }
+
+        // 4. Create the Category for backward compatibility if needed
         let categoryId = null;
         if (storeName) {
-            // Check if store exists
-            const { data: existingStore } = await supabaseAdmin
+            // Check if category exists
+            const { data: existingCat } = await supabaseAdmin
                 .from('categories')
                 .select('id')
-                .eq('name', storeName) // Assuming column is 'name' based on previous fixes
+                .eq('name', storeName)
                 .maybeSingle()
 
-            if (existingStore) {
-                categoryId = existingStore.id
+            if (existingCat) {
+                categoryId = existingCat.id
             } else {
-                // Create new store
+                // Create new category
                 const slug = `${storeName.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}`
-                const { data: newStore, error: storeError } = await supabaseAdmin
+                const { data: newCat, error: catError } = await supabaseAdmin
                     .from('categories')
                     .insert({
                         name: storeName,
-                        name_ar: storeName, // Keeping both for compatibility if needed
+                        name_ar: storeName,
                         slug: slug,
-                        parent_id: null // Or fetch 'ourstores' id if needed, but keeping simple for now
+                        parent_id: null
                     })
                     .select()
                     .single()
 
-                if (storeError) throw storeError
-                categoryId = newStore.id
+                if (!catError) {
+                    categoryId = newCat.id
+
+                    // Link store to this new category in junction table
+                    if (storeId) {
+                        await supabaseAdmin
+                            .from('store_category_relations')
+                            .insert({
+                                store_id: storeId,
+                                category_id: categoryId
+                            })
+                    }
+                }
             }
         }
 
         return new Response(
-            JSON.stringify({ user: userData.user, categoryId }),
+            JSON.stringify({ user: userData.user, storeId, categoryId }),
             {
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' },
                 status: 200,

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { createClient } from '@supabase/supabase-js';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -67,7 +68,7 @@ const StoreRegistrations = () => {
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
-            setRequests(data || []);
+            setRequests((data as unknown as StoreRequest[]) || []);
         } catch (error: any) {
             console.error('Error fetching requests:', error);
             toast.error('خطأ في تحميل الطلبات');
@@ -83,24 +84,104 @@ const StoreRegistrations = () => {
     };
 
     const handleUpdateStatus = async (requestId: string, status: 'approved' | 'rejected') => {
+        if (!selectedRequest) return;
+
         setActionLoading(true);
         try {
+            // 1. If approved, create the user account and store
+            if (status === 'approved') {
+                const autoPassword = selectedRequest.phone + '05';
+
+                // Temporary client to create user without logging out admin
+                const tempClient = createClient(
+                    import.meta.env.VITE_SUPABASE_URL,
+                    import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+                    {
+                        auth: {
+                            persistSession: false,
+                            autoRefreshToken: false,
+                            detectSessionInUrl: false,
+                        },
+                    }
+                );
+
+                // A. Create Auth User
+                const { data: authData, error: authError } = await tempClient.auth.signUp({
+                    email: selectedRequest.email,
+                    password: autoPassword,
+                    options: {
+                        data: {
+                            full_name: selectedRequest.owner_name,
+                            role: 'store_owner',
+                        },
+                        emailRedirectTo: window.location.origin,
+                    },
+                });
+
+                if (authError) {
+                    if (authError.message?.includes('already registered')) {
+                        throw new Error("البريد الإلكتروني هذا مسجل مسبقاً في النظام");
+                    }
+                    throw authError;
+                }
+
+                if (!authData.user) throw new Error("فشل في إنشاء الحساب في Auth");
+                const userId = authData.user.id;
+
+                // B. Create Profile (using RPC to bypass RLS)
+                const { error: profileError } = await supabase.rpc('create_profile_for_user', {
+                    user_id: userId,
+                    user_email: selectedRequest.email,
+                    user_role: 'store_owner',
+                    user_full_name: selectedRequest.owner_name,
+                    user_phone: selectedRequest.phone,
+                    user_address: selectedRequest.wilaya, // Use wilaya as initial address
+                });
+
+                if (profileError) {
+                    console.error("Profile creation error:", profileError);
+                    throw new Error("فشل في إنشاء ملف المستخدم التقني");
+                }
+
+                // C. Create Store Record
+                const { data: storeData, error: storeError } = await supabase
+                    .from('stores')
+                    .insert({
+                        owner_id: userId,
+                        name: selectedRequest.store_name,
+                        description: selectedRequest.description,
+                        is_active: true,
+                        phone_numbers: selectedRequest.phone ? [selectedRequest.phone] : []
+                    })
+                    .select()
+                    .single();
+
+                if (storeError) {
+                    console.error("Store record error:", storeError);
+                    throw new Error("فشل في إنشاء سجل المحل في قاعدة البيانات");
+                }
+
+                toast.success('تم إنشاء حساب التاجر وتجهيز المحل بنجاح');
+            }
+
+            // 2. Update the request status
             const { error } = await supabase
                 .from('store_registration_requests' as any)
                 .update({
                     status,
                     admin_notes: adminNotes || null,
+                    updated_at: new Date().toISOString(),
                 })
                 .eq('id', requestId);
 
             if (error) throw error;
 
-            toast.success(status === 'approved' ? 'تمت الموافقة على الطلب' : 'تم رفض الطلب');
+            toast.success(status === 'approved' ? 'تمت الموافقة على الطلب وتفعيل الحساب' : 'تم رفض الطلب');
             setDetailsOpen(false);
             fetchRequests();
         } catch (error: any) {
             console.error('Error updating status:', error);
-            toast.error('خطأ في تحديث الحالة');
+            toast.error(error.message || 'خطأ في تحديث الحالة');
         } finally {
             setActionLoading(false);
         }

@@ -51,7 +51,7 @@ export const Footer = () => {
                                     src={(!logoError && settings?.logo_url) ? settings.logo_url : LogoImg}
                                     alt={settings?.site_name || "Logo"}
                                     onError={() => setLogoError(true)}
-                                    className={`h-10 md:h-12 w-auto object-contain transition-transform group-hover:scale-105 ${(!logoError && settings?.logo_url) ? 'brightness-0 invert opacity-90' : ''}`}
+                                    className="h-10 md:h-12 w-auto object-contain transition-transform group-hover:scale-105"
                                 />
                                 {(!settings?.logo_url || logoError) && (
                                     <span className="text-2xl font-bold text-white tracking-tight">{settings?.site_name || "بازارنا"}</span>
