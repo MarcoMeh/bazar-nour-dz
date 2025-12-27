@@ -79,6 +79,9 @@ export default function Stores() {
 
                 query = query.eq("is_active", true);
 
+                // Filter out manually suspended stores
+                query = query.or("is_manually_suspended.is.false,is_manually_suspended.is.null");
+
                 // شرط الاشتراك (اختياري حسب بياناتك)
                 query = query.or(`subscription_end_date.gt.${new Date().toISOString()},subscription_end_date.is.null`);
 

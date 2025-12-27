@@ -206,6 +206,7 @@ const Home = () => {
                 )
             `)
             .eq("is_active", true)
+            .or(`is_manually_suspended.is.false,is_manually_suspended.is.null`)
             .or(`subscription_end_date.gt.${new Date().toISOString()},subscription_end_date.is.null`)
             .limit(8);
 
@@ -230,8 +231,12 @@ const Home = () => {
             .from("products")
             .select(`
                 *,
-                categories!inner(name, parent:parent_id(name))
+                categories!inner(name, parent:parent_id(name)),
+                stores!inner(*)
             `)
+            .eq("stores.is_active", true)
+            .or(`is_manually_suspended.is.false,is_manually_suspended.is.null`, { foreignTable: 'stores' })
+            .or(`subscription_end_date.gt.${new Date().toISOString()},subscription_end_date.is.null`, { foreignTable: 'stores' })
             .order("created_at", { ascending: false })
             .limit(8);
 
@@ -584,7 +589,7 @@ const Home = () => {
                             <p className="text-gray-500 mb-6">هل أنت تاجر؟ انضم إلينا اليوم وابدأ رحلتك في التجارة الإلكترونية</p>
                             <Link to="/seller-register">
                                 <Button size="lg" className="rounded-full px-10 h-14 text-lg font-bold bg-gray-900 text-white hover:bg-gray-800 shadow-xl shadow-gray-900/10 hover:shadow-gray-900/20 transform hover:-translate-y-1 transition-all">
-                                    افتح متجرك مجاناً
+                                    أنشئ متجرك الآن
                                 </Button>
                             </Link>
                         </div>

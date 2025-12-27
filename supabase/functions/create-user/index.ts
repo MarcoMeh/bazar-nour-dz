@@ -61,7 +61,7 @@ serve(async (req) => {
                     owner_id: userId,
                     name: storeName,
                     description: description || null,
-                    is_active: true,
+                    is_active: false,
                     phone_numbers: phone ? [phone] : []
                 })
                 .select()

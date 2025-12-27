@@ -27,6 +27,10 @@ AS $$
       ) as subcategory_data
     FROM public.products p
     JOIN public.flash_sale_items f ON p.id = f.product_id
+    JOIN public.stores st ON p.store_id = st.id
+    WHERE st.is_active = true 
+      AND (st.is_manually_suspended IS FALSE OR st.is_manually_suspended IS NULL)
+      AND (st.subscription_end_date > NOW() OR st.subscription_end_date IS NULL)
     ORDER BY f.created_at DESC
   ) p_data;
 $$;

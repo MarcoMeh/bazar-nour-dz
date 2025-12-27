@@ -30,7 +30,7 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { CheckCircle, XCircle, Eye, Loader2, Filter } from 'lucide-react';
+import { CheckCircle, XCircle, Eye, Loader2, Filter, Trash2 } from 'lucide-react';
 
 interface StoreRequest {
     id: string;
@@ -40,6 +40,7 @@ interface StoreRequest {
     email: string;
     wilaya: string;
     description: string | null;
+    selected_plan: string | null;
     status: 'pending' | 'approved' | 'rejected';
     admin_notes: string | null;
     created_at: string;
@@ -150,7 +151,7 @@ const StoreRegistrations = () => {
                         owner_id: userId,
                         name: selectedRequest.store_name,
                         description: selectedRequest.description,
-                        is_active: true,
+                        is_active: false,
                         phone_numbers: selectedRequest.phone ? [selectedRequest.phone] : []
                     })
                     .select()
@@ -187,6 +188,29 @@ const StoreRegistrations = () => {
         }
     };
 
+    const handleDeleteRequest = async (requestId: string) => {
+        if (!confirm('هل أنت متأكد من حذف هذا الطلب نهائياً من القائمة؟')) return;
+
+        setActionLoading(true);
+        try {
+            const { error } = await supabase
+                .from('store_registration_requests' as any)
+                .delete()
+                .eq('id', requestId);
+
+            if (error) throw error;
+
+            toast.success('تم حذف الطلب بنجاح');
+            fetchRequests();
+            if (detailsOpen) setDetailsOpen(false);
+        } catch (error: any) {
+            console.error('Error deleting request:', error);
+            toast.error('خطأ في حذف الطلب');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
     const getStatusBadge = (status: string) => {
         switch (status) {
             case 'pending':
@@ -208,6 +232,19 @@ const StoreRegistrations = () => {
             hour: '2-digit',
             minute: '2-digit',
         });
+    };
+
+    const getPlanLabel = (plan: string | null) => {
+        switch (plan) {
+            case '1_month':
+                return '1 شهر (3,000 دج)';
+            case '3_months':
+                return '3 أشهر (8,100 دج)';
+            case '12_months':
+                return '12 شهر (28,800 دج)';
+            default:
+                return plan || 'غير محدد';
+        }
     };
 
     const filteredRequests = requests.filter((req) => {
@@ -280,6 +317,7 @@ const StoreRegistrations = () => {
                             <TableHead className="text-right">اسم المحل</TableHead>
                             <TableHead className="text-right">رقم الهاتف</TableHead>
                             <TableHead className="text-right">الولاية</TableHead>
+                            <TableHead className="text-right">الباقة</TableHead>
                             <TableHead className="text-right">تاريخ الطلب</TableHead>
                             <TableHead className="text-right">الحالة</TableHead>
                             <TableHead className="text-right">الإجراءات</TableHead>
@@ -306,20 +344,37 @@ const StoreRegistrations = () => {
                                     <TableCell>{request.store_name}</TableCell>
                                     <TableCell dir="ltr" className="text-right">{request.phone}</TableCell>
                                     <TableCell>{request.wilaya}</TableCell>
+                                    <TableCell>
+                                        <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200">
+                                            {getPlanLabel(request.selected_plan)}
+                                        </Badge>
+                                    </TableCell>
                                     <TableCell className="text-sm text-muted-foreground">
                                         {formatDate(request.created_at)}
                                     </TableCell>
                                     <TableCell>{getStatusBadge(request.status)}</TableCell>
                                     <TableCell>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => handleViewDetails(request)}
-                                            className="gap-2"
-                                        >
-                                            <Eye className="h-4 w-4" />
-                                            عرض
-                                        </Button>
+                                        <div className="flex gap-2">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => handleViewDetails(request)}
+                                                className="gap-2"
+                                            >
+                                                <Eye className="h-4 w-4" />
+                                                عرض
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => handleDeleteRequest(request.id)}
+                                                disabled={actionLoading}
+                                                className="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                                حذف
+                                            </Button>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ))
@@ -361,6 +416,10 @@ const StoreRegistrations = () => {
                                 <div>
                                     <Label className="text-sm text-muted-foreground">الولاية</Label>
                                     <p className="text-lg font-semibold mt-1">{selectedRequest.wilaya}</p>
+                                </div>
+                                <div>
+                                    <Label className="text-sm text-muted-foreground">الباقة المختارة</Label>
+                                    <p className="text-lg font-bold mt-1 text-green-700">{getPlanLabel(selectedRequest.selected_plan)}</p>
                                 </div>
                                 <div>
                                     <Label className="text-sm text-muted-foreground">الحالة</Label>
@@ -430,24 +489,44 @@ const StoreRegistrations = () => {
                                         )}
                                         رفض الطلب
                                     </Button>
+                                    <Button
+                                        onClick={() => handleDeleteRequest(selectedRequest.id)}
+                                        disabled={actionLoading}
+                                        variant="outline"
+                                        className="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                                        title="حذف الطلب نهائياً"
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
                                 </div>
                             )}
 
                             {selectedRequest.status !== 'pending' && (
-                                <Card className="p-4 bg-muted">
-                                    <p className="text-sm text-center">
-                                        {selectedRequest.status === 'approved'
-                                            ? '✅ تمت الموافقة على هذا الطلب'
-                                            : '❌ تم رفض هذا الطلب'
-                                        }
-                                    </p>
-                                    {selectedRequest.admin_notes && (
-                                        <div className="mt-3 pt-3 border-t">
-                                            <Label className="text-xs text-muted-foreground">ملاحظات سابقة:</Label>
-                                            <p className="text-sm mt-1">{selectedRequest.admin_notes}</p>
-                                        </div>
-                                    )}
-                                </Card>
+                                <div className="space-y-4">
+                                    <Card className="p-4 bg-muted">
+                                        <p className="text-sm text-center">
+                                            {selectedRequest.status === 'approved'
+                                                ? '✅ تمت الموافقة على هذا الطلب'
+                                                : '❌ تم رفض هذا الطلب'
+                                            }
+                                        </p>
+                                        {selectedRequest.admin_notes && (
+                                            <div className="mt-3 pt-3 border-t">
+                                                <Label className="text-xs text-muted-foreground">ملاحظات سابقة:</Label>
+                                                <p className="text-sm mt-1">{selectedRequest.admin_notes}</p>
+                                            </div>
+                                        )}
+                                    </Card>
+                                    <Button
+                                        onClick={() => handleDeleteRequest(selectedRequest.id)}
+                                        variant="outline"
+                                        className="w-full gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                                        disabled={actionLoading}
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                        حذف هذا الطلب من القائمة
+                                    </Button>
+                                </div>
                             )}
                         </div>
                     )}

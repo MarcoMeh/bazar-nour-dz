@@ -77,6 +77,7 @@ async function fetchStores(filters: StoreFilters = {}): Promise<StoresResponse> 
     }
 
     query = query.eq('is_active', true)
+        .or(`is_manually_suspended.is.false,is_manually_suspended.is.null`)
         .or(`subscription_end_date.gt.${new Date().toISOString()},subscription_end_date.is.null`);
 
     if (search) {
@@ -119,6 +120,7 @@ async function fetchStoreById(storeId: string): Promise<Store | null> {
         .select('*')
         .eq('id', storeId)
         .eq('is_active', true)
+        .or(`is_manually_suspended.is.false,is_manually_suspended.is.null`)
         .or(`subscription_end_date.gt.${new Date().toISOString()},subscription_end_date.is.null`)
         .single();
 
@@ -136,6 +138,7 @@ async function fetchStoreBySlug(slug: string): Promise<Store | null> {
         .select('*')
         .eq('slug', slug)
         .eq('is_active', true)
+        .or(`is_manually_suspended.is.false,is_manually_suspended.is.null`)
         .or(`subscription_end_date.gt.${new Date().toISOString()},subscription_end_date.is.null`)
         .single();
 

@@ -171,16 +171,66 @@ export default function AdminStores() {
     const handleDelete = async () => {
         if (!deleteId) return;
 
-        const { error } = await supabase.from("stores").delete().eq("id", deleteId);
-
-        if (error) {
-            toast.error("فشل في حذف المحل");
-            console.error(error);
-        } else {
-            toast.success("تم حذف المحل بنجاح");
-            fetchStores();
+        const storeToDelete = stores.find(s => s.id === deleteId);
+        if (!storeToDelete) {
+            setDeleteId(null);
+            return;
         }
-        setDeleteId(null);
+
+        console.log("Starting manual database cleanup for store:", deleteId);
+
+        try {
+            setLoading(true);
+
+            // 1. Cleanup dependencies manually to avoid FK blocks
+            // First, get product IDs for this store to clean up their dependencies
+            const { data: storeProducts } = await supabase
+                .from('products')
+                .select('id')
+                .eq('store_id', deleteId);
+
+            const productIds = storeProducts?.map(p => p.id) || [];
+
+            if (productIds.length > 0) {
+                // Delete order items linked to these products
+                await supabase.from('order_items' as any).delete().in('product_id', productIds);
+                // Delete reviews linked to these products
+                await supabase.from('reviews' as any).delete().in('product_id', productIds);
+                // Delete flash sale items
+                await supabase.from('flash_sale_items' as any).delete().in('product_id', productIds);
+                // Delete products
+                await supabase.from('products').delete().eq('store_id', deleteId);
+            }
+
+            // Delete subscription logs
+            await supabase.from('subscription_logs' as any).delete().eq('store_id', deleteId);
+            // Delete delivery settings
+            await supabase.from('store_delivery_settings' as any).delete().eq('store_id', deleteId);
+            // Delete category relations
+            await supabase.from('store_category_relations' as any).delete().eq('store_id', deleteId);
+            // Delete notifications
+            await supabase.from('notifications' as any).delete().eq('store_id', deleteId);
+
+            // 1.5 Nullify store_id in orders to preserve history but allow store deletion
+            await supabase.from('orders' as any).update({ store_id: null }).eq('store_id', deleteId);
+
+            // 2. Finally delete the store record
+            const { error: storeError } = await supabase
+                .from('stores')
+                .delete()
+                .eq('id', deleteId);
+
+            if (storeError) throw storeError;
+
+            toast.success("تم حذف بيانات المحل والمنتجات بنجاح");
+            fetchStores();
+        } catch (err: any) {
+            console.error("Critical error during manual delete:", err);
+            toast.error(`فشل الحذف: ${err.message || "تأكد من حذف البيانات المرتبطة الأخرى أولاً"}`);
+        } finally {
+            setLoading(false);
+            setDeleteId(null);
+        }
     };
 
     const handleEdit = (store: Store) => {
@@ -924,6 +974,16 @@ export default function AdminStores() {
                                                     onClick={() => handleToggleSuspension(store)}
                                                 >
                                                     <ToggleRight className={`h-4 w-4 ${store.is_manually_suspended ? "rotate-180" : ""}`} />
+                                                </Button>
+
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                                    onClick={() => setDeleteId(store.id)}
+                                                    title="حذف المحل"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
                                                 </Button>
                                             </div>
                                         </TableCell>

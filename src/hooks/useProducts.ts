@@ -75,7 +75,14 @@ async function fetchProducts(filters: ProductFilters = {}): Promise<ProductsResp
         sortOrder = 'desc',
     } = filters;
 
-    let query: any = supabase.from('products').select('*', { count: 'exact' });
+    // Base query joining with stores to check for active status
+    let query: any = supabase.from('products').select('*, stores!inner(*)', { count: 'exact' });
+
+    // Apply store visibility filters
+    query = query
+        .eq('stores.is_active', true)
+        .or(`is_manually_suspended.is.false,is_manually_suspended.is.null`, { foreignTable: 'stores' })
+        .or(`subscription_end_date.gt.${new Date().toISOString()},subscription_end_date.is.null`, { foreignTable: 'stores' });
 
     // Apply filters
     if (storeId) {
@@ -154,8 +161,15 @@ async function fetchProducts(filters: ProductFilters = {}): Promise<ProductsResp
     const totalCount = count || 0;
     const totalPages = Math.ceil(totalCount / pageSize);
 
+    // Flatten logic: data has a 'stores' property from the join.
+    // We return only the product fields to maintain compatibility.
+    const products = (data || []).map((item: any) => {
+        const { stores, ...product } = item;
+        return product;
+    }) as Product[];
+
     return {
-        products: (data || []) as unknown as Product[],
+        products,
         totalCount,
         totalPages,
         currentPage: page,

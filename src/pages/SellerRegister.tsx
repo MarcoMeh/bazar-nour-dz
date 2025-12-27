@@ -11,6 +11,8 @@ import { toast } from 'sonner';
 import { Store, User, Phone, Mail, MapPin, FileText, Loader2 } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { PageBackground } from "@/type_defs";
+import { useSiteSettings } from '@/hooks/useSiteSettings';
+import { Check, ShieldCheck, Zap } from 'lucide-react';
 
 // الولايات الجزائرية
 const WILAYAS = [
@@ -34,6 +36,7 @@ const SellerRegister = () => {
         email: '',
         wilaya: '',
         description: '',
+        selected_plan: '',
     });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -50,7 +53,15 @@ const SellerRegister = () => {
         });
     };
 
+    const handlePlanChange = (value: string) => {
+        setFormData({
+            ...formData,
+            selected_plan: value,
+        });
+    };
+
     const [registerBackground, setRegisterBackground] = useState<string | null>(null);
+    const { data: settings } = useSiteSettings();
 
     useEffect(() => {
         const fetchBackground = async () => {
@@ -72,8 +83,8 @@ const SellerRegister = () => {
         e.preventDefault();
 
         // Validation
-        if (!formData.owner_name || !formData.store_name || !formData.phone || !formData.email || !formData.wilaya) {
-            toast.error('الرجاء ملء جميع الحقول المطلوبة');
+        if (!formData.owner_name || !formData.store_name || !formData.phone || !formData.email || !formData.wilaya || !formData.selected_plan) {
+            toast.error('الرجاء ملء جميع الحقول المطلوبة واختيار اشتراك');
             return;
         }
 
@@ -105,6 +116,7 @@ const SellerRegister = () => {
                         email: formData.email,
                         wilaya: formData.wilaya,
                         description: formData.description || null,
+                        selected_plan: formData.selected_plan,
                         status: 'pending',
                     },
                 ]);
@@ -121,6 +133,7 @@ const SellerRegister = () => {
                 email: '',
                 wilaya: '',
                 description: '',
+                selected_plan: '',
             });
 
             // Navigate to home after 2 seconds
@@ -285,11 +298,82 @@ const SellerRegister = () => {
                                 />
                             </div>
 
+                            {/* Subscription Plans */}
+                            <div className="space-y-4 pt-2">
+                                <Label className="text-lg flex items-center gap-2 mb-2">
+                                    <Zap className="h-5 w-5 text-green-600" />
+                                    اختر نوع الاشتراك <span className="text-red-500">*</span>
+                                </Label>
+                                <div className="grid grid-cols-1 gap-4">
+                                    {[
+                                        { id: '1_month', label: '1 شهر', price: '3,000 دج', discount: null },
+                                        { id: '3_months', label: '3 أشهر', price: '8,100 دج', original: '9,000 دج', discount: 'تخفيض 10%' },
+                                        { id: '12_months', label: '12 شهر (سنة)', price: '28,800 دج', original: '36,000 دج', discount: 'تخفيض 20%' },
+                                    ].map((plan) => (
+                                        <div
+                                            key={plan.id}
+                                            onClick={() => handlePlanChange(plan.id)}
+                                            className={`relative p-4 md:p-5 border-2 rounded-2xl cursor-pointer transition-all ${formData.selected_plan === plan.id
+                                                ? 'border-green-600 bg-green-50 shadow-md'
+                                                : 'border-slate-100 hover:border-green-200'
+                                                }`}
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${formData.selected_plan === plan.id ? 'border-green-600 bg-green-600' : 'border-slate-300'
+                                                        }`}>
+                                                        {formData.selected_plan === plan.id && <Check className="h-4 w-4 text-white" />}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-lg">{plan.label}</p>
+                                                        {plan.discount && (
+                                                            <span className="text-[10px] bg-green-200 text-green-800 px-2 py-0.5 rounded-full font-bold">
+                                                                {plan.discount}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className="text-left">
+                                                    {plan.original && (
+                                                        <p className="text-xs text-slate-400 line-through">{plan.original}</p>
+                                                    )}
+                                                    <p className="font-black text-xl text-green-700">{plan.price}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Contact Box */}
+                            {(settings?.whatsapp_number || settings?.email) && (
+                                <Card className="p-4 bg-green-50/50 border-green-100 border-dashed">
+                                    <p className="text-sm font-bold text-green-800 mb-2 flex items-center gap-2">
+                                        <ShieldCheck className="h-4 w-4" />
+                                        للمساعدة والتواصل المباشر:
+                                    </p>
+                                    <div className="flex flex-wrap gap-4 text-xs">
+                                        {settings?.whatsapp_number && (
+                                            <div className="flex items-center gap-1 text-slate-600">
+                                                <span className="font-bold">واتساب:</span>
+                                                <span dir="ltr">{settings.whatsapp_number}</span>
+                                            </div>
+                                        )}
+                                        {settings?.email && (
+                                            <div className="flex items-center gap-1 text-slate-600">
+                                                <span className="font-bold">إيميل:</span>
+                                                <span>{settings.email}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </Card>
+                            )}
+
                             {/* Info Box */}
                             <Card className="p-4 bg-blue-50 border-blue-200">
                                 <p className="text-sm text-blue-800">
-                                    <strong>ملاحظة:</strong> بعد إرسال الطلب، سيقوم فريقنا بمراجعة معلوماتك
-                                    والتواصل معك خلال 24-48 ساعة لإكمال عملية التسجيل.
+                                    <strong>ملاحظة:</strong> بعد إرسال الطلب واختيار الباقة، سيقوم فريقنا بمراجعة معلوماتك
+                                    والتواصل معك خلال 24-48 ساعة لتفعيل حسابك .
                                 </p>
                             </Card>
 
