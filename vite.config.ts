@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    react(),
+
     // VitePWA({...}) // Temporarily disabled for debugging
   ].filter(Boolean),
   resolve: {
