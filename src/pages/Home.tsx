@@ -32,6 +32,14 @@ import {
 import Autoplay from "embla-carousel-autoplay";
 import SEO from "@/components/SEO";
 import { useInView } from "react-intersection-observer";
+// import Spline from '@splinetool/react-spline'; // REMOVED
+import { Canvas } from "@react-three/fiber";
+import { useGLTF, Stage, Float, PresentationControls } from "@react-three/drei";
+
+function Model(props: any) {
+    const { scene } = useGLTF("/models/t-shirt-3D.gltf");
+    return <primitive object={scene} {...props} />;
+}
 
 // Assets
 import { PageBackground } from "@/type_defs";
@@ -328,43 +336,62 @@ const Home = () => {
                 `}
             </style>
 
-            {/* 1. HERO SECTION */}
+            {/* 1. HERO SECTION - 3D ENSEMBLE EDITION */}
             {settings.hero_visible && (
                 <section className="relative min-h-[65vh] md:min-h-[90vh] flex items-center justify-center overflow-hidden">
-                    {/* Background with Overlay */}
+
+                    {/* Background Layer (Image + 3D Overlay) */}
                     <div className="absolute inset-0 z-0 overflow-hidden">
+                        {/* 1. Original Image Background */}
                         <img
                             src={heroBackground}
                             alt="Hero Background"
-                            className="w-full h-full object-cover object-top md:object-center transform scale-105 animate-subtle-zoom transition-all duration-1000"
+                            className="absolute inset-0 w-full h-full object-cover object-top md:object-center transform scale-105 animate-subtle-zoom transition-all duration-1000"
                         />
-                        {/* 3D Floating Elements */}
-                        <div className="absolute top-[15%] right-[10%] opacity-20 transform-gpu animate-float blur-[1px]">
-                            <Shirt className="w-48 h-48 md:w-64 md:h-64 text-white rotate-[15deg]" strokeWidth={0.5} />
-                        </div>
-                        <div className="absolute bottom-[25%] left-[5%] opacity-10 transform-gpu animate-float-slow blur-[2px]">
-                            <BagIcon className="w-40 h-40 md:w-56 md:h-56 text-white rotate-[-12deg]" strokeWidth={0.5} />
-                        </div>
-                        <div className="absolute top-[40%] left-[15%] opacity-20 transform-gpu animate-float-reverse">
-                            <Sparkles className="w-16 h-16 text-yellow-300 blur-[1px]" />
+
+                        {/* 2. Dark Overlays for Text Readability */}
+                        <div className="absolute inset-0 bg-gradient-to-tr from-slate-950 via-slate-900/60 to-indigo-950/40"></div>
+                        <div className="absolute inset-0 bg-black/40"></div>
+
+                        {/* 3. 3D React Three Fiber Scene - T-Shirt Model */}
+                        <div className="absolute inset-0 z-10">
+                            <Canvas dpr={[1, 2]} camera={{ fov: 45 }} resize={{ scroll: false }}>
+                                <ambientLight intensity={0.5} />
+                                <PresentationControls
+                                    speed={1.5}
+                                    global
+                                    zoom={0.5}
+                                    polar={[-0.1, Math.PI / 4]}
+                                    rotation={[Math.PI / 8, Math.PI / 4, 0]}
+                                >
+                                    <Stage environment="city" intensity={0.6} shadows={{ opacity: 0.5, blur: 2 } as any}>
+                                        <Float
+                                            speed={2}
+                                            rotationIntensity={1.5}
+                                            floatIntensity={2}
+                                            floatingRange={[-0.2, 0.2]}
+                                        >
+                                            <Model scale={0.8} />
+                                        </Float>
+                                    </Stage>
+                                </PresentationControls>
+                            </Canvas>
                         </div>
 
-                        {/* More complex gradient for depth */}
-                        <div className="absolute inset-0 bg-gradient-to-tr from-slate-950 via-slate-900/60 to-indigo-950/40"></div>
-                        <div className="absolute inset-0 bg-black/20"></div>
-                        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay"></div>
+                        {/* Pattern Overlay */}
+                        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay z-20"></div>
                     </div>
 
-                    <div className="container mx-auto px-4 relative z-10 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center pt-8 pb-12 md:pt-0 md:pb-0">
-                        {/* Text Content */}
-                        <div className="text-white space-y-8 md:space-y-10 text-right order-2 lg:order-1">
+                    <div className="container mx-auto px-4 relative z-10 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center pt-8 pb-12 md:pt-0 md:pb-0 pointer-events-none">
+                        {/* Text Content - Enable pointer events for text/buttons */}
+                        <div className="text-white space-y-8 md:space-y-10 text-right order-2 lg:order-1 pointer-events-auto">
                             <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 animate-fade-in shadow-2xl">
                                 <Sparkles className="w-4 h-4 text-yellow-400 fill-yellow-400" />
                                 <span className="text-white font-black text-xs md:text-sm tracking-widest uppercase">الأناقة تبدأ من هنا</span>
                             </div>
 
                             <h1 className="text-5xl md:text-7xl lg:text-8xl font-black leading-tight animate-slide-up tracking-tighter">
-                                <span className="block mb-2">عالمك الخاص</span>
+                                <span className="block mb-2 text-white">عالمك الخاص</span>
                                 <span className="text-transparent bg-clip-text bg-gradient-to-l from-yellow-300 via-amber-200 to-yellow-100 drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]">
                                     للتميز والأناقة
                                 </span>
@@ -375,7 +402,7 @@ const Home = () => {
                                 <span className="text-yellow-400 font-black block mt-2">توصيل لكل الولايات • دفع عند الاستلام</span>
                             </p>
 
-                            {/* Search Bar - WOW Edition */}
+                            {/* Search Bar - Original WOW Edition */}
                             <form onSubmit={handleSearch} className="relative max-w-xl animate-slide-up delay-300">
                                 <div className="relative group">
                                     <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 via-orange-500 to-amber-600 rounded-full blur-xl opacity-25 group-hover:opacity-60 transition duration-700"></div>
@@ -398,7 +425,7 @@ const Home = () => {
                                 </div>
                             </form>
 
-                            {/* Trust Badges - Glassmorphism */}
+                            {/* Trust Badges - Original Glassmorphism */}
                             <div className="flex flex-wrap gap-4 pt-4 animate-slide-up delay-500">
                                 <div className="group flex items-center gap-4 bg-white/5 backdrop-blur-2xl px-6 py-4 rounded-2xl border border-white/10 hover:border-white/30 transition-all duration-500 cursor-default hover:-translate-y-2">
                                     <div className="p-3 bg-yellow-400/20 rounded-xl text-yellow-400 group-hover:bg-yellow-400 group-hover:text-black transition-colors duration-500 shadow-inner">
@@ -422,19 +449,15 @@ const Home = () => {
                         </div>
                     </div>
 
-                    {/* Dynamic Section Divider - Gradient Transition */}
-                    <div className="absolute bottom-0 inset-x-0 h-16 md:h-24 bg-gradient-to-t from-[#FAFAFA] to-transparent z-0"></div>
-
                     {/* Scroll Indicator */}
-                    <div className="absolute bottom-10 left-10 hidden md:flex flex-col items-center gap-4 text-white/40 transition-opacity hover:text-white/80 cursor-pointer group">
-                        <span className="text-[10px] font-black tracking-[0.3em] vertical-text">SCROLL</span>
-                        <div className="w-px h-16 bg-white/20 relative overflow-hidden">
-                            <div className="absolute inset-x-0 h-4 bg-white animate-scroll-line"></div>
+                    <div className="absolute bottom-10 left-10 hidden md:flex flex-col items-center gap-4 text-gray-400 mix-blend-multiply">
+                        <span className="text-[10px] font-bold tracking-[0.3em] vertical-text">SCROLL</span>
+                        <div className="w-px h-16 bg-gray-300 relative overflow-hidden">
+                            <div className="absolute inset-x-0 h-4 bg-gray-800 animate-scroll-line"></div>
                         </div>
                     </div>
                 </section>
             )}
-
             {/* 2. FEATURED STORES */}
             {settings.stores_visible && (
                 <section

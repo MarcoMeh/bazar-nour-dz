@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1000</width>
+    <height>700</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>تسجيل الدخول</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+    QWidget { font-family: 'Segoe UI', 'Roboto', sans-serif; }
+
+    /* Right Panel Background */
+    #loginPanel { 
+        background-color: #F9F7F0; /* Soft Cream */
+        border-left: 2px solid #EBE5D9;
+    }
+
+    /* Titles */
+    #lblWelcome { 
+        font-size: 38px; 
+        font-weight: 800; 
+        color: #0F4D39; /* Deep Emerald Green */
+        margin-bottom: 10px; 
+    }
+    #lblSub { 
+        font-size: 16px; 
+        color: #6B7B75; /* Muted Green-Grey */
+        font-weight: 500; 
+        margin-bottom: 30px; 
+    }
+
+    /* Input Fields */
+    QLineEdit { 
+        border: 1px solid #D4CEBD; 
+        border-radius: 10px; 
+        padding: 15px 20px; 
+        font-size: 15px; 
+        background-color: #FFFFFF;
+        color: #2C332F;
+        font-weight: 600;
+    }
+    /* Focus State */
+    QLineEdit:focus { 
+        border: 2px solid #C5A059; /* Gold Accent */
+        background-color: #FFFEFA;
+    }
+
+    /* Login Button */
+    QPushButton { 
+        /* Gradient from Emerald to a slightly lighter green */
+        background-color: qlineargradient(spread:pad, x1:0, y0:0, x2:1, y2:0, stop:0 #0F4D39, stop:1 #16664D);
+        color: #F3EFE0; /* Cream Text */
+        font-size: 18px; 
+        font-weight: bold; 
+        border-radius: 10px; 
+        padding: 16px; 
+        border: none; 
+        /* Subtle shadow */
+        border-bottom: 4px solid #083326;
+    }
+    QPushButton:hover { 
+        background-color: qlineargradient(spread:pad, x1:0, y0:0, x2:1, y2:0, stop:0 #16664D, stop:1 #1D8061);
+        margin-top: 2px;
+        border-bottom: 2px solid #083326; 
+    }
+    QPushButton:pressed { 
+        margin-top: 4px; 
+        border-bottom: none; 
+        background-color: #0F4D39;
+    }
+    
+    #errorLabel { color: #D32F2F; font-weight: 700; font-size: 14px; margin-top: 15px; }
+   </string>
+  </property>
+  
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <property name="spacing"> <number>0</number> </property>
+   <property name="leftMargin"> <number>0</number> </property>
+   <property name="topMargin"> <number>0</number> </property>
+   <property name="rightMargin"> <number>0</number> </property>
+   <property name="bottomMargin"> <number>0</number> </property>
+   
+   <item>
+    <widget class="QFrame" name="imagePanel">
+     <property name="frameShape"> <enum>QFrame::NoFrame</enum> </property>
+     <property name="styleSheet">
+      <string notr="true">
+       /* Optional: Adds a subtle dark overlay to the image panel to make the form pop */
+       #imagePanel { background-color: rgba(15, 77, 57, 0.1); }
+      </string>
+     </property>
+    </widget>
+   </item>
+
+   <item>
+    <widget class="QFrame" name="loginPanel">
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <property name="leftMargin"> <number>70</number> </property>
+      <property name="rightMargin"> <number>70</number> </property>
+      
+      <item> <spacer name="topPush"> <property name="orientation"> <enum>Qt::Vertical</enum> </property> </spacer> </item>
+      
+      <item> <widget class="QLabel" name="lblWelcome"> <property name="text"> <string>برنامج جرد المقتنيات الأثرية</string> </property> <property name="alignment"> <set>Qt::AlignCenter</set> </property> </widget> </item>
+      <item> <widget class="QLabel" name="lblSub"> <property name="text"> <string>سجل الدخول للمتابعة</string> </property> <property name="alignment"> <set>Qt::AlignCenter</set> </property> </widget> </item>
+      
+      <item> <spacer name="fixedSpace1"> <property name="orientation"> <enum>Qt::Vertical</enum> </property> <property name="sizeType"> <enum>QSizePolicy::Fixed</enum> </property> <property name="sizeHint" stdset="0"> <size> <width>20</width> <height>40</height> </size> </property> </spacer> </item>
+
+      <item> <widget class="QLineEdit" name="usernameInput"> <property name="placeholderText"> <string>اسم المستخدم</string> </property> </widget> </item>
+      
+      <item> <spacer name="smallSpace"> <property name="orientation"> <enum>Qt::Vertical</enum> </property> <property name="sizeType"> <enum>QSizePolicy::Fixed</enum> </property> <property name="sizeHint" stdset="0"> <size> <width>20</width> <height>20</height> </size> </property> </spacer> </item>
+
+      <item> <widget class="QLineEdit" name="passwordInput"> <property name="echoMode"> <enum>QLineEdit::Password</enum> </property> <property name="placeholderText"> <string>كلمة المرور</string> </property> </widget> </item>
+      
+      <item> <spacer name="fixedSpace2"> <property name="orientation"> <enum>Qt::Vertical</enum> </property> <property name="sizeType"> <enum>QSizePolicy::Fixed</enum> </property> <property name="sizeHint" stdset="0"> <size> <width>20</width> <height>40</height> </size> </property> </spacer> </item>
+
+      <item> <widget class="QPushButton" name="loginBtn"> <property name="cursor"> <enum>Qt::PointingHandCursor</enum> </property> <property name="text"> <string>تسجيل الدخول</string> </property> </widget> </item>
+      
+      <item> <widget class="QLabel" name="errorLabel"> <property name="text"> <string/> </property> <property name="alignment"> <set>Qt::AlignCenter</set> </property> </widget> </item>
+      
+      <item> <spacer name="bottomPush"> <property name="orientation"> <enum>Qt::Vertical</enum> </property> </spacer> </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+</ui>

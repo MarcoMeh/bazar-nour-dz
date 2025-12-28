@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1100</width>
+    <height>800</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dashboard</string>
+  </property>
+  <property name="layoutDirection">
+   <enum>Qt::RightToLeft</enum>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+    QWidget { 
+        font-family: 'Leelawadee UI', 'Segoe UI', sans-serif; 
+        background-color: transparent; 
+    }
+
+    /* === العناوين === */
+    #lblWelcome { 
+        font-size: 32px; 
+        font-weight: 800; 
+        color: #2c3e50; /* كحلي غامق */
+        margin-bottom: 5px; 
+    }
+    #lblSub { 
+        font-size: 16px; 
+        color: #607d8b; /* رمادي مزرق */
+        margin-bottom: 20px; 
+    }
+    #lblSectionTitle { 
+        font-size: 20px; 
+        font-weight: bold; 
+        color: #34495e; 
+        margin-top: 15px; 
+        margin-bottom: 10px;
+        border-right: 4px solid #c0a16b; /* لون ذهبي تراثي */
+        padding-right: 10px;
+    }
+
+    /* === البطاقات العلوية === */
+    #cardTotal, #cardStorage, #cardUsers, #cardAlert {
+        background-color: white;
+        border-radius: 12px;
+        border: 1px solid #e0e0e0;
+        border-bottom: 3px solid #cfd8dc; 
+    }
+
+    /* ألوان هادئة للبطاقات (Border Bottom) */
+    #cardTotal   { border-bottom-color: #34495e; } /* كحلي */
+    #cardStorage { border-bottom-color: #27ae60; } /* أخضر عشبي */
+    #cardUsers   { border-bottom-color: #f39c12; } /* برتقالي هادئ */
+    #cardAlert   { border-bottom-color: #c0392b; } /* أحمر قرميدي */
+
+    /* === نصوص داخل البطاقات (باستخدام الأسماء) === */
+    /* العناوين */
+    #t1, #t2, #t3, #t4 { 
+        font-size: 14px; 
+        color: #7f8c8d; 
+        font-weight: 700; 
+        text-transform: uppercase; 
+    }
+    /* القيم (الأرقام) */
+    #valArtifacts, #valStorage, #valUsers, #valAlerts { 
+        font-size: 38px; 
+        font-weight: 800; 
+        color: #2c3e50; 
+        margin-top: 5px;
+    }
+    /* الأيقونات */
+    #icon1, #icon2, #icon3, #icon4 { font-size: 40px; }
+
+    /* === الشارت والجدول === */
+    #chartFrame1, #chartFrame2, #recentContainer {
+        background-color: white;
+        border-radius: 12px;
+        border: 1px solid #e0e0e0;
+        border-bottom: 3px solid #dcdcdc;
+    }
+
+    /* الجدول */
+    QTableWidget {
+        background-color: white;
+        border: none;
+        gridline-color: #f0f0f0;
+        font-size: 14px;
+        color: #2c3e50;
+    }
+    QHeaderView::section {
+        background-color: #f8f9fa;
+        padding: 10px;
+        border: none;
+        font-weight: bold;
+        color: #546e7a;
+        border-bottom: 2px solid #e0e0e0;
+    }
+   </string>
+  </property>
+  
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing"> <number>25</number> </property>
+   <property name="margin"> <number>40</number> </property>
+   
+   <item>
+    <layout class="QVBoxLayout" name="vHeader">
+     <property name="spacing"> <number>0</number> </property>
+     <item> <widget class="QLabel" name="lblWelcome"> <property name="text"> <string>مرحباً</string> </property> </widget> </item>
+     <item> <widget class="QLabel" name="lblSub"> <property name="text"> <string>نظام إدارة المقتنيات الأثرية</string> </property> </widget> </item>
+    </layout>
+   </item>
+
+   <item>
+    <layout class="QHBoxLayout" name="hCards">
+     <property name="spacing"> <number>25</number> </property>
+     
+     <item> <widget class="QFrame" name="cardTotal"> <layout class="QHBoxLayout"> <property name="margin"> <number>20</number> </property>
+      <item> <layout class="QVBoxLayout"> <item> <widget class="QLabel" name="t1"> <property name="text"> <string>إجمالي القطع</string> </property> </widget> </item> <item> <widget class="QLabel" name="valArtifacts"> <property name="text"> <string>0</string> </property> </widget> </item> </layout> </item>
+      <item> <widget class="QLabel" name="icon1"> <property name="text"> <string>🏺</string> </property> <property name="alignment"> <set>Qt::AlignCenter</set> </property> </widget> </item>
+     </layout> </widget> </item>
+
+     <item> <widget class="QFrame" name="cardStorage"> <layout class="QHBoxLayout"> <property name="margin"> <number>20</number> </property>
+      <item> <layout class="QVBoxLayout"> <item> <widget class="QLabel" name="t2"> <property name="text"> <string>المخازن</string> </property> </widget> </item> <item> <widget class="QLabel" name="valStorage"> <property name="text"> <string>0</string> </property> </widget> </item> </layout> </item>
+      <item> <widget class="QLabel" name="icon2"> <property name="text"> <string>🏢</string> </property> <property name="alignment"> <set>Qt::AlignCenter</set> </property> </widget> </item>
+     </layout> </widget> </item>
+
+     <item> <widget class="QFrame" name="cardUsers"> <layout class="QHBoxLayout"> <property name="margin"> <number>20</number> </property>
+      <item> <layout class="QVBoxLayout"> <item> <widget class="QLabel" name="t3"> <property name="text"> <string>الموظفين</string> </property> </widget> </item> <item> <widget class="QLabel" name="valUsers"> <property name="text"> <string>0</string> </property> </widget> </item> </layout> </item>
+      <item> <widget class="QLabel" name="icon3"> <property name="text"> <string>👥</string> </property> <property name="alignment"> <set>Qt::AlignCenter</set> </property> </widget> </item>
+     </layout> </widget> </item>
+     
+     <item> <widget class="QFrame" name="cardAlert"> <layout class="QHBoxLayout"> <property name="margin"> <number>20</number> </property>
+      <item> <layout class="QVBoxLayout"> <item> <widget class="QLabel" name="t4"> <property name="text"> <string>تنبيهات</string> </property> </widget> </item> <item> <widget class="QLabel" name="valAlerts"> <property name="text"> <string>0</string> </property> </widget> </item> </layout> </item>
+      <item> <widget class="QLabel" name="icon4"> <property name="text"> <string>⚠️</string> </property> <property name="alignment"> <set>Qt::AlignCenter</set> </property> </widget> </item>
+     </layout> </widget> </item>
+    </layout>
+   </item>
+
+   <item>
+    <layout class="QHBoxLayout" name="hCharts">
+     <property name="spacing"> <number>25</number> </property>
+     <item> <widget class="QFrame" name="chartFrame1"> <layout class="QVBoxLayout" name="chartLayout1"/> </widget> </item>
+     <item> <widget class="QFrame" name="chartFrame2"> <layout class="QVBoxLayout" name="chartLayout2"/> </widget> </item>
+    </layout>
+   </item>
+
+   <item> <widget class="QLabel" name="lblSectionTitle"> <property name="text"> <string>سجل الإضافات الأخيرة</string> </property> </widget> </item>
+   <item>
+    <widget class="QFrame" name="recentContainer">
+     <layout class="QVBoxLayout" name="vTable">
+      <property name="margin"> <number>10</number> </property>
+      <item> <widget class="QTableWidget" name="tableRecent"> 
+       <property name="frameShape"> <enum>QFrame::NoFrame</enum> </property>
+       <column> <property name="text"> <string>الكود</string> </property> </column> 
+       <column> <property name="text"> <string>اسم القطعة</string> </property> </column> 
+      </widget> </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+</ui>

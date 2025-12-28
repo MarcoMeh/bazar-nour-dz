@@ -1,0 +1,884 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1200</width>
+    <height>800</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>برنامج جرد المقتنيات الأثرية</string>
+  </property>
+  <property name="layoutDirection">
+   <enum>Qt::RightToLeft</enum>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">/* =======================
+   Aliance Library 3D-Style QSS
+   Font: Leelawadee UI
+   Colors: White &amp; #FFEFCB
+======================= */
+
+/* Main Window */
+QMainWindow {
+    background-color: #FFFFFF;
+    font-family: &quot;Leelawadee UI&quot;;
+    font-size: 14pt;
+}
+
+/* QWidget base styling */
+QWidget {
+    background-color: #FFFFFF;
+    color: #333333;
+    font-family: &quot;Leelawadee UI&quot;;
+}
+
+/* QGroupBox - modern raised look */
+QGroupBox {
+    background-color: #FFFDF5;
+    border: 2px solid #FFEFCB;
+    border-radius: 10px;
+    margin-top: 25px;
+    font-weight: bold;
+    font-size: 10pt;
+    padding: 10px;
+    /* subtle shadow */
+    qproperty-alignment: AlignCenter;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top center;
+    padding: 5px 15px;
+}
+
+/* QLabel */
+QLabel {
+    color: #333333;
+    font-family: &quot;Leelawadee UI&quot;;
+}
+
+/* QLineEdit - 3D inset effect */
+QLineEdit {
+    background: white;
+    border: 1.5px solid #E6C65B;
+    border-radius: 8px;
+    padding: 6px 12px;
+    color: #333333;
+    font-family: &quot;Leelawadee UI&quot;;
+    font-size: 14pt;
+
+    /* Simulated inner depth */
+    border-top: 1px solid #FFF9E7;     /* light on top */
+    border-left: 1px solid #FFF9E7;    /* light on left */
+    border-bottom: 2px solid #C9AE4D;  /* shadow bottom */
+    border-right: 2px solid #C9AE4D;   /* shadow right */
+
+    selection-background-color: #FFF2CC;
+    selection-color: #000000;
+}
+
+QLineEdit:focus {
+    background: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 #FFFBEA,
+        stop:0.5 #FFF3C4,
+        stop:1 #FFE490
+    );
+    border: 2px solid #FFCC33;
+    border-top: 1px solid #FFFBEF;
+    border-left: 1px solid #FFFBEF;
+    border-bottom: 2px solid #D1AA2B;
+    border-right: 2px solid #D1AA2B;
+}
+
+QLineEdit:disabled {
+    background-color: #F6EED4;
+    border: 1px solid #D6C488;
+    color: #999999;
+}
+
+
+/* QTextEdit - 3D inset effect */
+QTextEdit {
+    background-color: #FFEFCB;
+    border: 1px solid #FFD966;
+    border-radius: 6px;
+    padding: 8px;
+    selection-background-color: #FFF2CC;
+}
+
+/* QPushButton - raised 3D style */
+QPushButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFFBEA, stop:1 #FFE490);
+    border-top: 1px solid #FFF9E7;     /* light top */
+    border-left: 1px solid #FFF9E7;    /* light left */
+    border-bottom: 2px solid #C9AE4D;  /* shadow bottom */
+    border-right: 2px solid #C9AE4D;   /* shadow right */
+    border-radius: 10px;
+    padding: 8px 18px;
+    font-family: &quot;Leelawadee UI&quot;;
+    font-size: 18pt;
+    font-weight: bold;
+    color: #333333;
+}
+
+QPushButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFF3C4, stop:1 #FFE490);
+}
+
+QPushButton:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFD966, stop:1 #FFCC33);
+    border-top: 2px solid #C9AE4D;
+    border-left: 2px solid #C9AE4D;
+    border-bottom: 1px solid #FFF9E7;
+    border-right: 1px solid #FFF9E7;
+    padding-top: 10px;
+    padding-left: 10px;
+}
+
+
+
+/* QComboBox - elevated 3D look */
+QComboBox {
+    background: white;
+    border: 1.5px solid #E6C65B;
+    border-radius: 8px;
+    padding: 6px 10px;
+    color: #333333;
+    font-family: &quot;Leelawadee UI&quot;;
+    font-size: 14pt;
+
+    /* Simulated 3D edge */
+    border-top: 1px solid #FFF9E7;
+    border-left: 1px solid #FFF9E7;
+    border-bottom: 2px solid #C9AE4D;
+    border-right: 2px solid #C9AE4D;
+}
+
+QComboBox:hover {
+    background: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 #FFFBEA,
+        stop:1 #FFF3C4
+    );
+    border: 1.5px solid #FFCC33;
+}
+
+QComboBox:focus {
+    background: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 #FFFBEA,
+        stop:0.5 #FFF3C4,
+        stop:1 #FFE490
+    );
+    border: 2px solid #FFCC33;
+    border-top: 1px solid #FFFBEF;
+    border-left: 1px solid #FFFBEF;
+    border-bottom: 2px solid #D1AA2B;
+    border-right: 2px solid #D1AA2B;
+}
+
+QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 28px;
+    border-left: 1px solid #E6C65B;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+    background: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 #FFF5D9,
+        stop:1 #FFEEC1
+    );
+}
+
+QComboBox::down-arrow {
+    image: url(:/icons/down-arrow.png); /* optional custom icon */
+    width: 12px;
+    height: 12px;
+}
+
+QComboBox::down-arrow:on {   /* when popup open */
+    image: url(:/icons/up-arrow.png);
+}
+
+QComboBox QAbstractItemView {
+    background: #FFF9E1;
+    border: 1px solid #FFD966;
+    selection-background-color: #FFCC33;
+    selection-color: #000000;
+    outline: none;
+}
+
+
+/* QSpinBox / QDoubleSpinBox */
+QSpinBox {
+    background: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 #FFF8E1,
+        stop:0.5 #FFEFCB,
+        stop:1 #F9E4A9
+    );
+    border: 1.5px solid #E6C65B;
+    border-radius: 8px;
+    padding: 6px 10px;
+    color: #333333;
+    font-family: &quot;Leelawadee UI&quot;;
+    font-size: 14pt;
+
+    /* Simulated 3D edge */
+    border-top: 1px solid #FFF9E7;
+    border-left: 1px solid #FFF9E7;
+    border-bottom: 2px solid #C9AE4D;
+    border-right: 2px solid #C9AE4D;
+}
+
+QSpinBox:hover {
+    background: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 #FFFBEA,
+        stop:1 #FFF3C4
+    );
+    border: 1.5px solid #FFCC33;
+}
+
+QSpinBox:focus {
+    background: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 #FFFBEA,
+        stop:0.5 #FFF3C4,
+        stop:1 #FFE490
+    );
+    border: 2px solid #FFCC33;
+    border-top: 1px solid #FFFBEF;
+    border-left: 1px solid #FFFBEF;
+    border-bottom: 2px solid #D1AA2B;
+    border-right: 2px solid #D1AA2B;
+}
+
+
+
+
+/* QTableWidget / QTableView */
+QTableWidget, QTableView {
+    background-color: #FFFFFF;
+    gridline-color: #FFD966;
+    selection-background-color: #FFF2CC;
+    selection-color: #333333;
+    font-family: &quot;Leelawadee UI&quot;;
+    font-size: 10pt;
+    border-radius: 6px;
+    alternate-background-color: #FFF8E5;
+}
+
+QHeaderView::section {
+    background-color: #FFEFCB;
+    color: #333333;
+    padding: 5px;
+    border: 1px solid #FFD966;
+    font-weight: bold;
+    border-radius: 4px;
+}
+
+/* QScrollBar - modern 3D style */
+QScrollBar:vertical {
+    background: #FFEFCB;
+    width: 12px;
+    border-radius: 6px;
+}
+
+QScrollBar::handle:vertical {
+    background: #FFD966;
+    min-height: 20px;
+    border-radius: 6px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: #FFCC33;
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    background: none;
+}
+
+/* QCheckBox - 3D style */
+QCheckBox {
+    spacing: 5px;
+}
+
+QCheckBox::indicator {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+}
+
+QCheckBox::indicator:unchecked {
+    border: 1px solid #FFD966;
+    background-color: #FFEFCB;
+}
+
+QCheckBox::indicator:checked {
+    border: 1px solid #FFCC33;
+    background-color: #FFCC33;
+}
+
+/* QRadioButton - 3D style */
+QRadioButton {
+    spacing: 5px;
+}
+
+QRadioButton::indicator {
+    width: 18px;
+    height: 18px;
+    border-radius: 9px;
+}
+
+QRadioButton::indicator:unchecked {
+    border: 1px solid #FFD966;
+    background-color: #FFEFCB;
+}
+
+QRadioButton::indicator:checked {
+    border: 1px solid #FFCC33;
+    background-color: #FFCC33;
+}
+
+/* QToolTip */
+QToolTip {
+    background-color: #FFCC66;
+    color: #333333;
+    border-radius: 5px;
+    padding: 5px;
+    font-family: &quot;Leelawadee UI&quot;;
+    font-size: 9pt;
+}
+QDateEdit {
+    background: white;
+    border: 1.5px solid #E6C65B;
+    border-radius: 8px;
+    padding: 6px 10px;
+    color: #333333;
+    font-family: &quot;Leelawadee UI&quot;;
+    font-size: 14pt;
+
+    /* Simulated 3D edge */
+    border-top: 1px solid #FFF9E7;
+    border-left: 1px solid #FFF9E7;
+    border-bottom: 2px solid #C9AE4D;
+    border-right: 2px solid #C9AE4D;
+}
+
+QDateEdit:hover {
+    background: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 #FFFBEA,
+        stop:1 #FFF3C4
+    );
+    border: 1.5px solid #FFCC33;
+}
+
+QDateEdit:focus {
+    background: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 #FFFBEA,
+        stop:0.5 #FFF3C4,
+        stop:1 #FFE490
+    );
+    border: 2px solid #FFCC33;
+    border-top: 1px solid #FFFBEF;
+    border-left: 1px solid #FFFBEF;
+    border-bottom: 2px solid #D1AA2B;
+    border-right: 2px solid #D1AA2B;
+}
+
+QDateEdit::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 28px;
+    border-left: 1px solid #E6C65B;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+    background: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 #FFF5D9,
+        stop:1 #FFEEC1
+    );
+}
+
+
+QCalendarWidget QWidget {
+    background-color: #FFF9E1;
+    border: 1px solid #FFD966;
+}
+
+QCalendarWidget QAbstractItemView {
+    background-color: #FFEFCB;
+    selection-background-color: #FFCC33;
+    selection-color: black;
+    border: 1px solid #FFD966;
+}
+</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QFrame" name="sidebarFrame">
+      <property name="minimumSize">
+       <size>
+        <width>250</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>250</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">border-left:4px solid #F7C6A3;
+background-color: #C65D3B;</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="topMargin">
+        <number>30</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="label_logo">
+         <property name="styleSheet">
+          <string notr="true">font-size: 22px; font-weight: bold; color: white; margin-bottom: 20px; background: transparent;
+border:none;</string>
+         </property>
+         <property name="text">
+          <string>القائمة</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="frame">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>50</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>50</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">border:none;</string>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QPushButton" name="btnLangAR">
+            <property name="styleSheet">
+             <string notr="true">QPushButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFFBEA, stop:1 #FFE490);
+    border-top: 1px solid #FFF9E7;     /* light top */
+    border-left: 1px solid #FFF9E7;    /* light left */
+    border-bottom: 2px solid #C9AE4D;  /* shadow bottom */
+    border-right: 2px solid #C9AE4D;   /* shadow right */
+    border-radius: 10px;
+    padding: 8px 18px;
+    font-family: &quot;Leelawadee UI&quot;;
+    font-size: 14pt;
+    font-weight: bold;
+    color: #333333;
+}
+
+QPushButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFF3C4, stop:1 #FFE490);
+}
+
+QPushButton:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFD966, stop:1 #FFCC33);
+    border-top: 2px solid #C9AE4D;
+    border-left: 2px solid #C9AE4D;
+    border-bottom: 1px solid #FFF9E7;
+    border-right: 1px solid #FFF9E7;
+    padding-top: 10px;
+    padding-left: 10px;
+}
+</string>
+            </property>
+            <property name="text">
+             <string>عر</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnLangFR">
+            <property name="styleSheet">
+             <string notr="true">QPushButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFFBEA, stop:1 #FFE490);
+    border-top: 1px solid #FFF9E7;     /* light top */
+    border-left: 1px solid #FFF9E7;    /* light left */
+    border-bottom: 2px solid #C9AE4D;  /* shadow bottom */
+    border-right: 2px solid #C9AE4D;   /* shadow right */
+    border-radius: 10px;
+    padding: 8px 18px;
+    font-family: &quot;Leelawadee UI&quot;;
+    font-size: 14pt;
+    font-weight: bold;
+    color: #333333;
+}
+
+QPushButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFF3C4, stop:1 #FFE490);
+}
+
+QPushButton:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFD966, stop:1 #FFCC33);
+    border-top: 2px solid #C9AE4D;
+    border-left: 2px solid #C9AE4D;
+    border-bottom: 1px solid #FFF9E7;
+    border-right: 1px solid #FFF9E7;
+    padding-top: 10px;
+    padding-left: 10px;
+}
+</string>
+            </property>
+            <property name="text">
+             <string>FR</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnDashboard">
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFFBEA, stop:1 #FFE490);
+    border-top: 1px solid #FFF9E7;     /* light top */
+    border-left: 1px solid #FFF9E7;    /* light left */
+    border-bottom: 2px solid #C9AE4D;  /* shadow bottom */
+    border-right: 2px solid #C9AE4D;   /* shadow right */
+    border-radius: 10px;
+    padding: 8px 18px;
+    font-family: &quot;Leelawadee UI&quot;;
+    font-size: 14pt;
+    font-weight: bold;
+    color: #333333;
+}
+
+QPushButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFF3C4, stop:1 #FFE490);
+}
+
+QPushButton:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFD966, stop:1 #FFCC33);
+    border-top: 2px solid #C9AE4D;
+    border-left: 2px solid #C9AE4D;
+    border-bottom: 1px solid #FFF9E7;
+    border-right: 1px solid #FFF9E7;
+    padding-top: 10px;
+    padding-left: 10px;
+}
+</string>
+         </property>
+         <property name="text">
+          <string>🏠  الرئيسية</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnArtifacts">
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFFBEA, stop:1 #FFE490);
+    border-top: 1px solid #FFF9E7;     /* light top */
+    border-left: 1px solid #FFF9E7;    /* light left */
+    border-bottom: 2px solid #C9AE4D;  /* shadow bottom */
+    border-right: 2px solid #C9AE4D;   /* shadow right */
+    border-radius: 10px;
+    padding: 8px 18px;
+    font-family: &quot;Leelawadee UI&quot;;
+    font-size: 14pt;
+    font-weight: bold;
+    color: #333333;
+}
+
+QPushButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFF3C4, stop:1 #FFE490);
+}
+
+QPushButton:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFD966, stop:1 #FFCC33);
+    border-top: 2px solid #C9AE4D;
+    border-left: 2px solid #C9AE4D;
+    border-bottom: 1px solid #FFF9E7;
+    border-right: 1px solid #FFF9E7;
+    padding-top: 10px;
+    padding-left: 10px;
+}
+</string>
+         </property>
+         <property name="text">
+          <string>🏺  قائمة الآثار</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnAddArtifact">
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFFBEA, stop:1 #FFE490);
+    border-top: 1px solid #FFF9E7;     /* light top */
+    border-left: 1px solid #FFF9E7;    /* light left */
+    border-bottom: 2px solid #C9AE4D;  /* shadow bottom */
+    border-right: 2px solid #C9AE4D;   /* shadow right */
+    border-radius: 10px;
+    padding: 8px 18px;
+    font-family: &quot;Leelawadee UI&quot;;
+    font-size: 14pt;
+    font-weight: bold;
+    color: #333333;
+}
+
+QPushButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFF3C4, stop:1 #FFE490);
+}
+
+QPushButton:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFD966, stop:1 #FFCC33);
+    border-top: 2px solid #C9AE4D;
+    border-left: 2px solid #C9AE4D;
+    border-bottom: 1px solid #FFF9E7;
+    border-right: 1px solid #FFF9E7;
+    padding-top: 10px;
+    padding-left: 10px;
+}
+</string>
+         </property>
+         <property name="text">
+          <string>➕  إضافة قطعة</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnUsers">
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFFBEA, stop:1 #FFE490);
+    border-top: 1px solid #FFF9E7;     /* light top */
+    border-left: 1px solid #FFF9E7;    /* light left */
+    border-bottom: 2px solid #C9AE4D;  /* shadow bottom */
+    border-right: 2px solid #C9AE4D;   /* shadow right */
+    border-radius: 10px;
+    padding: 8px 18px;
+    font-family: &quot;Leelawadee UI&quot;;
+    font-size: 14pt;
+    font-weight: bold;
+    color: #333333;
+}
+
+QPushButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFF3C4, stop:1 #FFE490);
+}
+
+QPushButton:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFD966, stop:1 #FFCC33);
+    border-top: 2px solid #C9AE4D;
+    border-left: 2px solid #C9AE4D;
+    border-bottom: 1px solid #FFF9E7;
+    border-right: 1px solid #FFF9E7;
+    padding-top: 10px;
+    padding-left: 10px;
+}
+</string>
+         </property>
+         <property name="text">
+          <string>👥  المستخدمين</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnSettings">
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFFBEA, stop:1 #FFE490);
+    border-top: 1px solid #FFF9E7;     /* light top */
+    border-left: 1px solid #FFF9E7;    /* light left */
+    border-bottom: 2px solid #C9AE4D;  /* shadow bottom */
+    border-right: 2px solid #C9AE4D;   /* shadow right */
+    border-radius: 10px;
+    padding: 8px 18px;
+    font-family: &quot;Leelawadee UI&quot;;
+    font-size: 14pt;
+    font-weight: bold;
+    color: #333333;
+}
+
+QPushButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFF3C4, stop:1 #FFE490);
+}
+
+QPushButton:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFD966, stop:1 #FFCC33);
+    border-top: 2px solid #C9AE4D;
+    border-left: 2px solid #C9AE4D;
+    border-bottom: 1px solid #FFF9E7;
+    border-right: 1px solid #FFF9E7;
+    padding-top: 10px;
+    padding-left: 10px;
+}
+</string>
+         </property>
+         <property name="text">
+          <string>⚙️  الإعدادات</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnLogout">
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFFBEA, stop:1 #FFE490);
+    border-top: 1px solid #FFF9E7;     /* light top */
+    border-left: 1px solid #FFF9E7;    /* light left */
+    border-bottom: 2px solid #C9AE4D;  /* shadow bottom */
+    border-right: 2px solid #C9AE4D;   /* shadow right */
+    border-radius: 10px;
+    padding: 8px 18px;
+    font-family: &quot;Leelawadee UI&quot;;
+    font-size: 14pt;
+    font-weight: bold;
+    color: #333333;
+}
+
+QPushButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFF3C4, stop:1 #FFE490);
+}
+
+QPushButton:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #FFD966, stop:1 #FFCC33);
+    border-top: 2px solid #C9AE4D;
+    border-left: 2px solid #C9AE4D;
+    border-bottom: 1px solid #FFF9E7;
+    border-right: 1px solid #FFF9E7;
+    padding-top: 10px;
+    padding-left: 10px;
+}
+</string>
+         </property>
+         <property name="text">
+          <string>🚪  تسجيل الخروج</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QStackedWidget" name="pagesWidget"/>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

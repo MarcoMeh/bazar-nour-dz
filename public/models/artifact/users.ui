@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry"> <rect> <x>0</x> <y>0</y> <width>1000</width> <height>700</height> </rect> </property>
+  <property name="windowTitle"> <string>Users</string> </property>
+  <property name="layoutDirection"> <enum>Qt::RightToLeft</enum> </property>
+  <property name="styleSheet">
+   <string notr="true">
+    QWidget { font-family: 'Segoe UI', sans-serif; background-color: transparent; }
+    
+    #pageTitle { font-size: 28px; font-weight: bold; color: #2c3e50; margin-bottom: 10px; }
+
+    /* Cards */
+    #groupBox, #tableContainer {
+        background-color: white;
+        border-radius: 15px;
+        border-bottom: 4px solid #dce1e6;
+        border-right: 1px solid #dce1e6;
+    }
+    
+    /* Form Styles */
+    QGroupBox { border: none; padding-top: 15px; font-weight: bold; font-size: 16px; color: #34495e; }
+    QGroupBox::title { padding: 0 10px; }
+    
+    QLabel { color: #7f8c8d; font-size: 14px; font-weight: 500; }
+    QLineEdit, QComboBox { border: 2px solid #f0f0f0; border-radius: 8px; padding: 10px; background: #fdfdfd; }
+    QLineEdit:focus { border: 2px solid #3498db; background: white; }
+
+    /* Table */
+    QTableWidget { border: none; border-radius: 10px; background: white; }
+    QHeaderView::section { background-color: #f8f9fa; padding: 10px; border: none; border-bottom: 2px solid #e0e0e0; font-weight: bold; }
+
+    /* Buttons */
+    QPushButton { border-radius: 8px; padding: 10px; font-weight: bold; border: none; }
+    #btnAdd { background-color: #3498db; color: white; margin-top: 10px; }
+    #btnAdd:hover { background-color: #2980b9; }
+    
+    #btnDelete { background-color: #e74c3c; color: white; }
+    #btnDelete:hover { background-color: #c0392b; }
+   </string>
+  </property>
+  
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing"> <number>20</number> </property>
+   <property name="margin"> <number>30</number> </property>
+   
+   <item> <widget class="QLabel" name="pageTitle"> <property name="text"> <string>فريق العمل والصلاحيات</string> </property> </widget> </item>
+
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="spacing"> <number>25</number> </property>
+     
+     <item>
+      <widget class="QGroupBox" name="groupBox">
+       <property name="title"> <string>إضافة مستخدم</string> </property>
+       <property name="maximumSize"> <size> <width>350</width> <height>16777215</height> </size> </property>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <property name="spacing"> <number>15</number> </property>
+        <property name="margin"> <number>20</number> </property>
+        
+        <item> <widget class="QLabel" name="label1"> <property name="text"> <string>اسم المستخدم:</string> </property> </widget> </item>
+        <item> <widget class="QLineEdit" name="inputUser"> <property name="placeholderText"> <string>مثال: Ahmed</string> </property> </widget> </item>
+        
+        <item> <widget class="QLabel" name="label2"> <property name="text"> <string>كلمة المرور:</string> </property> </widget> </item>
+        <item> <widget class="QLineEdit" name="inputPass"> <property name="echoMode"> <enum>QLineEdit::Password</enum> </property> <property name="placeholderText"> <string>******</string> </property> </widget> </item>
+        
+        <item> <widget class="QLabel" name="label3"> <property name="text"> <string>الصلاحية:</string> </property> </widget> </item>
+        <item> <widget class="QComboBox" name="comboRole"> <item> <property name="text"> <string>user</string> </property> </item> <item> <property name="text"> <string>admin</string> </property> </item> </widget> </item>
+        
+        <item> <widget class="QPushButton" name="btnAdd"> <property name="text"> <string>+ تسجيل</string> </property> </widget> </item>
+        <item> <spacer name="verticalSpacer"> <property name="orientation"> <enum>Qt::Vertical</enum> </property> </spacer> </item>
+       </layout>
+      </widget>
+     </item>
+
+     <item>
+      <widget class="QFrame" name="tableContainer">
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item> <widget class="QTableWidget" name="tableUsers"> <column> <property name="text"> <string>الرقم</string> </property> </column> <column> <property name="text"> <string>الاسم</string> </property> </column> <column> <property name="text"> <string>الصلاحية</string> </property> </column> <column> <property name="text"> <string>التاريخ</string> </property> </column> </widget> </item>
+        <item> <layout class="QHBoxLayout" name="horizontalLayout_2"> <item> <spacer name="horizontalSpacer"> <property name="orientation"> <enum>Qt::Horizontal</enum> </property> </spacer> </item> <item> <widget class="QPushButton" name="btnDelete"> <property name="text"> <string>حذف المحدد 🗑️</string> </property> </widget> </item> </layout> </item>
+       </layout>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+</ui>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry"> <rect> <x>0</x> <y>0</y> <width>1000</width> <height>700</height> </rect> </property>
+  <property name="windowTitle"> <string>Settings</string> </property>
+  <property name="layoutDirection"> <enum>Qt::RightToLeft</enum> </property>
+  <property name="styleSheet">
+   <string notr="true">
+    QWidget { font-family: 'Segoe UI', sans-serif; background-color: transparent; }
+    #pageTitle { font-size: 28px; font-weight: bold; color: #2c3e50; margin-bottom: 10px; }
+
+    /* Main Card */
+    #contentCard {
+        background-color: white;
+        border-radius: 15px;
+        border-bottom: 4px solid #dce1e6;
+        border-right: 1px solid #dce1e6;
+    }
+
+    QLabel { color: #7f8c8d; font-size: 14px; font-weight: 600; }
+    QComboBox, QLineEdit { border: 2px solid #f0f0f0; border-radius: 8px; padding: 10px; background: #fdfdfd; }
+    QComboBox:focus, QLineEdit:focus { border: 2px solid #3498db; background: white; }
+
+    /* List Widget */
+    QListWidget { border: 2px solid #f0f0f0; border-radius: 8px; padding: 5px; background: #fdfdfd; }
+    QListWidget::item { padding: 10px; border-bottom: 1px solid #eee; color: #2c3e50; }
+    QListWidget::item:selected { background-color: #e3f2fd; color: #1565c0; border-radius: 5px; }
+
+    /* Buttons */
+    QPushButton { border-radius: 8px; padding: 10px 20px; font-weight: bold; border: none; }
+    #btnAdd { background-color: #2ecc71; color: white; }
+    #btnAdd:hover { background-color: #27ae60; }
+    
+    #btnDelete { background-color: #e74c3c; color: white; }
+    #btnDelete:hover { background-color: #c0392b; }
+   </string>
+  </property>
+  
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing"> <number>20</number> </property>
+   <property name="margin"> <number>30</number> </property>
+   
+   <item> <widget class="QLabel" name="pageTitle"> <property name="text"> <string>إدارة الثوابت والقوائم</string> </property> </widget> </item>
+
+   <item>
+    <widget class="QFrame" name="contentCard">
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <property name="spacing"> <number>20</number> </property>
+      <property name="margin"> <number>30</number> </property>
+      
+      <item> <layout class="QHBoxLayout" name="horizontalLayout_2"> <item> <widget class="QLabel" name="label1"> <property name="text"> <string>ماذا تريد أن تعدل؟</string> </property> </widget> </item> <item> <widget class="QComboBox" name="comboTables"> <property name="minimumSize"> <size> <width>300</width> <height>40</height> </size> </property> </widget> </item> <item> <spacer name="hSpacer"> <property name="orientation"> <enum>Qt::Horizontal</enum> </property> </spacer> </item> </layout> </item>
+
+      <item> <widget class="Line" name="line"> <property name="orientation"> <enum>Qt::Horizontal</enum> </property> </widget> </item>
+
+      <item> <layout class="QHBoxLayout" name="horizontalLayout_3"> <item> <widget class="QLineEdit" name="inputNewItem"> <property name="placeholderText"> <string>اكتب الاسم الجديد هنا...</string> </property> </widget> </item> <item> <widget class="QPushButton" name="btnAdd"> <property name="text"> <string>+ إضافة</string> </property> </widget> </item> </layout> </item>
+
+      <item> <widget class="QLabel" name="label2"> <property name="text"> <string>العناصر الحالية:</string> </property> </widget> </item>
+      <item> <widget class="QListWidget" name="listItems"/> </item>
+      
+      <item> <layout class="QHBoxLayout" name="horizontalLayout_4"> <item> <spacer name="hSpacer_2"> <property name="orientation"> <enum>Qt::Horizontal</enum> </property> </spacer> </item> <item> <widget class="QPushButton" name="btnDelete"> <property name="text"> <string>حذف المحدد 🗑️</string> </property> </widget> </item> </layout> </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+</ui>
