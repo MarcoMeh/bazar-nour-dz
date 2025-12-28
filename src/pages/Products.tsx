@@ -405,7 +405,8 @@ const Products = () => {
               <div className="relative mb-8">
                 {/* Store Cover */}
                 <div className="h-32 md:h-48 rounded-3xl bg-gradient-to-r from-primary/10 to-primary/5 relative overflow-hidden mb-12">
-                  <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 mix-blend-overlay"></div>
+                  {/* Noise overlay removed */}
+                  <div className="absolute inset-0 bg-white/5 opacity-20 mix-blend-overlay"></div>
                   {storeDetails.image_url && (
                     <img
                       src={storeDetails.image_url}
