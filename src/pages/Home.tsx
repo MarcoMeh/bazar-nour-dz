@@ -34,15 +34,12 @@ import SEO from "@/components/SEO";
 import { useInView } from "react-intersection-observer";
 // import Spline from '@splinetool/react-spline'; // REMOVED
 import { Canvas } from "@react-three/fiber";
-import { useGLTF, Stage, Float, PresentationControls } from "@react-three/drei";
+import { useGLTF, Stage, Float, PresentationControls, Html } from "@react-three/drei";
 
 function Model(props: any) {
     const { scene } = useGLTF("/models/t-shirt-3D.gltf");
     return <primitive object={scene} {...props} />;
 }
-
-// Preload the model to improve performance
-useGLTF.preload("/models/t-shirt-3D.gltf");
 
 // Assets
 import { PageBackground } from "@/type_defs";
@@ -357,21 +354,14 @@ const Home = () => {
                         <div className="absolute inset-0 bg-black/40"></div>
 
                         {/* 3. 3D React Three Fiber Scene - T-Shirt Model */}
-                        <div className="absolute inset-0 z-10 opacity-60 md:opacity-100">
-                            <Canvas
-                                dpr={[1, 1.5]}
-                                camera={{ fov: 45, position: [0, 0, 5] }}
-                                resize={{ scroll: false }}
-                                gl={{ antialias: true, alpha: true }}
-                            >
-                                <Suspense fallback={null}>
-                                    <ambientLight intensity={0.8} />
-                                    <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} />
-                                    <pointLight position={[-10, -10, -10]} intensity={0.5} />
+                        <div className="absolute inset-0 z-10">
+                            <Canvas dpr={[1, 2]} camera={{ fov: 45 }} resize={{ scroll: false }}>
+                                <Suspense fallback={<Html center className="text-white/50 text-sm whitespace-nowrap">جاري تحميل المجسم...</Html>}>
+                                    <ambientLight intensity={0.5} />
                                     <PresentationControls
                                         speed={1.5}
                                         global
-                                        zoom={0.7}
+                                        zoom={0.5}
                                         polar={[-0.1, Math.PI / 4]}
                                         rotation={[Math.PI / 8, Math.PI / 4, 0]}
                                     >
@@ -382,7 +372,7 @@ const Home = () => {
                                                 floatIntensity={2}
                                                 floatingRange={[-0.2, 0.2]}
                                             >
-                                                <Model scale={window.innerWidth < 768 ? 0.6 : 0.8} />
+                                                <Model scale={0.8} />
                                             </Float>
                                         </Stage>
                                     </PresentationControls>
