@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -180,7 +180,7 @@ const Home = () => {
 
     const fetchSettings = async () => {
         const { data } = await supabase.from("site_settings" as any).select("*").single();
-        if (data) setSettings(data as any);
+        if (data) setSettings(prev => ({ ...prev, ...(data as any) }));
     };
 
     const fetchMainCategories = async () => {
@@ -344,7 +344,7 @@ const Home = () => {
                     <div className="absolute inset-0 z-0 overflow-hidden">
                         {/* 1. Original Image Background */}
                         <img
-                            src={heroBackground}
+                            src={heroBackground || 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80'}
                             alt="Hero Background"
                             className="absolute inset-0 w-full h-full object-cover object-top md:object-center transform scale-105 animate-subtle-zoom transition-all duration-1000"
                         />
@@ -356,25 +356,27 @@ const Home = () => {
                         {/* 3. 3D React Three Fiber Scene - T-Shirt Model */}
                         <div className="absolute inset-0 z-10">
                             <Canvas dpr={[1, 2]} camera={{ fov: 45 }} resize={{ scroll: false }}>
-                                <ambientLight intensity={0.5} />
-                                <PresentationControls
-                                    speed={1.5}
-                                    global
-                                    zoom={0.5}
-                                    polar={[-0.1, Math.PI / 4]}
-                                    rotation={[Math.PI / 8, Math.PI / 4, 0]}
-                                >
-                                    <Stage environment="city" intensity={0.6} shadows={{ opacity: 0.5, blur: 2 } as any}>
-                                        <Float
-                                            speed={2}
-                                            rotationIntensity={1.5}
-                                            floatIntensity={2}
-                                            floatingRange={[-0.2, 0.2]}
-                                        >
-                                            <Model scale={0.8} />
-                                        </Float>
-                                    </Stage>
-                                </PresentationControls>
+                                <Suspense fallback={null}>
+                                    <ambientLight intensity={0.5} />
+                                    <PresentationControls
+                                        speed={1.5}
+                                        global
+                                        zoom={0.5}
+                                        polar={[-0.1, Math.PI / 4]}
+                                        rotation={[Math.PI / 8, Math.PI / 4, 0]}
+                                    >
+                                        <Stage environment="city" intensity={0.6} shadows={{ opacity: 0.5, blur: 2 } as any}>
+                                            <Float
+                                                speed={2}
+                                                rotationIntensity={1.5}
+                                                floatIntensity={2}
+                                                floatingRange={[-0.2, 0.2]}
+                                            >
+                                                <Model scale={0.8} />
+                                            </Float>
+                                        </Stage>
+                                    </PresentationControls>
+                                </Suspense>
                             </Canvas>
                         </div>
 
