@@ -11,8 +11,41 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-
-    // VitePWA({...}) // Temporarily disabled for debugging
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['favicon.ico', 'robots.txt', 'sitemap.xml'],
+      manifest: {
+        name: 'Bazzarna - بازارنا',
+        short_name: 'Bazzarna',
+        description: 'وجهتك الأولى للتسوق الإلكتروني في الجزائر',
+        theme_color: '#1e3a5f',
+        background_color: '#ffffff',
+        display: 'standalone',
+        orientation: 'portrait',
+        icons: [
+          {
+            src: 'pwa-192x192.png',
+            sizes: '192x192',
+            type: 'image/png'
+          },
+          {
+            src: 'pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png'
+          },
+          {
+            src: 'pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable'
+          }
+        ],
+        start_url: "/",
+        scope: "/",
+        lang: "ar",
+        dir: "rtl"
+      }
+    })
   ].filter(Boolean),
   resolve: {
     alias: {
