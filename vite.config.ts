@@ -44,6 +44,11 @@ export default defineConfig(({ mode }) => ({
         scope: "/",
         lang: "ar",
         dir: "rtl"
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
+        maximumFileSizeToCacheInBytes: 7 * 1024 * 1024, // 7MB limit
+        navigateFallbackDenylist: [/^\/supabase/], // Don't intercept Supabase calls
       }
     })
   ].filter(Boolean),
