@@ -481,40 +481,6 @@ const ProductDetail = () => {
         onOpenChange={setSizeGuideOpen}
         category="mens"
       />
-
-      <div className="fixed bottom-[74px] left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-gray-200 md:hidden z-40 animate-slide-up shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-        {(() => {
-          const matchingVariant = product.track_inventory ? variants.find(v =>
-            (v.color === selectedColor || (v.color === null && !selectedColor)) &&
-            (v.size === selectedSize || (v.size === null && !selectedSize))
-          ) : null;
-
-          const isOutOfStock = product.is_sold_out || (product.track_inventory && matchingVariant && matchingVariant.stock_quantity <= 0);
-
-          if (isOutOfStock) {
-            return (
-              <Button
-                size="lg"
-                disabled
-                className="w-full bg-red-500 text-white cursor-not-allowed shadow-lg rounded-full"
-              >
-                نفد
-              </Button>
-            );
-          }
-
-          return (
-            <Button
-              size="lg"
-              onClick={handleAddToCart}
-              className="w-full shadow-lg hover:shadow-xl transition-all duration-300 rounded-full bg-gradient-to-r from-primary to-secondary"
-            >
-              <ShoppingCart className="ml-2 h-5 w-5" />
-              إضافة إلى السلة
-            </Button>
-          );
-        })()}
-      </div>
     </div>
   );
 };

@@ -473,6 +473,14 @@ const Home = () => {
                     <div className="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-[#FAFAFA] to-transparent"></div>
                     <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2"></div>
                     <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-500/5 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2"></div>
+                    <div className="mt-16 text-center">
+                        <Link to="/seller-register">
+                            <Button size="lg" className="rounded-full px-10 h-14 text-lg font-bold bg-gray-900 text-white hover:bg-gray-800 shadow-xl shadow-gray-900/10 hover:shadow-gray-900/20 transform hover:-translate-y-1 transition-all">
+                                أنشئ متجرك الآن
+                            </Button>
+                        </Link>
+                        <p className="text-gray-500 mb-6">هل أنت تاجر؟ انضم إلينا اليوم وابدأ رحلتك في التجارة الإلكترونية</p>
+                    </div>
 
                     <div className="container mx-auto px-4 relative z-10">
                         <div className="text-center mb-16 space-y-4">
@@ -609,15 +617,6 @@ const Home = () => {
                                 <p className="text-xl">لا توجد متاجر متاحة حالياً</p>
                             </div>
                         )}
-
-                        <div className="mt-16 text-center">
-                            <p className="text-gray-500 mb-6">هل أنت تاجر؟ انضم إلينا اليوم وابدأ رحلتك في التجارة الإلكترونية</p>
-                            <Link to="/seller-register">
-                                <Button size="lg" className="rounded-full px-10 h-14 text-lg font-bold bg-gray-900 text-white hover:bg-gray-800 shadow-xl shadow-gray-900/10 hover:shadow-gray-900/20 transform hover:-translate-y-1 transition-all">
-                                    أنشئ متجرك الآن
-                                </Button>
-                            </Link>
-                        </div>
                     </div>
                 </section>
             )}
