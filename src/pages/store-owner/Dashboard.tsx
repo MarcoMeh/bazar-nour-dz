@@ -111,6 +111,7 @@ export default function StoreOwnerDashboard() {
                 setOrderStatusData(statusChartData);
 
                 // Fetch Recent Orders (Detailed)
+                const uniqueOrderIds = new Set(allOrders.map(o => o.id));
                 const { data: recentOrdersData } = await supabase
                     .from("orders")
                     .select("*, profiles:user_id(full_name)")
