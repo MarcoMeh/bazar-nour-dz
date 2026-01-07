@@ -33,13 +33,6 @@ import Autoplay from "embla-carousel-autoplay";
 import SEO from "@/components/SEO";
 import { useInView } from "react-intersection-observer";
 // import Spline from '@splinetool/react-spline'; // REMOVED
-import { Canvas } from "@react-three/fiber";
-import { useGLTF, Stage, Float, PresentationControls, Html } from "@react-three/drei";
-
-function Model(props: any) {
-    const { scene } = useGLTF("/models/t-shirt-3D.gltf");
-    return <primitive object={scene} {...props} />;
-}
 
 // Assets
 import { PageBackground } from "@/type_defs";
@@ -354,31 +347,7 @@ const Home = () => {
                         <div className="absolute inset-0 bg-black/40"></div>
 
                         {/* 3. 3D React Three Fiber Scene - T-Shirt Model */}
-                        <div className="absolute inset-0 z-10">
-                            <Canvas dpr={[1, 2]} camera={{ fov: 45 }} resize={{ scroll: false }}>
-                                <Suspense fallback={<Html center className="text-white/50 text-sm whitespace-nowrap">جاري تحميل المجسم...</Html>}>
-                                    <ambientLight intensity={0.5} />
-                                    <PresentationControls
-                                        speed={1.5}
-                                        global
-                                        zoom={0.5}
-                                        polar={[-0.1, Math.PI / 4]}
-                                        rotation={[Math.PI / 8, Math.PI / 4, 0]}
-                                    >
-                                        <Stage environment="city" intensity={0.6} shadows={{ opacity: 0.5, blur: 2 } as any}>
-                                            <Float
-                                                speed={2}
-                                                rotationIntensity={1.5}
-                                                floatIntensity={2}
-                                                floatingRange={[-0.2, 0.2]}
-                                            >
-                                                <Model scale={0.8} />
-                                            </Float>
-                                        </Stage>
-                                    </PresentationControls>
-                                </Suspense>
-                            </Canvas>
-                        </div>
+
 
                         {/* Pattern Overlay */}
                         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay z-20"></div>
