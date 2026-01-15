@@ -70,7 +70,7 @@ const getThemeType = (store: StoreDetails | null) => {
   return 'default';
 };
 
-const ProductStores = () => {
+const StoreFront = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const [store, setStore] = useState<StoreDetails | null>(null);
@@ -454,4 +454,4 @@ const ProductStores = () => {
   );
 };
 
-export default ProductStores;
+export default StoreFront;
