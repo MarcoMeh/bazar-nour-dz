@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,11 +8,12 @@ import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Store, User, Phone, Mail, MapPin, FileText, Loader2 } from 'lucide-react';
+import { Store, User, Phone, Mail, MapPin, FileText, Loader2, ArrowRight } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { PageBackground } from "@/type_defs";
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { Check, ShieldCheck, Zap } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 // الولايات الجزائرية
 const WILAYAS = [
@@ -157,7 +158,7 @@ const SellerRegister = () => {
     } : {};
 
     return (
-        <div className={`min-h-screen py-12 ${!registerBackground ? 'bg-gradient-to-br from-green-50 via-white to-blue-50' : 'relative'}`} style={containerStyle}>
+        <div className={`min-h-screen pt-24 pb-12 ${!registerBackground ? 'bg-gradient-to-br from-green-50 via-white to-blue-50' : 'relative'}`} style={containerStyle}>
             {registerBackground && (
                 <div className="absolute inset-0 bg-white/90 backdrop-blur-[2px] z-0"></div>
             )}
@@ -168,6 +169,22 @@ const SellerRegister = () => {
                 />
 
                 <div className="container mx-auto px-4 max-w-3xl">
+                    {/* Back to Home */}
+                    <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.5 }}
+                        className="mb-8"
+                    >
+                        <Link
+                            to="/"
+                            className="inline-flex items-center gap-2 text-slate-500 hover:text-green-600 transition-colors font-bold group"
+                        >
+                            <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                            الرجوع للرئيسية
+                        </Link>
+                    </motion.div>
+
                     {/* Header */}
                     <div className="text-center mb-10">
                         <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-green-500 to-green-600 mb-4">
@@ -306,9 +323,9 @@ const SellerRegister = () => {
                                 </Label>
                                 <div className="grid grid-cols-1 gap-4">
                                     {[
-                                        { id: '1_month', label: '1 شهر', price: '3,000 دج', discount: null },
-                                        { id: '3_months', label: '3 أشهر', price: '8,100 دج', original: '9,000 دج', discount: 'تخفيض 10%' },
-                                        { id: '12_months', label: '12 شهر (سنة)', price: '28,800 دج', original: '36,000 دج', discount: 'تخفيض 20%' },
+                                        { id: '1_month', label: '1 شهر', price: '2,000 دج', discount: null },
+                                        { id: '3_months', label: '3 أشهر', price: '5,400 دج', original: '6,000 دج', discount: 'تخفيض 10%' },
+                                        { id: '12_months', label: '12 شهر (سنة)', price: '19,200 دج', original: '24,000 دج', discount: 'تخفيض 20%' },
                                     ].map((plan) => (
                                         <div
                                             key={plan.id}

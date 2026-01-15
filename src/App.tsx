@@ -126,14 +126,29 @@ const App = () => {
                         <Route path="/brands/:slug" element={<BrandProducts />} />
                         <Route path="/sale" element={<Sale />} />
                         <Route path="/new-arrivals" element={<NewArrivals />} />
-                        <Route path="/my-orders" element={<MyOrders />} />
-                        <Route path="/profile" element={<Profile />} />
+                        <Route
+                          path="/my-orders"
+                          element={
+                            <ProtectedRoute>
+                              <MyOrders />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/profile"
+                          element={
+                            <ProtectedRoute>
+                              <Profile />
+                            </ProtectedRoute>
+                          }
+                        />
                         <Route path="/login" element={<Login />} />
                         <Route path="/about" element={<About />} />
-                        <Route path="/seller-register" element={<SellerRegister />} />
                         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                         <Route path="/terms-conditions" element={<Terms />} />
                       </Route>
+
+                      <Route path="/seller-register" element={<SellerRegister />} />
 
                       {/* Admin Routes - Protected */}
                       <Route

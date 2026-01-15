@@ -44,15 +44,20 @@ export const StoreOwnerSidebar = ({ onLinkClick }: StoreOwnerSidebarProps) => {
     ];
 
     return (
-        <div className="flex h-full flex-col bg-card">
-            <div className="flex h-14 md:h-16 items-center border-b px-4 md:px-6">
-                <h2 className="text-lg md:text-xl font-bold text-primary">لوحة إدارة المتجر</h2>
+        <div className="flex h-full flex-col bg-white/5 backdrop-blur-3xl border-l border-white/20 shadow-2xl relative overflow-hidden">
+            {/* Soft Ambient Glow */}
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div className="flex h-14 md:h-16 items-center border-b border-white/10 px-4 md:px-6 relative z-10">
+                <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center mr-3">
+                    <LayoutDashboard className="w-4 h-4 text-primary animate-pulse" />
+                </div>
+                <h2 className="text-lg md:text-xl font-black bg-gradient-to-l from-primary to-primary-dark bg-clip-text text-transparent">إدارة المتجر</h2>
             </div>
 
-            <nav className="flex-1 space-y-1 p-3 md:p-4">
+            <nav className="flex-1 space-y-2 p-3 md:p-4 mt-2 relative z-10 overflow-y-auto">
                 {navItems.map((item) => {
                     const Icon = item.icon;
-                    // تحسين منطق الرابط النشط ليشمل الصفحات الفرعية
                     const isActive =
                         item.href === "/store-dashboard"
                             ? location.pathname === item.href
@@ -62,43 +67,38 @@ export const StoreOwnerSidebar = ({ onLinkClick }: StoreOwnerSidebarProps) => {
                         <Link
                             key={item.href}
                             to={item.href}
-                            onClick={onLinkClick} // تنفيذ دالة الإغلاق عند الضغط
+                            onClick={onLinkClick}
                             className={cn(
-                                "flex items-center gap-3 rounded-lg px-3 py-3 md:py-2 text-base md:text-sm font-medium transition-all duration-200",
+                                "flex items-center gap-3 rounded-xl px-4 py-3 md:py-2.5 text-base md:text-sm font-bold transition-all duration-300 group",
                                 isActive
-                                    ? "bg-primary text-primary-foreground shadow-sm"
-                                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                                    ? "bg-gradient-to-l from-primary to-primary-dark text-white shadow-lg shadow-primary/20 translate-x-1"
+                                    : "text-gray-500 hover:bg-white/40 hover:text-primary hover:translate-x-1"
                             )}
                         >
-                            <Icon className="h-5 w-5" />
+                            <Icon className={cn("h-5 w-5 transition-transform group-hover:scale-110", isActive ? "text-white" : "text-primary/70")} />
                             {item.name}
+                            {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white shadow-glow animate-pulse"></div>}
                         </Link>
                     );
                 })}
             </nav>
 
-            <div className="border-t p-3 md:p-4 mt-auto space-y-2">
+            <div className="border-t border-white/10 p-4 mt-auto space-y-3 relative z-10 bg-white/10">
                 <Link
                     to="/"
                     onClick={onLinkClick}
-                    className="flex items-center gap-3 rounded-lg px-3 py-3 md:py-2 text-base md:text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-200"
+                    className="flex items-center gap-3 rounded-xl px-4 py-3 md:py-2.5 text-base md:text-sm font-bold text-gray-500 hover:bg-white/50 hover:text-primary transition-all group"
                 >
-                    <Store className="h-5 w-5" />
+                    <Store className="h-5 w-5 text-primary/70 group-hover:scale-110" />
                     الرئيسية
                 </Link>
 
-                {/* View Store Button - visible only if storeId is resolved (or logic to fetch it) */}
-                {/*  Since retrieving storeId might be complex here without prop drilling or context, 
-                      I will stick to Home button first as requested "Main Page or his page".
-                      Actually I can easily add it if I use useAdmin() hook assuming verified context. 
-                 */}
-
                 <Button
                     variant="ghost"
-                    className="w-full justify-start gap-3 text-base md:text-sm py-3 md:py-2 text-red-500 hover:text-red-600 hover:bg-red-50"
+                    className="w-full justify-start gap-4 text-base md:text-sm py-3 md:py-2.5 h-auto rounded-xl font-bold text-red-500 hover:text-red-600 hover:bg-red-500/10 transition-all group"
                     onClick={handleLogout}
                 >
-                    <LogOut className="h-5 w-5" />
+                    <LogOut className="h-5 w-5 transition-transform group-hover:-translate-x-1" />
                     تسجيل الخروج
                 </Button>
             </div>

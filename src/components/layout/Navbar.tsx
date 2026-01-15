@@ -200,8 +200,7 @@ export const Navbar = () => {
                     </div>
                 </div>
 
-                {/* Sub Navigation Row */}
-                <div className="mt-2 flex justify-center pb-2">
+                <div className="mt-2 hidden lg:flex justify-center pb-2">
                     <div className={`
                         rounded-2xl px-10 py-2.5 flex items-center gap-8 shadow-xl transition-all duration-300 animate-fade-in
                         ${isScrolled

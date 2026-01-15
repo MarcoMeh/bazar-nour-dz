@@ -73,81 +73,98 @@ export const ProductCard = ({
   };
 
   return (
-    <div className={cn("group flex flex-col space-y-3 relative store-card p-2 h-full", className)}>
-      <Link to={`/product/${id}`} className="block relative group-hover:-translate-y-1 transition-transform duration-300">
+    <div
+      className={cn(
+        "group flex flex-col space-y-4 relative p-3 rounded-[2rem] transition-all duration-500",
+        "bg-white/10 backdrop-blur-2xl border border-white/20 shadow-2xl hover:shadow-[0_20px_60px_-15px_rgba(37,99,235,0.2)]",
+        "hover:-translate-y-2 hover:bg-white/20",
+        className
+      )}
+    >
+      <Link to={`/product/${id}`} className="block relative">
         <div
-          className="relative aspect-[4/5] md:aspect-square w-full overflow-hidden bg-gray-50/50"
-          style={{ borderRadius: 'calc(var(--store-radius, 1rem) * 0.8)' }}
+          className="relative aspect-[4/5] md:aspect-square w-full overflow-hidden shadow-inner bg-gray-50/10"
+          style={{ borderRadius: '1.5rem' }}
         >
-
           {image_url ? (
             <img
               src={image_url}
               alt={name_ar}
               loading="lazy"
-              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+              className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center text-gray-200">
+            <div className="flex h-full w-full items-center justify-center text-gray-400">
               <ShoppingBag className="h-10 w-10" />
             </div>
           )}
 
+          {/* GLASSY OVERLAY SHINE */}
+          <div className="absolute inset-0 bg-gradient-to-tr from-white/10 via-transparent to-transparent pointer-events-none transition-opacity duration-500 group-hover:opacity-100 opacity-0"></div>
+
           {/* STATUS BADGES */}
-          <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5 z-10">
+          <div className="absolute top-3 left-3 flex flex-col gap-2 z-10">
             {is_sold_out ? (
-              <span className="bg-red-500/90 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-full">
+              <span className="bg-red-500/80 backdrop-blur-md text-white text-[10px] font-black px-3 py-1 rounded-full shadow-lg border border-white/10">
                 نفد
               </span>
             ) : is_free_delivery && (
-              <span className="bg-emerald-500/90 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-full">
+              <span className="bg-primary/80 backdrop-blur-md text-white text-[10px] font-black px-3 py-1 rounded-full shadow-lg border border-white/10">
                 توصيل مجاني
               </span>
             )}
           </div>
 
-          {/* WISHLIST BUTTON */}
+          {/* WISHLIST BUTTON - CRYSTAL STYLE */}
           <button
             onClick={handleWishlistToggle}
-            className="absolute top-2.5 right-2.5 h-9 w-9 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-sm text-gray-400 hover:text-red-500 hover:bg-white shadow-sm transition-all active:scale-95 z-20"
+            className="absolute top-3 right-3 h-10 w-10 flex items-center justify-center rounded-full bg-white/40 backdrop-blur-xl text-gray-600 hover:text-red-500 hover:bg-white/80 shadow-xl border border-white/20 transition-all active:scale-75 z-20"
           >
             <Heart
-              className={cn("h-5 w-5 transition-transform", isWishlisted && "fill-red-500 text-red-500 scale-110")}
-              strokeWidth={isWishlisted ? 0 : 2}
+              className={cn("h-5 w-5 transition-transform duration-300", isWishlisted && "fill-red-500 text-red-500 scale-125")}
+              strokeWidth={isWishlisted ? 0 : 2.5}
             />
           </button>
         </div>
       </Link>
 
       {/* PRODUCT INFO */}
-      <div className="px-1 space-y-1">
-        <div className="flex justify-between items-start gap-2">
-          <Link to={`/product/${id}`}>
-            <h3 className="font-bold text-sm leading-snug line-clamp-2 min-h-[2.5em] hover:text-[var(--store-primary,black)] transition-colors">
-              {name_ar}
-            </h3>
-          </Link>
+      <div className="px-2 pb-1 space-y-2">
+        <div className="flex justify-between items-start gap-3">
+          <div className="flex-1">
+            <Link to={`/product/${id}`}>
+              <h3 className="font-bold text-sm md:text-base leading-tight line-clamp-2 min-h-[2.4em] text-gray-800 hover:text-primary transition-colors">
+                {name_ar}
+              </h3>
+            </Link>
+            <div className="mt-2 flex items-center gap-2">
+              <span className="font-black text-gray-900 text-lg">
+                {price.toLocaleString()} <span className="text-xs font-medium opacity-60">دج</span>
+              </span>
+            </div>
+          </div>
 
-          {/* ADD BUTTON */}
+          {/* ADD BUTTON - PREMIUM 3D STYLE */}
           <Button
             size="icon"
             disabled={is_sold_out}
             onClick={handleAddToCart}
             className={cn(
-              "h-9 w-9 shrink-0 shadow-sm transition-all active:scale-90 store-btn",
-              is_sold_out ? "bg-gray-100 text-gray-300" : "text-white shadow-md"
+              "h-12 w-12 shrink-0 rounded-2xl transition-all active:scale-95 duration-300 shadow-xl",
+              is_sold_out
+                ? "bg-gray-200 text-gray-400"
+                : "bg-gradient-to-b from-primary to-primary-dark text-white hover:shadow-primary/30 hover:shadow-2xl hover:-translate-y-1"
             )}
           >
-            {is_sold_out ? <span className="text-xs font-bold">×</span> : <Plus className="h-4 w-4" />}
+            {is_sold_out ? <span className="text-sm font-black">×</span> : <Plus className="h-6 w-6" />}
           </Button>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="font-black text-[var(--store-text)] text-base">
-            {price.toLocaleString()} <span className="text-[10px] font-normal opacity-80">دج</span>
-          </span>
-          {brand && <span className="text-[9px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-md">{brand}</span>}
-        </div>
+        {brand && (
+          <div className="flex items-center gap-1 opacity-60 text-[10px] font-bold">
+            <span className="bg-gray-200/50 px-2 py-0.5 rounded-md border border-black/5">{brand}</span>
+          </div>
+        )}
       </div>
     </div>
   );

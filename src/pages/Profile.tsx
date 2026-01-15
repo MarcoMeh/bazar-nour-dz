@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,8 @@ import { toast } from "sonner";
 import { Loader2, User, Lock, MapPin, Phone } from "lucide-react";
 
 export default function Profile() {
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
@@ -23,10 +25,14 @@ export default function Profile() {
     const [confirmPassword, setConfirmPassword] = useState("");
 
     useEffect(() => {
-        if (user) {
-            fetchProfile();
+        if (!authLoading) {
+            if (user) {
+                fetchProfile();
+            } else {
+                navigate("/login");
+            }
         }
-    }, [user]);
+    }, [user, authLoading, navigate]);
 
     const fetchProfile = async () => {
         try {

@@ -35,8 +35,9 @@ import {
     Download
 } from "lucide-react";
 import Autoplay from "embla-carousel-autoplay";
-import SEO from "@/components/SEO";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import { useInView } from "react-intersection-observer";
+import SEO from "@/components/SEO";
 // import Spline from '@splinetool/react-spline'; // REMOVED
 
 // Assets
@@ -108,6 +109,23 @@ const Home = () => {
     const { ref: trendingRef, inView: trendingInView } = useInView({ triggerOnce: true, threshold: 0.1 });
     const { ref: arrivalsRef, inView: arrivalsInView } = useInView({ triggerOnce: true, threshold: 0.1 });
     const { ref: newsletterRef, inView: newsletterInView } = useInView({ triggerOnce: true, threshold: 0.1 });
+
+    const containerVariants: Variants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: { staggerChildren: 0.2, delayChildren: 0.3 }
+        }
+    };
+
+    const itemVariants: Variants = {
+        hidden: { opacity: 0, y: 30 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] }
+        }
+    };
 
     // Countdown Timer Logic
     useEffect(() => {
@@ -361,7 +379,12 @@ const Home = () => {
 
             {/* 1. HERO SECTION - 3D ENSEMBLE EDITION */}
             {settings.hero_visible && (
-                <section className="relative min-h-[65vh] md:min-h-[90vh] flex items-center justify-center overflow-hidden">
+                <motion.section
+                    initial="hidden"
+                    animate="visible"
+                    variants={containerVariants}
+                    className="relative min-h-[65vh] md:min-h-[90vh] flex items-center justify-center overflow-hidden"
+                >
 
                     {/* Background Layer (Image + 3D Overlay) */}
                     <div className="absolute inset-0 z-0 overflow-hidden">
@@ -387,24 +410,24 @@ const Home = () => {
                         {/* Text Content - Enable pointer events for text/buttons */}
                         <div className="text-white space-y-8 md:space-y-10 text-right order-2 lg:order-1 pointer-events-auto">
                             {/* New Repositioned Badge - Floating on the Left */}
-                            <div className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full bg-gradient-to-r from-blue-600/20 to-indigo-600/20 backdrop-blur-3xl border border-white/30 animate-fade-in shadow-[0_0_30px_rgba(0,0,0,0.1)] mb-10 hover:scale-105 transition-transform cursor-default">
+                            <motion.div variants={itemVariants} className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full bg-gradient-to-r from-blue-600/20 to-indigo-600/20 backdrop-blur-3xl border border-white/30 shadow-[0_0_30px_rgba(0,0,0,0.1)] mb-10 hover:scale-105 transition-transform cursor-default">
                                 <Sparkles className="w-5 h-5 text-yellow-400 fill-yellow-400 animate-pulse" />
                                 <span className="text-white font-black text-sm tracking-widest uppercase">الأناقة تبدأ من هنا</span>
-                            </div>
+                            </motion.div>
 
-                            <h1 className="text-6xl md:text-8xl lg:text-9xl font-black leading-[1.1] animate-slide-up tracking-tighter">
+                            <motion.h1 variants={itemVariants} className="text-6xl md:text-8xl lg:text-9xl font-black leading-[1.1] tracking-tighter">
                                 <span className="block mb-2 text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)]">عالمك الخاص</span>
                                 <span className="text-[#FBBF24] drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)]">
                                     للتميز والأناقة
                                 </span>
-                            </h1>
+                            </motion.h1>
 
-                            <p className="text-xl md:text-2xl text-gray-100 font-bold max-w-xl leading-relaxed animate-slide-up delay-150">
+                            <motion.p variants={itemVariants} className="text-xl md:text-2xl text-gray-100 font-bold max-w-xl leading-relaxed">
                                 اكتشف تشكيلة حصرية من أرقى الماركات الجزائرية.
-                            </p>
+                            </motion.p>
 
                             {/* Trust Badges - Single Line Style */}
-                            <div className="flex flex-wrap items-center gap-6 animate-slide-up delay-200">
+                            <motion.div variants={itemVariants} className="flex flex-wrap items-center gap-6">
                                 <div className="flex items-center gap-3 text-white font-bold">
                                     <Truck className="h-6 w-6 text-yellow-400" />
                                     <span>دفع لكل الولايات</span>
@@ -414,10 +437,10 @@ const Home = () => {
                                     <Shield className="h-6 w-6 text-yellow-400" />
                                     <span>دفع عند الاستلام</span>
                                 </div>
-                            </div>
+                            </motion.div>
 
                             {/* Search Bar - New Layout (Button on Left Visually) */}
-                            <form onSubmit={handleSearch} className="relative max-w-2xl animate-slide-up delay-300">
+                            <motion.form variants={itemVariants} onSubmit={handleSearch} className="relative max-w-2xl">
                                 <div className="relative group">
                                     <div className="relative flex bg-white rounded-full p-2 pl-2 shadow-2xl items-center border border-white/40 overflow-hidden">
                                         <Input
@@ -437,21 +460,8 @@ const Home = () => {
                                         </Button>
                                     </div>
                                 </div>
-                            </form>
+                            </motion.form>
 
-                            {/* Download Button - 3D Premium Edition */}
-                            <div className="pt-6 flex animate-slide-up delay-500">
-                                <button className="group relative flex items-center gap-4 px-10 py-4 bg-gradient-to-b from-[#3B82F6] via-[#1D4ED8] to-[#1E3A8A] text-white rounded-full font-black text-xl shadow-[0_20px_50px_-10px_rgba(37,99,235,0.6),inset_0_2px_4px_rgba(255,255,255,0.4),inset_0_-2px_4px_rgba(0,0,0,0.4)] hover:shadow-[0_30px_60px_-10px_rgba(37,99,235,0.8)] transition-all duration-300 hover:-translate-y-2 hover:scale-105 active:scale-95 overflow-hidden border border-white/20">
-                                    <Download className="w-7 h-7 filter drop-shadow-md" />
-                                    <span className="drop-shadow-md">حمل التطبيق</span>
-
-                                    {/* Glossy Overlay Shine */}
-                                    <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none"></div>
-
-                                    {/* Shimmer Effect */}
-                                    <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-shimmer transition-transform duration-1000"></div>
-                                </button>
-                            </div>
                         </div>
                     </div>
 
@@ -462,41 +472,36 @@ const Home = () => {
                             <div className="absolute inset-x-0 h-4 bg-gray-800 animate-scroll-line"></div>
                         </div>
                     </div>
-                </section>
+                </motion.section>
             )}
             {/* 2. FEATURED STORES */}
             {settings.stores_visible && (
-                <section
+                <motion.section
                     ref={storesRef}
-                    className={`
-                        py-12 bg-white relative overflow-hidden transition-all duration-1000 transform
-                        ${storesInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}
-                    `}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, margin: "-100px" }}
+                    variants={containerVariants}
+                    className="py-12 bg-white relative overflow-hidden"
                 >
                     {/* Decorative Elements - Subtle Gradients */}
                     <div className="absolute top-0 inset-x-0 h-20 bg-gradient-to-b from-[#FAFAFA] to-transparent"></div>
                     <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2"></div>
                     <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-500/5 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2"></div>
-                    <div className="mt-16 text-center">
-                        <Link to="/seller-register">
-                            <Button size="lg" className="rounded-full px-10 h-14 text-lg font-bold bg-gray-900 text-white hover:bg-gray-800 shadow-xl shadow-gray-900/10 hover:shadow-gray-900/20 transform hover:-translate-y-1 transition-all">
-                                أنشئ متجرك الآن
-                            </Button>
-                        </Link>
-                        <p className="text-gray-500 mb-6">هل أنت تاجر؟ انضم إلينا اليوم وابدأ رحلتك في التجارة الإلكترونية</p>
-                    </div>
 
                     <div className="container mx-auto px-4 relative z-10">
                         <div className="text-center mb-8 space-y-4">
-                            <Badge variant="outline" className="px-6 py-2 border-primary/20 bg-primary/5 text-primary rounded-full text-sm font-bold tracking-wider mb-4 animate-fade-in">
-                                عالم من المتاجر
-                            </Badge>
-                            <h2 className="text-4xl md:text-6xl font-black mb-4 tracking-tight leading-tight">
+                            <motion.div variants={itemVariants}>
+                                <Badge variant="outline" className="px-6 py-2 border-primary/20 bg-primary/5 text-primary rounded-full text-sm font-bold tracking-wider mb-4 animate-fade-in">
+                                    عالم من المتاجر
+                                </Badge>
+                            </motion.div>
+                            <motion.h2 variants={itemVariants} className="text-4xl md:text-6xl font-black mb-4 tracking-tight leading-tight">
                                 اكتشف <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">متاجرنا المميزة</span>
-                            </h2>
-                            <p className="text-gray-500 max-w-2xl mx-auto text-lg leading-relaxed">
+                            </motion.h2>
+                            <motion.p variants={itemVariants} className="text-gray-500 max-w-2xl mx-auto text-lg leading-relaxed">
                                 منصتك الأولى لاكتشاف أفضل العلامات التجارية والمتاجر المحلية. تسوق بكل ثقة من نخبة البائعين في الجزائر.
-                            </p>
+                            </motion.p>
                         </div>
 
                         {/* Category Filter Tabs */}
@@ -622,17 +627,117 @@ const Home = () => {
                             </div>
                         )}
                     </div>
-                </section>
+                </motion.section>
+            )}
+
+            {/* SELlER BANNER SECTION - FULL IMPACT */}
+            {settings.stores_visible && (
+                <motion.section
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, margin: "-100px" }}
+                    variants={containerVariants}
+                    className="relative py-24 overflow-hidden"
+                >
+                    {/* Immersive Background */}
+                    <div className="absolute inset-0 bg-[#0f172a]">
+                        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px]"></div>
+                        <div className="absolute left-0 top-0 h-full w-full bg-gradient-to-br from-indigo-600/20 via-transparent to-primary/20"></div>
+
+                        {/* Animated Glows */}
+                        <motion.div
+                            animate={{
+                                scale: [1, 1.2, 1],
+                                opacity: [0.3, 0.5, 0.3]
+                            }}
+                            transition={{ duration: 8, repeat: Infinity }}
+                            className="absolute -top-[20%] -left-[10%] w-[60%] h-[100%] bg-primary/30 rounded-full blur-[120px]"
+                        ></motion.div>
+                        <motion.div
+                            animate={{
+                                scale: [1, 1.1, 1],
+                                opacity: [0.2, 0.4, 0.2]
+                            }}
+                            transition={{ duration: 10, repeat: Infinity, delay: 2 }}
+                            className="absolute -bottom-[20%] -right-[10%] w-[60%] h-[100%] bg-indigo-600/30 rounded-full blur-[120px]"
+                        ></motion.div>
+                    </div>
+
+                    <div className="container mx-auto px-4 relative z-10">
+                        <div className="glass-card border-white/10 bg-white/5 backdrop-blur-2xl p-8 md:p-16 rounded-[3rem] shadow-2xl overflow-hidden group">
+                            <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
+                                {/* Left Side: Messaging */}
+                                <div className="flex-1 text-center lg:text-right space-y-6">
+                                    <motion.div variants={itemVariants}>
+                                        <Badge className="bg-primary/20 text-primary border-primary/30 px-6 py-2 rounded-full text-sm font-bold animate-pulse">
+                                            بادر بالحجز الآن - أماكن محدودة
+                                        </Badge>
+                                    </motion.div>
+                                    <motion.h2 variants={itemVariants} className="text-4xl md:text-6xl font-black text-white leading-tight">
+                                        هل تملك منتجات رائعة؟ <br />
+                                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-indigo-400">
+                                            حولها إلى أرباح حقيقية
+                                        </span>
+                                    </motion.h2>
+                                    <motion.p variants={itemVariants} className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto lg:mr-0 leading-relaxed font-medium">
+                                        انضم إلى نخبة البائعين في الجزائر وافتح متجرك الاحترافي خلال دقائق.
+                                        نوفر لك كل الأدوات التي تحتاجها للنجاح والنمو.
+                                    </motion.p>
+
+                                    {/* Features list visually simplified for banner */}
+                                    <motion.div variants={itemVariants} className="flex flex-wrap justify-center lg:justify-start gap-4 pt-4">
+                                        <div className="flex items-center gap-2 text-white/80 font-bold bg-white/5 px-4 py-2 rounded-xl">
+                                            <Shield className="w-5 h-5 text-green-400" />
+                                            <span>بدون عمولات</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-white/80 font-bold bg-white/5 px-4 py-2 rounded-xl">
+                                            <Zap className="w-5 h-5 text-yellow-400" />
+                                            <span>تفعيل سريع</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-white/80 font-bold bg-white/5 px-4 py-2 rounded-xl">
+                                            <TrendingUp className="w-5 h-5 text-blue-400" />
+                                            <span>دعم فني متواصل</span>
+                                        </div>
+                                    </motion.div>
+                                </div>
+
+                                {/* Right Side: 3D Button Action */}
+                                <div className="flex-shrink-0">
+                                    <motion.div variants={itemVariants} className="relative">
+                                        <Link to="/seller-register">
+                                            <motion.button
+                                                whileHover={{ scale: 1.05, y: -5 }}
+                                                whileTap={{ scale: 0.95 }}
+                                                className="group relative overflow-hidden px-16 py-8 bg-gradient-to-br from-primary via-indigo-600 to-indigo-800 text-white rounded-[2rem] font-black text-3xl shadow-[0_20px_50px_-10px_rgba(65,84,241,0.6),inset_0_2px_4px_rgba(255,255,255,0.3)] hover:shadow-[0_40px_80px_-10px_rgba(65,84,241,0.8)] transition-all duration-500 flex flex-col items-center gap-4"
+                                            >
+                                                <StoreIcon className="w-12 h-12 mb-2 group-hover:rotate-12 transition-transform duration-300" />
+                                                <span>أنشئ متجرك الآن</span>
+
+                                                {/* Shimmer Effect */}
+                                                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer transition-transform duration-1000"></div>
+                                            </motion.button>
+                                        </Link>
+
+                                        {/* Decorative orbit elements */}
+                                        <div className="absolute -top-10 -right-10 w-20 h-20 bg-primary/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+                                        <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-indigo-600/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+                                    </motion.div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </motion.section>
             )}
 
             {/* 2.5 CATEGORIES SECTION - DREAMY EDITION */}
             {settings.categories_visible && (
-                <section
+                <motion.section
                     ref={categoriesRef}
-                    className={`
-                        py-12 bg-white relative overflow-hidden transition-all duration-1000 delay-200 transform
-                        ${categoriesInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}
-                    `}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, margin: "-100px" }}
+                    variants={containerVariants}
+                    className="pt-16 pb-32 bg-white relative overflow-hidden"
                 >
                     {/* Dreamy Background Effect */}
                     <div className="absolute inset-0 z-0">
@@ -656,10 +761,10 @@ const Home = () => {
                     </div>
 
                     <div className="container mx-auto px-4 relative z-10">
-                        <div className="text-center mb-10">
+                        <motion.div variants={itemVariants} className="text-center mb-10">
                             <h2 className="text-3xl md:text-5xl font-black mb-4 tracking-tight text-gray-900">تصفح حسب الفئة</h2>
                             <p className="text-gray-500 text-lg font-medium">كل ما تبحث عنه في أقسامنا المتنوعة</p>
-                        </div>
+                        </motion.div>
 
                         {loading ? (
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-8">
@@ -671,7 +776,7 @@ const Home = () => {
                                 ))}
                             </div>
                         ) : (
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-x-6 gap-y-16">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-x-6 gap-y-24 mb-12">
                                 {mainCategories.map((cat) => {
                                     // Helper function for mapping icons
                                     const getCatStyle = (name: string) => {
@@ -736,17 +841,18 @@ const Home = () => {
                             </Link>
                         </div>
                     </div>
-                </section>
+                </motion.section>
             )}
 
             {/* 3. FLASH SALE SECTION */}
             {settings.flash_sale_visible && (
-                <section
+                <motion.section
                     ref={flashRef}
-                    className={`
-                        py-12 bg-gradient-to-br from-red-600 via-red-500 to-orange-500 text-white overflow-hidden relative transition-all duration-1000 transform
-                        ${flashInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}
-                    `}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, margin: "-100px" }}
+                    variants={containerVariants}
+                    className="py-12 bg-gradient-to-br from-red-600 via-red-500 to-orange-500 text-white overflow-hidden relative"
                 >
                     {/* Seamless Wave-like Transition In */}
                     <div className="absolute top-0 inset-x-0 h-16 bg-gradient-to-b from-[#FAFAFA] to-transparent pointer-events-none"></div>
@@ -758,7 +864,7 @@ const Home = () => {
 
                     <div className="container mx-auto px-4 relative z-10">
                         <div className="flex flex-col md:flex-row items-center justify-between mb-6 gap-6">
-                            <div className="flex items-center gap-4">
+                            <motion.div variants={itemVariants} className="flex items-center gap-4">
                                 <div className="bg-white/20 p-3 rounded-full backdrop-blur-sm animate-pulse">
                                     <Zap className="h-8 w-8 text-yellow-300" />
                                 </div>
@@ -766,10 +872,10 @@ const Home = () => {
                                     <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter">عروض فلاش</h2>
                                     <p className="text-red-100 text-lg">تنتهي قريباً، لا تفوت الفرصة!</p>
                                 </div>
-                            </div>
+                            </motion.div>
 
                             {/* Countdown Timer */}
-                            <div className="flex gap-4 text-center">
+                            <motion.div variants={itemVariants} className="flex gap-4 text-center">
                                 <div className="bg-white/10 backdrop-blur-md rounded-xl p-3 min-w-[80px] border border-white/20">
                                     <span className="block text-3xl font-bold font-mono">{timeLeft.hours}</span>
                                     <span className="text-xs opacity-80">ساعة</span>
@@ -782,154 +888,118 @@ const Home = () => {
                                     <span className="block text-3xl font-bold font-mono text-yellow-300">{timeLeft.seconds}</span>
                                     <span className="text-xs opacity-80">ثانية</span>
                                 </div>
-                            </div>
+                            </motion.div>
                         </div>
 
                         {/* Flash Sale Carousel */}
-                        <Carousel
-                            opts={{
-                                align: "start",
-                                loop: true,
-                            }}
-                            plugins={[plugin.current]}
-                            className="w-full"
-                        >
-                            <CarouselContent className="-ml-4">
-                                {loading ? (
-                                    [1, 2, 3, 4].map((i) => (
-                                        <CarouselItem key={i} className="pl-4 md:basis-1/2 lg:basis-1/4">
-                                            <Skeleton className="h-[400px] w-full rounded-2xl" />
-                                        </CarouselItem>
-                                    ))
-                                ) : (
-                                    flashSaleProducts.map((product) => (
-                                        <CarouselItem key={product.id} className="pl-4 md:basis-1/2 lg:basis-1/4">
-                                            <ProductCard
-                                                {...product}
-                                                onQuickView={setQuickViewProduct}
-                                            />
-                                        </CarouselItem>
-                                    ))
-                                )}
-                            </CarouselContent>
-                            <CarouselPrevious className="hidden md:flex -left-4 bg-white hover:bg-gray-100 text-gray-900 border-none shadow-xl h-12 w-12" />
-                            <CarouselNext className="hidden md:flex -right-4 bg-white hover:bg-gray-100 text-gray-900 border-none shadow-xl h-12 w-12" />
-                        </Carousel>
+                        <motion.div variants={itemVariants}>
+                            <Carousel
+                                opts={{
+                                    align: "start",
+                                    loop: true,
+                                }}
+                                plugins={[plugin.current]}
+                                className="w-full"
+                            >
+                                <CarouselContent className="-ml-4">
+                                    {loading ? (
+                                        [1, 2, 3, 4].map((i) => (
+                                            <CarouselItem key={i} className="pl-4 md:basis-1/2 lg:basis-1/4">
+                                                <Skeleton className="h-[400px] w-full rounded-2xl" />
+                                            </CarouselItem>
+                                        ))
+                                    ) : (
+                                        flashSaleProducts.map((product) => (
+                                            <CarouselItem key={product.id} className="pl-4 md:basis-1/2 lg:basis-1/4">
+                                                <ProductCard
+                                                    {...product}
+                                                    onQuickView={setQuickViewProduct}
+                                                />
+                                            </CarouselItem>
+                                        ))
+                                    )}
+                                </CarouselContent>
+                                <CarouselPrevious className="hidden md:flex -left-4 bg-white hover:bg-gray-100 text-gray-900 border-none shadow-xl h-12 w-12" />
+                                <CarouselNext className="hidden md:flex -right-4 bg-white hover:bg-gray-100 text-gray-900 border-none shadow-xl h-12 w-12" />
+                            </Carousel>
+                        </motion.div>
                     </div>
-                </section>
+                </motion.section>
             )}
 
             {/* 2.2 FEATURES SECTION */}
             {settings.features_visible && (
-                <section className="py-12 bg-white relative">
+                <motion.section
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, margin: "-100px" }}
+                    variants={containerVariants}
+                    className="py-12 bg-white relative"
+                >
                     {/* Seamless Transition In from Orange Flash Sale */}
                     <div className="absolute top-0 inset-x-0 h-16 bg-gradient-to-b from-orange-500 to-transparent opacity-10 pointer-events-none"></div>
 
                     <div className="container mx-auto px-4">
-                        <div className="text-center mb-6">
+                        <motion.div variants={itemVariants} className="text-center mb-6">
                             <h2 className="text-3xl font-black mb-4">لماذا تختارنا؟</h2>
                             <p className="text-gray-500">نقدم لك أفضل تجربة تسوق مع ضمانات حقيقية</p>
-                        </div>
+                        </motion.div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            <div className="flex flex-col items-center text-center p-6 bg-gray-50 rounded-2xl hover:shadow-lg transition-all duration-300 group">
+                            <motion.div variants={itemVariants} className="flex flex-col items-center text-center p-6 bg-gray-50 rounded-2xl hover:shadow-lg transition-all duration-300 group">
                                 <div className="p-4 bg-white rounded-full shadow-md mb-4 text-primary group-hover:scale-110 transition-transform">
                                     <Shield className="h-8 w-8" />
                                 </div>
                                 <h3 className="text-xl font-bold mb-2">ضمان الجودة</h3>
                                 <p className="text-gray-500 text-sm">منتجات أصلية 100% من أفضل الماركات العالمية والمحلية.</p>
-                            </div>
-                            <div className="flex flex-col items-center text-center p-6 bg-gray-50 rounded-2xl hover:shadow-lg transition-all duration-300 group">
+                            </motion.div>
+                            <motion.div variants={itemVariants} className="flex flex-col items-center text-center p-6 bg-gray-50 rounded-2xl hover:shadow-lg transition-all duration-300 group">
                                 <div className="p-4 bg-white rounded-full shadow-md mb-4 text-green-500 group-hover:scale-110 transition-transform">
                                     <Truck className="h-8 w-8" />
                                 </div>
                                 <h3 className="text-xl font-bold mb-2">توصيل سريع</h3>
                                 <p className="text-gray-500 text-sm">توصيل لجميع ولايات الجزائر (69 ولاية) في وقت قياسي.</p>
-                            </div>
-                            <div className="flex flex-col items-center text-center p-6 bg-gray-50 rounded-2xl hover:shadow-lg transition-all duration-300 group">
+                            </motion.div>
+                            <motion.div variants={itemVariants} className="flex flex-col items-center text-center p-6 bg-gray-50 rounded-2xl hover:shadow-lg transition-all duration-300 group">
                                 <div className="p-4 bg-white rounded-full shadow-md mb-4 text-blue-500 group-hover:scale-110 transition-transform">
                                     <StoreIcon className="h-8 w-8" />
                                 </div>
                                 <h3 className="text-xl font-bold mb-2">خيارات متنوعة</h3>
                                 <p className="text-gray-500 text-sm">مئات المتاجر وآلاف المنتجات في مكان واحد لتلبية جميع احتياجاتك.</p>
-                            </div>
+                            </motion.div>
                         </div>
                     </div>
-                </section>
+                </motion.section>
             )}
 
-            {/* 4. BEST SELLERS (Trending) */}
+            {/* 4. TRENDING PRODUCTS */}
             {settings.trending_visible && (
-                <section
+                <motion.section
                     ref={trendingRef}
-                    className={`
-                        py-12 bg-[#FAFAFA] relative transition-all duration-1000 transform
-                        ${trendingInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}
-                    `}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, margin: "-100px" }}
+                    variants={containerVariants}
+                    className="py-12 bg-[#FAFAFA] relative"
                 >
                     {/* Gradient Transition In */}
                     <div className="absolute top-0 inset-x-0 h-20 bg-gradient-to-b from-white to-transparent"></div>
 
                     <div className="container mx-auto px-4">
                         <div className="flex items-center justify-between mb-6">
-                            <div>
+                            <motion.div variants={itemVariants}>
                                 <h2 className="text-3xl md:text-5xl font-black mb-2 flex items-center gap-3">
                                     <TrendingUp className="text-primary h-8 w-8 md:h-12 md:w-12" />
                                     الأكثر طلباً
                                 </h2>
                                 <p className="text-gray-500 text-lg">منتجات أحبها الآخرون هذا الاسبوع</p>
-                            </div>
-                            <Link to="/products?sort=best_selling">
-                                <Button variant="outline" className="rounded-full px-6 font-bold hover:bg-gray-100 border-2">
-                                    مشاهدة الكل
-                                </Button>
-                            </Link>
-                        </div>
-
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                            {loading
-                                ? [1, 2, 3, 4, 5].map((i) => (
-                                    <Skeleton key={i} className="h-[400px] rounded-2xl" />
-                                ))
-                                : bestSellers.length > 0 ? (
-                                    bestSellers.map((product) => (
-                                        <div key={product.id} className="3d-perspective">
-                                            <div className="3d-card h-full">
-                                                <ProductCard
-                                                    {...product}
-                                                    onQuickView={setQuickViewProduct}
-                                                />
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="col-span-full text-center py-12 text-gray-400">
-                                        <TrendingUp className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                                        <p>لا توجد منتجات رائجة حالياً</p>
-                                    </div>
-                                )}
-                        </div>
-                    </div>
-                </section>
-            )}
-
-            {/* 5. NEW ARRIVALS */}
-            {settings.products_visible && (
-                <section
-                    ref={arrivalsRef}
-                    className={`
-                        py-12 bg-white relative transition-all duration-1000 transform
-                        ${arrivalsInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}
-                    `}
-                >
-                    {/* Gradient Transition In */}
-                    <div className="absolute top-0 inset-x-0 h-20 bg-gradient-to-b from-[#FAFAFA] to-transparent"></div>
-
-                    <div className="container mx-auto px-4">
-                        <div className="text-center mb-8">
-                            <h2 className="text-3xl md:text-5xl font-black mb-4">وصل حديثاً</h2>
-                            <p className="text-gray-500 max-w-2xl mx-auto text-lg leading-relaxed">
-                                تصفح أحدث المنتجات المضافة إلى بازارنا. كن أول من يحصل عليها!
-                            </p>
+                            </motion.div>
+                            <motion.div variants={itemVariants} className="hidden md:block">
+                                <Link to="/products">
+                                    <Button variant="outline" className="rounded-full px-8 h-12 font-bold border-gray-300 bg-white hover:bg-gray-100 transition-all shadow-sm">
+                                        شاهد الكل
+                                    </Button>
+                                </Link>
+                            </motion.div>
                         </div>
 
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
@@ -937,40 +1007,87 @@ const Home = () => {
                                 ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
                                     <Skeleton key={i} className="h-[400px] rounded-2xl" />
                                 ))
-                                : newestProducts.map((product) => (
-                                    <div key={product.id} className="3d-card h-full">
+                                : bestSellers.map((product) => (
+                                    <motion.div variants={itemVariants} key={product.id} className="3d-card h-full">
                                         <ProductCard
                                             {...product}
                                             onQuickView={setQuickViewProduct}
                                         />
-                                    </div>
+                                    </motion.div>
                                 ))}
                         </div>
 
-                        <div className="mt-16 text-center">
+                        <motion.div variants={itemVariants} className="mt-16 text-center md:hidden pointer-events-auto">
+                            <Link to="/products">
+                                <Button variant="outline" className="rounded-full px-12 h-12 font-bold border-gray-300 bg-white hover:bg-gray-100 transition-all shadow-sm">
+                                    شاهد كل المنتجات
+                                </Button>
+                            </Link>
+                        </motion.div>
+                    </div>
+                </motion.section>
+            )}
+
+            {/* 5. NEW ARRIVALS */}
+            {settings.products_visible && (
+                <motion.section
+                    ref={arrivalsRef}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, margin: "-100px" }}
+                    variants={containerVariants}
+                    className="py-12 bg-white relative"
+                >
+                    {/* Gradient Transition In */}
+                    <div className="absolute top-0 inset-x-0 h-20 bg-gradient-to-b from-[#FAFAFA] to-transparent"></div>
+
+                    <div className="container mx-auto px-4">
+                        <motion.div variants={itemVariants} className="text-center mb-8">
+                            <h2 className="text-3xl md:text-5xl font-black mb-4">وصل حديثاً</h2>
+                            <p className="text-gray-500 max-w-2xl mx-auto text-lg leading-relaxed">
+                                تصفح أحدث المنتجات المضافة إلى بازارنا. كن أول من يحصل عليها!
+                            </p>
+                        </motion.div>
+
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                            {loading
+                                ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+                                    <Skeleton key={i} className="h-[400px] rounded-2xl" />
+                                ))
+                                : newestProducts.map((product) => (
+                                    <motion.div variants={itemVariants} key={product.id} className="3d-card h-full">
+                                        <ProductCard
+                                            {...product}
+                                            onQuickView={setQuickViewProduct}
+                                        />
+                                    </motion.div>
+                                ))}
+                        </div>
+
+                        <motion.div variants={itemVariants} className="mt-16 text-center">
                             <Link to="/products">
                                 <Button size="lg" className="rounded-full px-10 h-14 bg-black text-white hover:bg-gray-800 font-bold hover:scale-105 transition-transform shadow-xl">
                                     تصفح جميع المنتجات
                                 </Button>
                             </Link>
-                        </div>
+                        </motion.div>
                     </div>
-                </section>
+                </motion.section>
             )}
 
             {/* 6. NEWSLETTER SECTION */}
             {settings.newsletter_visible && (
-                <section
+                <motion.section
                     ref={newsletterRef}
-                    className={`
-                        py-16 bg-slate-950 text-white relative overflow-hidden transition-all duration-1000 transform
-                        ${newsletterInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}
-                    `}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, margin: "-100px" }}
+                    variants={containerVariants}
+                    className="py-16 bg-slate-950 text-white relative overflow-hidden"
                 >
                     {/* Gradient Transition In from White */}
                     <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-white to-transparent z-10"></div>
-
-                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/asfalt-light.png')] opacity-20 transition-opacity duration-1000 group-hover:opacity-30"></div>
+                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/asfalt-light.png')] opacity-20"></div>
 
                     {/* Dynamic Glows */}
                     <div className="absolute top-1/2 left-0 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[120px]"></div>
@@ -978,14 +1095,14 @@ const Home = () => {
 
                     <div className="container mx-auto px-4 relative z-20">
                         <div className="flex flex-col md:flex-row items-center justify-between gap-8 md:gap-12">
-                            <div className="text-center md:text-right flex-1">
+                            <motion.div variants={itemVariants} className="text-center md:text-right flex-1">
                                 <h2 className="text-3xl md:text-4xl font-black mb-4">انضم لقائمتنا البريدية</h2>
                                 <p className="text-primary-foreground/80 text-lg max-w-lg">
                                     احصل على أحدث العروض وكوبونات الخصم الحصرية مباشرة إلى بريدك الإلكتروني.
                                     لا تفوت فرصة التوفير!
                                 </p>
-                            </div>
-                            <div className="w-full md:w-auto flex-1 max-w-md">
+                            </motion.div>
+                            <motion.div variants={itemVariants} className="w-full md:w-auto flex-1 max-w-md">
                                 <form className="flex flex-col sm:flex-row gap-3">
                                     <Input
                                         type="email"
@@ -1002,10 +1119,10 @@ const Home = () => {
                                 <p className="text-xs text-primary-foreground/60 mt-3 text-center md:text-right">
                                     نحترم خصوصيتك. يمكنك إلغاء الاشتراك في أي وقت.
                                 </p>
-                            </div>
+                            </motion.div>
                         </div>
                     </div>
-                </section>
+                </motion.section>
             )}
 
             {/* Quick View Modal */}
