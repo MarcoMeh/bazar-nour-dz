@@ -29,6 +29,15 @@ export const Navbar = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [userRole, setUserRole] = useState<string | null>(null);
+    const [isScrolled, setIsScrolled] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setIsScrolled(window.scrollY > 60);
+        };
+        window.addEventListener("scroll", handleScroll);
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
 
     useEffect(() => {
         const fetchUserRole = async () => {
@@ -76,224 +85,144 @@ export const Navbar = () => {
     };
 
     return (
-        <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="container flex h-16 items-center justify-between">
-                {/* Mobile Menu */}
-                <div className="flex items-center md:hidden">
-                    <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-                        <SheetTrigger asChild>
-                            <Button variant="ghost" size="icon" className="mr-2">
-                                <Menu className="h-5 w-5" />
-                                <span className="sr-only">القائمة</span>
-                            </Button>
-                        </SheetTrigger>
-                        <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-                            <nav className="flex flex-col gap-4 mt-8">
-                                <form onSubmit={handleSearch} className="relative w-full mb-4">
-                                    <Search className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                                    <Input
-                                        type="search"
-                                        placeholder="ابحث عن منتج..."
-                                        className="w-full bg-background pr-8 pl-4"
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                    />
-                                </form>
-                                <Link to="/" className="text-lg font-semibold hover:text-primary" onClick={() => setIsSheetOpen(false)}>
-                                    الرئيسية
-                                </Link>
-                                <Link to="/products" className="text-lg font-semibold hover:text-primary" onClick={() => setIsSheetOpen(false)}>
-                                    المنتجات
-                                </Link>
-                                <Link to="/stores" className="text-lg font-semibold hover:text-primary" onClick={() => setIsSheetOpen(false)}>
-                                    المحلات
-                                </Link>
-                                {user ? (
-                                    <>
-                                        <div className="h-px bg-border my-2" />
-                                        {(userRole === 'admin' || userRole === 'store_owner') && (
-                                            <Link
-                                                to={userRole === 'admin' ? '/admin' : '/store-dashboard'}
-                                                className="text-lg font-bold text-primary flex items-center gap-2 bg-primary/5 p-2 rounded-lg"
-                                                onClick={() => setIsSheetOpen(false)}
-                                            >
-                                                <LayoutDashboard className="h-5 w-5" />
-                                                {userRole === 'admin' ? 'لوحة التحكم' : 'لوحة المتجر'}
-                                            </Link>
-                                        )}
-                                        <Link to="/my-orders" className="text-lg font-semibold hover:text-primary flex items-center gap-2" onClick={() => setIsSheetOpen(false)}>
-                                            <Package className="h-5 w-5" />
-                                            طلباتي
-                                        </Link>
-                                        <Link to={userRole === 'store_owner' ? "/store-dashboard/profile" : "/profile"} className="text-lg font-semibold hover:text-primary flex items-center gap-2" onClick={() => setIsSheetOpen(false)}>
-                                            <Settings className="h-5 w-5" />
-                                            الإعدادات
-                                        </Link>
-                                        <button onClick={() => { handleLogout(); setIsSheetOpen(false); }} className="text-lg font-semibold hover:text-destructive flex items-center gap-2 text-right w-full">
-                                            <LogOut className="h-5 w-5" />
-                                            تسجيل الخروج
-                                        </button>
-                                    </>
-                                ) : (
-                                    <>
-                                        <div className="h-px bg-border my-2" />
-                                        <Link to="/login" className="text-lg font-semibold hover:text-primary" onClick={() => setIsSheetOpen(false)}>
-                                            تسجيل الدخول
-                                        </Link>
-                                    </>
-                                )}
-                            </nav>
-                        </SheetContent>
-                    </Sheet>
-                </div>
+        <nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-300 px-4 py-2">
+            <div className="container mx-auto">
+                {/* Main Header Row */}
+                <div className={`
+                    rounded-2xl px-6 py-3 flex items-center justify-between gap-4 shadow-2xl transition-all duration-300
+                    ${isScrolled
+                        ? "bg-white/20 backdrop-blur-2xl border-white/30 ring-1 ring-black/5"
+                        : "bg-white/2 backdrop-blur-3xl border-white/10 ring-1 ring-black/5"
+                    }
+                `}>
+                    {/* RIGHT: Logo (Appears first in DOM for RTL right-alignment) */}
+                    <div className="flex items-center gap-3 shrink-0">
+                        <Link to="/" className="flex items-center gap-2 group">
+                            {settings?.logo_url ? (
+                                <div className={`
+                                    relative rounded-full bg-white p-2 shadow-[0_8px_30px_rgb(0,0,0,0.2)] border-2 border-white/50 overflow-hidden flex items-center justify-center transition-all duration-500 group-hover:scale-110
+                                    ${isScrolled ? "h-12 w-12" : "h-14 w-14 group-hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]"}
+                                `}>
+                                    <img src={settings.logo_url} alt={settings.site_name} className="h-full w-full object-contain" />
+                                </div>
+                            ) : (
+                                <span className={`text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-primary to-indigo-600 ${isScrolled ? "text-xl" : "text-2xl"}`}>
+                                    {settings?.site_name || "بازارنا"}
+                                </span>
+                            )}
+                        </Link>
+                    </div>
 
-                {/* Logo */}
-                <div className="flex items-center gap-2">
-                    <Link to="/" className="flex items-center gap-2">
-                        {settings?.logo_url ? (
-                            <img src={settings.logo_url} alt={settings.site_name} className="h-10 w-auto object-contain" />
-                        ) : (
-                            <span className="text-2xl font-bold text-primary">{settings?.site_name || "بازارنا"}</span>
-                        )}
-                    </Link>
-                </div>
-
-                {/* Desktop Navigation */}
-                <div className="hidden md:flex items-center gap-6 mx-6">
-                    <Link to="/" className="text-sm font-medium transition-colors hover:text-primary">
-                        الرئيسية
-                    </Link>
-                    <Link to="/products" className="text-sm font-medium transition-colors hover:text-primary">
-                        المنتجات
-                    </Link>
-                    <Link to="/stores" className="text-sm font-medium transition-colors hover:text-primary">
-                        المحلات
-                    </Link>
-                </div>
-
-                {/* Search Bar */}
-                <div className="hidden md:flex flex-1 max-w-sm items-center gap-2">
-                    <form onSubmit={handleSearch} className="relative w-full">
-                        <Search className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            type="search"
-                            placeholder="ابحث عن منتج..."
-                            className="w-full bg-background pr-8 pl-4"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </form>
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center gap-2">
-                    {/* Dashboard Icon - Clear but hidden (Only for authorized users) */}
-                    <DashboardIcon />
-
-                    <Link to="/cart">
-                        <Button variant="ghost" size="icon" className="relative">
-                            <ShoppingCart className="h-5 w-5" />
-                            <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] font-bold text-primary-foreground flex items-center justify-center">
-                                {totalItems}
-                            </span>
-                            <span className="sr-only">السلة</span>
-                        </Button>
-                    </Link>
-
-                    {user ? (
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                    <User className="h-5 w-5" />
-                                    <span className="sr-only">حسابي</span>
+                    {/* CENTER: Search Bar */}
+                    <div className="flex-1 max-w-2xl hidden lg:block">
+                        <form onSubmit={handleSearch} className="relative group/search">
+                            <div className={`
+                                flex items-center rounded-full overflow-hidden transition-all duration-300 border-2
+                                ${isScrolled
+                                    ? "bg-white/40 border-primary/10"
+                                    : "bg-white border-primary/20 shadow-lg"
+                                }
+                                group-focus-within/search:border-primary group-focus-within/search:ring-4 ring-primary/10
+                            `}>
+                                <Button
+                                    type="submit"
+                                    className="h-10 w-10 min-w-[40px] rounded-full bg-primary text-white ml-1 p-0 flex items-center justify-center shadow-md hover:scale-105 transition-transform"
+                                >
+                                    <Search className="h-5 w-5" />
                                 </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-56">
-                                <DropdownMenuLabel>حسابي</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
+                                <Input
+                                    type="search"
+                                    placeholder="ما الذي تبحث عنه؟"
+                                    className={`border-none bg-transparent focus-visible:ring-0 text-right pr-4 pl-2 h-10 w-full font-bold transition-colors ${isScrolled ? "text-gray-900" : "text-black"} placeholder:text-gray-500`}
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                            </div>
+                        </form>
+                    </div>
 
-                                {userRole === 'store_owner' ? (
-                                    <>
-                                        <DropdownMenuItem asChild>
-                                            <Link to="/store-dashboard" className="cursor-pointer flex items-center gap-2">
-                                                <LayoutDashboard className="h-4 w-4" />
-                                                <span>لوحة التحكم</span>
-                                            </Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                            <Link to="/store-dashboard/products" className="cursor-pointer flex items-center gap-2">
-                                                <Package className="h-4 w-4" />
-                                                <span>المنتجات</span>
-                                            </Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                            <Link to="/store-dashboard/orders" className="cursor-pointer flex items-center gap-2">
-                                                <ShoppingCart className="h-4 w-4" />
-                                                <span>الطلبات</span>
-                                            </Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                            <Link to="/store-dashboard/profile" className="cursor-pointer flex items-center gap-2">
-                                                <Settings className="h-4 w-4" />
-                                                <span>الإعدادات</span>
-                                            </Link>
-                                        </DropdownMenuItem>
-                                    </>
-                                ) : userRole === 'admin' ? (
-                                    <>
-                                        <DropdownMenuItem asChild>
-                                            <Link to="/admin" className="cursor-pointer flex items-center gap-2">
-                                                <LayoutDashboard className="h-4 w-4" />
-                                                <span>لوحة الإدارة</span>
-                                            </Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                            <Link to="/admin/control" className="cursor-pointer flex items-center gap-2">
-                                                <Settings className="h-4 w-4" />
-                                                <span>التحكم بالموقع</span>
-                                            </Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                            <Link to="/admin/settings" className="cursor-pointer flex items-center gap-2">
-                                                <User className="h-4 w-4" />
-                                                <span>إعدادات الحساب</span>
-                                            </Link>
-                                        </DropdownMenuItem>
-                                    </>
-                                ) : (
-                                    <>
-                                        <DropdownMenuItem asChild>
-                                            <Link to="/my-orders" className="cursor-pointer flex items-center gap-2">
-                                                <Package className="h-4 w-4" />
-                                                <span>طلباتي</span>
-                                            </Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                            <Link to="/profile" className="cursor-pointer flex items-center gap-2">
-                                                <Settings className="h-4 w-4" />
-                                                <span>الإعدادات</span>
-                                            </Link>
-                                        </DropdownMenuItem>
-                                    </>
-                                )}
-
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive focus:text-destructive flex items-center gap-2">
-                                    <LogOut className="h-4 w-4" />
-                                    <span>تسجيل الخروج</span>
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    ) : (
-                        <Link to="/login">
-                            <Button variant="ghost" size="icon">
-                                <User className="h-5 w-5" />
-                                <span className="sr-only">تسجيل الدخول</span>
+                    {/* LEFT: Action Icons */}
+                    <div className="flex items-center gap-1 md:gap-3">
+                        <Link to="/profile">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className={`transition-all rounded-xl h-10 w-10 ${isScrolled ? "text-gray-900 hover:bg-black/5" : "text-white hover:bg-white/20"}`}
+                            >
+                                <User className="h-6 w-6" />
+                                <span className="sr-only">حسابي</span>
                             </Button>
                         </Link>
-                    )}
+
+                        <Link to="/cart">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className={`relative transition-all rounded-xl h-10 w-10 ${isScrolled ? "text-gray-900 hover:bg-black/5" : "text-white hover:bg-white/20"}`}
+                            >
+                                <ShoppingCart className="h-6 w-6" />
+                                {totalItems > 0 && (
+                                    <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center animate-bounce">
+                                        {totalItems}
+                                    </span>
+                                )}
+                                <span className="sr-only">السلة</span>
+                            </Button>
+                        </Link>
+
+                        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+                            <SheetTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className={`lg:hidden transition-all rounded-xl h-10 w-10 ${isScrolled ? "text-gray-900 hover:bg-black/5" : "text-white hover:bg-white/20"}`}
+                                >
+                                    <Menu className="h-6 w-6" />
+                                    <span className="sr-only">القائمة</span>
+                                </Button>
+                            </SheetTrigger>
+                            <SheetContent side="right" className="w-[300px] sm:w-[400px] bg-black/40 backdrop-blur-2xl border-none text-white">
+                                <nav className="flex flex-col gap-6 mt-12">
+                                    <Link to="/" className="text-xl font-bold hover:text-blue-400" onClick={() => setIsSheetOpen(false)}>الرئيسية</Link>
+                                    <Link to="/products" className="text-xl font-bold hover:text-blue-400" onClick={() => setIsSheetOpen(false)}>المنتجات</Link>
+                                    <Link to="/stores" className="text-xl font-bold hover:text-blue-400" onClick={() => setIsSheetOpen(false)}>المحلات</Link>
+                                    <div className="h-px bg-white/10 my-2" />
+                                    {user ? (
+                                        <button onClick={() => { handleLogout(); setIsSheetOpen(false); }} className="text-xl font-bold text-red-500 flex items-center gap-3">
+                                            <LogOut className="h-6 w-6" /> تسجيل الخروج
+                                        </button>
+                                    ) : (
+                                        <Link to="/login" className="text-xl font-bold hover:text-blue-400" onClick={() => setIsSheetOpen(false)}>تسجيل الدخول</Link>
+                                    )}
+                                </nav>
+                            </SheetContent>
+                        </Sheet>
+                    </div>
+                </div>
+
+                {/* Sub Navigation Row */}
+                <div className="mt-2 flex justify-center pb-2">
+                    <div className={`
+                        rounded-2xl px-10 py-2.5 flex items-center gap-8 shadow-xl transition-all duration-300 animate-fade-in
+                        ${isScrolled
+                            ? "bg-white/20 backdrop-blur-xl border-white/20 ring-1 ring-black/5"
+                            : "bg-white/2 backdrop-blur-lg border-white/10 ring-1 ring-black/5"
+                        }
+                    `}>
+                        <Link to="/" className={`font-black text-sm transition-all hover:scale-110 ${isScrolled ? "text-gray-800 hover:text-primary" : "text-white hover:text-white/80"}`}>الرئيسية</Link>
+                        <Link to="/stores" className={`font-black text-sm transition-all hover:scale-110 ${isScrolled ? "text-gray-800 hover:text-primary" : "text-white hover:text-white/80"}`}>المحلات</Link>
+                        <Link to="/products" className={`font-black text-sm transition-all hover:scale-110 ${isScrolled ? "text-gray-800 hover:text-primary" : "text-white hover:text-white/80"}`}>المنتجات</Link>
+                        <Link to="/products?flash_sale=true" className="flex items-center gap-2 font-black text-sm transition-all hover:scale-110 group">
+                            <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                            </span>
+                            <span className={isScrolled ? "text-red-600" : "text-red-400"}>العروض</span>
+                        </Link>
+                        <Link to="/products?sort=trending" className={`font-black text-sm transition-all hover:scale-110 ${isScrolled ? "text-gray-800 hover:text-primary" : "text-white hover:text-white/80"}`}>الأكثر مبيعاً</Link>
+                    </div>
                 </div>
             </div>
-        </nav >
+        </nav>
     );
 };

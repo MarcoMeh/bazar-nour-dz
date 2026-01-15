@@ -27,7 +27,12 @@ import {
     Search,
     Shield,
     Clock,
-    Star
+    Star,
+    Baby,
+    Gem,
+    Footprints,
+    Home as HomeIcon,
+    Download
 } from "lucide-react";
 import Autoplay from "embla-carousel-autoplay";
 import SEO from "@/components/SEO";
@@ -326,6 +331,31 @@ const Home = () => {
                 .3d-card:hover {
                     transform: translateZ(20px) rotateX(2deg) rotateY(-2deg);
                 }
+                @keyframes sparkle {
+                    0%, 100% { transform: scale(0) rotate(0deg); opacity: 0; }
+                    50% { transform: scale(1) rotate(180deg); opacity: 0.8; }
+                }
+                .sparkle-particle {
+                    position: absolute;
+                    background: white;
+                    border-radius: 50%;
+                    filter: blur(1px);
+                    box-shadow: 0 0 10px white, 0 0 20px white;
+                    pointer-events: none;
+                }
+                .glass-card {
+                    background: rgba(255, 255, 255, 0.7);
+                    backdrop-filter: blur(12px);
+                    -webkit-backdrop-filter: blur(12px);
+                    border: 1px solid rgba(255, 255, 255, 0.5);
+                }
+                @keyframes shimmer {
+                    0% { transform: translateX(-100%); }
+                    100% { transform: translateX(100%); }
+                }
+                .group-hover\:animate-shimmer:hover {
+                    animation: shimmer 1.5s infinite;
+                }
                 `}
             </style>
 
@@ -353,42 +383,55 @@ const Home = () => {
                         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay z-20"></div>
                     </div>
 
-                    <div className="container mx-auto px-4 relative z-10 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center pt-8 pb-12 md:pt-0 md:pb-0 pointer-events-none">
+                    <div className="container mx-auto px-4 relative z-10 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center pt-32 pb-12 md:pt-40 md:pb-20 pointer-events-none">
                         {/* Text Content - Enable pointer events for text/buttons */}
                         <div className="text-white space-y-8 md:space-y-10 text-right order-2 lg:order-1 pointer-events-auto">
-                            <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 animate-fade-in shadow-2xl">
-                                <Sparkles className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                                <span className="text-white font-black text-xs md:text-sm tracking-widest uppercase">الأناقة تبدأ من هنا</span>
+                            {/* New Repositioned Badge - Floating on the Left */}
+                            <div className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full bg-gradient-to-r from-blue-600/20 to-indigo-600/20 backdrop-blur-3xl border border-white/30 animate-fade-in shadow-[0_0_30px_rgba(0,0,0,0.1)] mb-10 hover:scale-105 transition-transform cursor-default">
+                                <Sparkles className="w-5 h-5 text-yellow-400 fill-yellow-400 animate-pulse" />
+                                <span className="text-white font-black text-sm tracking-widest uppercase">الأناقة تبدأ من هنا</span>
                             </div>
 
-                            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black leading-tight animate-slide-up tracking-tighter">
-                                <span className="block mb-2 text-white">عالمك الخاص</span>
-                                <span className="text-transparent bg-clip-text bg-gradient-to-l from-yellow-300 via-amber-200 to-yellow-100 drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]">
+                            <h1 className="text-6xl md:text-8xl lg:text-9xl font-black leading-[1.1] animate-slide-up tracking-tighter">
+                                <span className="block mb-2 text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)]">عالمك الخاص</span>
+                                <span className="text-[#FBBF24] drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)]">
                                     للتميز والأناقة
                                 </span>
                             </h1>
 
-                            <p className="text-lg md:text-2xl text-gray-200/90 max-w-xl leading-relaxed animate-slide-up delay-150 font-medium">
+                            <p className="text-xl md:text-2xl text-gray-100 font-bold max-w-xl leading-relaxed animate-slide-up delay-150">
                                 اكتشف تشكيلة حصرية من أرقى الماركات الجزائرية.
-                                <span className="text-yellow-400 font-black block mt-2">توصيل لكل الولايات • دفع عند الاستلام</span>
                             </p>
 
-                            {/* Search Bar - Original WOW Edition */}
-                            <form onSubmit={handleSearch} className="relative max-w-xl animate-slide-up delay-300">
+                            {/* Trust Badges - Single Line Style */}
+                            <div className="flex flex-wrap items-center gap-6 animate-slide-up delay-200">
+                                <div className="flex items-center gap-3 text-white font-bold">
+                                    <Truck className="h-6 w-6 text-yellow-400" />
+                                    <span>دفع لكل الولايات</span>
+                                </div>
+                                <div className="w-1.5 h-1.5 rounded-full bg-white/40"></div>
+                                <div className="flex items-center gap-3 text-white font-bold">
+                                    <Shield className="h-6 w-6 text-yellow-400" />
+                                    <span>دفع عند الاستلام</span>
+                                </div>
+                            </div>
+
+                            {/* Search Bar - New Layout (Button on Left Visually) */}
+                            <form onSubmit={handleSearch} className="relative max-w-2xl animate-slide-up delay-300">
                                 <div className="relative group">
-                                    <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 via-orange-500 to-amber-600 rounded-full blur-xl opacity-25 group-hover:opacity-60 transition duration-700"></div>
-                                    <div className="relative flex bg-white/95 backdrop-blur-md rounded-full p-2 md:p-3 shadow-2xl border border-white/20 items-center">
+                                    <div className="relative flex bg-white rounded-full p-2 pl-2 shadow-2xl items-center border border-white/40 overflow-hidden">
                                         <Input
                                             type="text"
                                             placeholder="ماذا تريدين أن ترتدي اليوم؟"
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
-                                            className="flex-1 border-none shadow-none focus-visible:ring-0 text-gray-900 text-lg md:text-xl h-10 md:h-14 px-6 rounded-full bg-transparent placeholder:text-gray-400 font-bold"
+                                            className="flex-1 border-none shadow-none focus-visible:ring-0 text-gray-800 text-lg md:text-xl h-10 md:h-14 px-6 bg-transparent placeholder:text-gray-400 font-bold text-right"
+                                            dir="rtl"
                                         />
                                         <Button
                                             type="submit"
                                             size="lg"
-                                            className="rounded-full w-12 h-12 md:w-14 md:h-14 bg-indigo-600 hover:bg-indigo-700 text-white transition-all duration-500 hover:rotate-[360deg] shadow-xl p-0"
+                                            className="rounded-full w-12 h-12 md:w-14 md:h-14 bg-[#4154F1] hover:bg-[#3245d1] text-white transition-all shadow-lg p-0 flex-shrink-0"
                                         >
                                             <Search className="h-6 w-6" />
                                         </Button>
@@ -396,26 +439,13 @@ const Home = () => {
                                 </div>
                             </form>
 
-                            {/* Trust Badges - Original Glassmorphism */}
-                            <div className="flex flex-wrap gap-4 pt-4 animate-slide-up delay-500">
-                                <div className="group flex items-center gap-4 bg-white/5 backdrop-blur-2xl px-6 py-4 rounded-2xl border border-white/10 hover:border-white/30 transition-all duration-500 cursor-default hover:-translate-y-2">
-                                    <div className="p-3 bg-yellow-400/20 rounded-xl text-yellow-400 group-hover:bg-yellow-400 group-hover:text-black transition-colors duration-500 shadow-inner">
-                                        <Truck className="h-7 w-7" />
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-sm font-black text-white uppercase tracking-wider">توصيل 69 ولاية</span>
-                                        <span className="text-xs text-gray-400 font-medium italic">سريع، آمن، ومضمون</span>
-                                    </div>
-                                </div>
-                                <div className="group flex items-center gap-4 bg-white/5 backdrop-blur-2xl px-6 py-4 rounded-2xl border border-white/10 hover:border-white/30 transition-all duration-500 cursor-default hover:-translate-y-2">
-                                    <div className="p-3 bg-emerald-400/20 rounded-xl text-emerald-400 group-hover:bg-emerald-400 group-hover:text-black transition-colors duration-500 shadow-inner">
-                                        <Shield className="h-7 w-7" />
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-sm font-black text-white uppercase tracking-wider">الدفع عند الاستلام</span>
-                                        <span className="text-xs text-gray-400 font-medium italic">افحص طلبك بكل هدوء</span>
-                                    </div>
-                                </div>
+                            {/* Download Button */}
+                            <div className="pt-4 flex animate-slide-up delay-500">
+                                <button className="group relative flex items-center gap-3 px-8 py-3 bg-[#1D4ED8] text-white rounded-xl font-black text-lg shadow-[0_10px_30px_rgba(29,78,216,0.5)] hover:shadow-[0_15px_40px_rgba(29,78,216,0.7)] transition-all hover:-translate-y-1 overflow-hidden border border-blue-400/30">
+                                    <Download className="w-6 h-6" />
+                                    <span>حمل التطبيق</span>
+                                    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:animate-shimmer"></div>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -434,12 +464,12 @@ const Home = () => {
                 <section
                     ref={storesRef}
                     className={`
-                        py-32 bg-white relative overflow-hidden transition-all duration-1000 transform
+                        py-12 bg-white relative overflow-hidden transition-all duration-1000 transform
                         ${storesInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}
                     `}
                 >
                     {/* Decorative Elements - Subtle Gradients */}
-                    <div className="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-[#FAFAFA] to-transparent"></div>
+                    <div className="absolute top-0 inset-x-0 h-20 bg-gradient-to-b from-[#FAFAFA] to-transparent"></div>
                     <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2"></div>
                     <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-500/5 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2"></div>
                     <div className="mt-16 text-center">
@@ -452,7 +482,7 @@ const Home = () => {
                     </div>
 
                     <div className="container mx-auto px-4 relative z-10">
-                        <div className="text-center mb-16 space-y-4">
+                        <div className="text-center mb-8 space-y-4">
                             <Badge variant="outline" className="px-6 py-2 border-primary/20 bg-primary/5 text-primary rounded-full text-sm font-bold tracking-wider mb-4 animate-fade-in">
                                 عالم من المتاجر
                             </Badge>
@@ -465,7 +495,7 @@ const Home = () => {
                         </div>
 
                         {/* Category Filter Tabs */}
-                        <div className={`flex flex-wrap justify-center gap-3 mb-16 transition-all duration-1000 delay-300 ${storesInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+                        <div className={`flex flex-wrap justify-center gap-3 mb-8 transition-all duration-1000 delay-300 ${storesInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
                             <button
                                 onClick={() => setSelectedStoreCategory("all")}
                                 className={`px-6 py-3 rounded-full text-sm font-bold transition-all duration-300 transform hover:scale-105 ${selectedStoreCategory === "all"
@@ -590,54 +620,112 @@ const Home = () => {
                 </section>
             )}
 
-            {/* 2.5 CATEGORIES SECTION */}
+            {/* 2.5 CATEGORIES SECTION - DREAMY EDITION */}
             {settings.categories_visible && (
                 <section
                     ref={categoriesRef}
                     className={`
-                        py-24 bg-[#FAFAFA] relative overflow-hidden transition-all duration-1000 delay-200 transform
+                        py-12 bg-white relative overflow-hidden transition-all duration-1000 delay-200 transform
                         ${categoriesInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}
                     `}
                 >
-                    {/* Gradient Transition In */}
-                    <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-white to-transparent"></div>
+                    {/* Dreamy Background Effect */}
+                    <div className="absolute inset-0 z-0">
+                        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-purple-100/40 rounded-full blur-[120px] -translate-y-1/2"></div>
+                        <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-blue-100/40 rounded-full blur-[120px] translate-y-1/2"></div>
+
+                        {/* Sparkles */}
+                        {[...Array(15)].map((_, i) => (
+                            <div
+                                key={i}
+                                className="sparkle-particle"
+                                style={{
+                                    top: `${Math.random() * 100}%`,
+                                    left: `${Math.random() * 100}%`,
+                                    width: `${Math.random() * 4 + 2}px`,
+                                    height: `${Math.random() * 4 + 2}px`,
+                                    animation: `sparkle ${Math.random() * 3 + 2}s infinite ${Math.random() * 5}s`,
+                                }}
+                            />
+                        ))}
+                    </div>
 
                     <div className="container mx-auto px-4 relative z-10">
-                        <div className="text-center mb-16">
-                            <h2 className="text-3xl md:text-5xl font-black mb-4 tracking-tight">تصفح حسب الفئة</h2>
-                            <p className="text-gray-500 text-lg">كل ما تبحث عنه في أقسامنا المتنوعة</p>
+                        <div className="text-center mb-10">
+                            <h2 className="text-3xl md:text-5xl font-black mb-4 tracking-tight text-gray-900">تصفح حسب الفئة</h2>
+                            <p className="text-gray-500 text-lg font-medium">كل ما تبحث عنه في أقسامنا المتنوعة</p>
                         </div>
 
                         {loading ? (
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                                {[1, 2, 3, 4, 5, 6].map(i => <Skeleton key={i} className="h-40 w-full rounded-2xl" />)}
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-8">
+                                {[1, 2, 3, 4, 5, 6].map(i => (
+                                    <div key={i} className="flex flex-col items-center gap-4">
+                                        <Skeleton className="h-32 w-32 rounded-full" />
+                                        <Skeleton className="h-12 w-40 rounded-2xl" />
+                                    </div>
+                                ))}
                             </div>
                         ) : (
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                                {mainCategories.map((cat) => (
-                                    <Link
-                                        key={cat.id}
-                                        to={`/products?categoryId=${cat.id}`}
-                                        className="group flex flex-col items-center gap-4 p-4 rounded-2xl hover:bg-gray-50 transition-all duration-300 3d-card"
-                                    >
-                                        <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-gray-100 group-hover:border-primary/30 shadow-lg group-hover:shadow-2xl transition-all duration-300 relative bg-white">
-                                            {cat.image_url ? (
-                                                <img src={cat.image_url} alt={cat.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-300 group-hover:bg-primary/5 transition-colors">
-                                                    <span className="text-4xl group-hover:scale-125 transition-transform duration-300">📦</span>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-x-6 gap-y-16">
+                                {mainCategories.map((cat) => {
+                                    // Helper function for mapping icons
+                                    const getCatStyle = (name: string) => {
+                                        const n = name || "";
+                                        if (n.includes('نسائية')) return { icon: <Sparkles className="w-6 h-6 text-pink-500" />, borderColor: 'border-pink-200' };
+                                        if (n.includes('رجالية')) return { icon: <Shirt className="w-6 h-6 text-blue-500" />, borderColor: 'border-blue-200' };
+                                        if (n.includes('داخلية')) return { icon: <HomeIcon className="w-6 h-6 text-teal-500" />, borderColor: 'border-teal-200' };
+                                        if (n.includes('أطفال')) return { icon: <Baby className="w-6 h-6 text-yellow-500" />, borderColor: 'border-yellow-200' };
+                                        if (n.includes('إكسسوارات')) return { icon: <Gem className="w-6 h-6 text-amber-500" />, borderColor: 'border-amber-200' };
+                                        if (n.includes('أحذية')) return { icon: <Footprints className="w-6 h-6 text-indigo-500" />, borderColor: 'border-indigo-200' };
+                                        return { icon: <BagIcon className="w-6 h-6 text-gray-400" />, borderColor: 'border-gray-200' };
+                                    };
+
+                                    const style = getCatStyle(cat.name || "");
+
+                                    return (
+                                        <Link
+                                            key={cat.id}
+                                            to={`/products?categoryId=${cat.id}`}
+                                            className="group relative flex flex-col items-center transition-all duration-500 hover:-translate-y-2"
+                                        >
+                                            {/* Circular Image with Gradient Border & Glow */}
+                                            <div className={`
+                                                relative w-32 h-32 md:w-40 md:h-40 rounded-full border-[6px] ${style.borderColor} 
+                                                shadow-[0_0_30px_rgba(0,0,0,0.05)] group-hover:shadow-primary/20 
+                                                transition-all duration-500 z-10 overflow-hidden bg-white
+                                            `}>
+                                                <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                                                {cat.image_url ? (
+                                                    <img
+                                                        src={cat.image_url}
+                                                        alt={cat.name}
+                                                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-200">
+                                                        <span className="text-4xl">📦</span>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Floating Glass Label Card */}
+                                            <div className="glass-card absolute top-[80%] left-1/2 -translate-x-1/2 w-[85%] py-4 px-2 rounded-2xl flex flex-col items-center gap-2 shadow-xl shadow-black/5 group-hover:shadow-2xl transition-all duration-500 z-20">
+                                                <div className="p-2 transition-transform duration-500 group-hover:scale-110">
+                                                    {style.icon}
                                                 </div>
-                                            )}
-                                        </div>
-                                        <h3 className="font-bold text-lg text-gray-800 group-hover:text-primary transition-colors">{cat.name}</h3>
-                                    </Link>
-                                ))}
+                                                <h3 className="font-black text-sm md:text-base text-gray-800 whitespace-nowrap">
+                                                    {cat.name}
+                                                </h3>
+                                            </div>
+                                        </Link>
+                                    );
+                                })}
                             </div>
                         )}
 
-                        <div className="mt-12 flex justify-center md:hidden">
+                        <div className="mt-24 flex justify-center md:hidden pointer-events-auto">
                             <Link to="/products">
-                                <Button variant="outline" className="rounded-full px-12 h-12 font-bold border-gray-200 hover:bg-gray-50 transition-colors shadow-sm">
+                                <Button variant="outline" className="rounded-full px-12 h-12 font-bold border-gray-200 bg-white/50 backdrop-blur-md hover:bg-white transition-all shadow-sm">
                                     شاهد كل الأقسام
                                 </Button>
                             </Link>
@@ -651,12 +739,12 @@ const Home = () => {
                 <section
                     ref={flashRef}
                     className={`
-                        py-32 bg-gradient-to-br from-red-600 via-red-500 to-orange-500 text-white overflow-hidden relative transition-all duration-1000 transform
+                        py-12 bg-gradient-to-br from-red-600 via-red-500 to-orange-500 text-white overflow-hidden relative transition-all duration-1000 transform
                         ${flashInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}
                     `}
                 >
                     {/* Seamless Wave-like Transition In */}
-                    <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-[#FAFAFA] to-transparent pointer-events-none"></div>
+                    <div className="absolute top-0 inset-x-0 h-16 bg-gradient-to-b from-[#FAFAFA] to-transparent pointer-events-none"></div>
 
                     {/* Background Pattern */}
                     <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay"></div>
@@ -664,7 +752,7 @@ const Home = () => {
                     <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-yellow-400/10 rounded-full blur-3xl"></div>
 
                     <div className="container mx-auto px-4 relative z-10">
-                        <div className="flex flex-col md:flex-row items-center justify-between mb-10 gap-6">
+                        <div className="flex flex-col md:flex-row items-center justify-between mb-6 gap-6">
                             <div className="flex items-center gap-4">
                                 <div className="bg-white/20 p-3 rounded-full backdrop-blur-sm animate-pulse">
                                     <Zap className="h-8 w-8 text-yellow-300" />
@@ -728,12 +816,12 @@ const Home = () => {
 
             {/* 2.2 FEATURES SECTION */}
             {settings.features_visible && (
-                <section className="py-32 bg-white relative">
+                <section className="py-12 bg-white relative">
                     {/* Seamless Transition In from Orange Flash Sale */}
-                    <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-orange-500 to-transparent opacity-10 pointer-events-none"></div>
+                    <div className="absolute top-0 inset-x-0 h-16 bg-gradient-to-b from-orange-500 to-transparent opacity-10 pointer-events-none"></div>
 
                     <div className="container mx-auto px-4">
-                        <div className="text-center mb-12">
+                        <div className="text-center mb-6">
                             <h2 className="text-3xl font-black mb-4">لماذا تختارنا؟</h2>
                             <p className="text-gray-500">نقدم لك أفضل تجربة تسوق مع ضمانات حقيقية</p>
                         </div>
@@ -769,15 +857,15 @@ const Home = () => {
                 <section
                     ref={trendingRef}
                     className={`
-                        py-32 bg-[#FAFAFA] relative transition-all duration-1000 transform
+                        py-12 bg-[#FAFAFA] relative transition-all duration-1000 transform
                         ${trendingInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}
                     `}
                 >
                     {/* Gradient Transition In */}
-                    <div className="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-white to-transparent"></div>
+                    <div className="absolute top-0 inset-x-0 h-20 bg-gradient-to-b from-white to-transparent"></div>
 
                     <div className="container mx-auto px-4">
-                        <div className="flex items-center justify-between mb-12">
+                        <div className="flex items-center justify-between mb-6">
                             <div>
                                 <h2 className="text-3xl md:text-5xl font-black mb-2 flex items-center gap-3">
                                     <TrendingUp className="text-primary h-8 w-8 md:h-12 md:w-12" />
@@ -824,15 +912,15 @@ const Home = () => {
                 <section
                     ref={arrivalsRef}
                     className={`
-                        py-32 bg-white relative transition-all duration-1000 transform
+                        py-12 bg-white relative transition-all duration-1000 transform
                         ${arrivalsInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}
                     `}
                 >
                     {/* Gradient Transition In */}
-                    <div className="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-[#FAFAFA] to-transparent"></div>
+                    <div className="absolute top-0 inset-x-0 h-20 bg-gradient-to-b from-[#FAFAFA] to-transparent"></div>
 
                     <div className="container mx-auto px-4">
-                        <div className="text-center mb-16">
+                        <div className="text-center mb-8">
                             <h2 className="text-3xl md:text-5xl font-black mb-4">وصل حديثاً</h2>
                             <p className="text-gray-500 max-w-2xl mx-auto text-lg leading-relaxed">
                                 تصفح أحدث المنتجات المضافة إلى بازارنا. كن أول من يحصل عليها!
@@ -870,12 +958,12 @@ const Home = () => {
                 <section
                     ref={newsletterRef}
                     className={`
-                        py-40 bg-slate-950 text-white relative overflow-hidden transition-all duration-1000 transform
+                        py-16 bg-slate-950 text-white relative overflow-hidden transition-all duration-1000 transform
                         ${newsletterInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}
                     `}
                 >
                     {/* Gradient Transition In from White */}
-                    <div className="absolute top-0 inset-x-0 h-64 bg-gradient-to-b from-white to-transparent z-10"></div>
+                    <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-white to-transparent z-10"></div>
 
                     <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/asfalt-light.png')] opacity-20 transition-opacity duration-1000 group-hover:opacity-30"></div>
 
