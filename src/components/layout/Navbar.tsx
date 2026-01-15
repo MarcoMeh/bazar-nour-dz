@@ -89,10 +89,10 @@ export const Navbar = () => {
             <div className="container mx-auto">
                 {/* Main Header Row */}
                 <div className={`
-                    rounded-2xl px-6 py-3 flex items-center justify-between gap-4 shadow-2xl transition-all duration-300
+                    rounded-2xl px-4 md:px-6 py-3 flex items-center justify-between gap-3 md:gap-4 shadow-2xl transition-all duration-300
                     ${isScrolled
-                        ? "bg-white/20 backdrop-blur-2xl border-white/30 ring-1 ring-black/5"
-                        : "bg-white/2 backdrop-blur-3xl border-white/10 ring-1 ring-black/5"
+                        ? "bg-black/60 lg:bg-white/20 backdrop-blur-2xl border-white/30 ring-1 ring-black/5"
+                        : "bg-black/40 lg:bg-white/2 backdrop-blur-3xl border-white/10 ring-1 ring-black/5"
                     }
                 `}>
                     {/* RIGHT: Logo (Appears first in DOM for RTL right-alignment) */}
@@ -114,19 +114,19 @@ export const Navbar = () => {
                     </div>
 
                     {/* CENTER: Search Bar */}
-                    <div className="flex-1 max-w-2xl hidden lg:block">
+                    <div className="flex-1 max-w-2xl lg:block">
                         <form onSubmit={handleSearch} className="relative group/search">
                             <div className={`
                                 flex items-center rounded-full overflow-hidden transition-all duration-300 border-2
                                 ${isScrolled
                                     ? "bg-white/40 border-primary/10"
-                                    : "bg-white border-primary/20 shadow-lg"
+                                    : "bg-white/80 lg:bg-white border-primary/20 shadow-lg"
                                 }
                                 group-focus-within/search:border-primary group-focus-within/search:ring-4 ring-primary/10
                             `}>
                                 <Button
                                     type="submit"
-                                    className="h-10 w-10 min-w-[40px] rounded-full bg-primary text-white ml-1 p-0 flex items-center justify-center shadow-md hover:scale-105 transition-transform"
+                                    className="h-9 w-9 md:h-10 md:w-10 min-w-[36px] md:min-w-[40px] rounded-full bg-primary text-white ml-2 p-0 flex items-center justify-center shadow-lg hover:scale-105 transition-transform"
                                 >
                                     <Search className="h-5 w-5" />
                                 </Button>
@@ -143,24 +143,24 @@ export const Navbar = () => {
 
                     {/* LEFT: Action Icons */}
                     <div className="flex items-center gap-1 md:gap-3">
-                        <Link to="/profile">
+                        <Link to="/profile" className="hidden lg:block">
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className={`transition-all rounded-xl h-10 w-10 ${isScrolled ? "text-gray-900 hover:bg-black/5" : "text-white hover:bg-white/20"}`}
+                                className={`transition-all rounded-xl h-10 w-10 text-white lg:text-white ${isScrolled ? "text-gray-900 lg:text-gray-900 hover:bg-black/5" : "hover:bg-white/20"}`}
                             >
-                                <User className="h-6 w-6" />
+                                <User className="h-6 w-6" strokeWidth={2.5} />
                                 <span className="sr-only">حسابي</span>
                             </Button>
                         </Link>
 
-                        <Link to="/cart">
+                        <Link to="/cart" className="hidden lg:block">
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className={`relative transition-all rounded-xl h-10 w-10 ${isScrolled ? "text-gray-900 hover:bg-black/5" : "text-white hover:bg-white/20"}`}
+                                className={`relative transition-all rounded-xl h-10 w-10 text-white lg:text-white ${isScrolled ? "text-gray-900 lg:text-gray-900 hover:bg-black/5" : "hover:bg-white/20"}`}
                             >
-                                <ShoppingCart className="h-6 w-6" />
+                                <ShoppingCart className="h-6 w-6" strokeWidth={2.5} />
                                 {totalItems > 0 && (
                                     <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center animate-bounce">
                                         {totalItems}
@@ -175,7 +175,7 @@ export const Navbar = () => {
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className={`lg:hidden transition-all rounded-xl h-10 w-10 ${isScrolled ? "text-gray-900 hover:bg-black/5" : "text-white hover:bg-white/20"}`}
+                                    className={`hidden lg:flex transition-all rounded-xl h-10 w-10 ${isScrolled ? "text-gray-900 hover:bg-black/5" : "text-white hover:bg-white/20"}`}
                                 >
                                     <Menu className="h-6 w-6" />
                                     <span className="sr-only">القائمة</span>
