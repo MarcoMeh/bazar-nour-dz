@@ -439,12 +439,17 @@ const Home = () => {
                                 </div>
                             </form>
 
-                            {/* Download Button */}
-                            <div className="pt-4 flex animate-slide-up delay-500">
-                                <button className="group relative flex items-center gap-3 px-8 py-3 bg-[#1D4ED8] text-white rounded-xl font-black text-lg shadow-[0_10px_30px_rgba(29,78,216,0.5)] hover:shadow-[0_15px_40px_rgba(29,78,216,0.7)] transition-all hover:-translate-y-1 overflow-hidden border border-blue-400/30">
-                                    <Download className="w-6 h-6" />
-                                    <span>حمل التطبيق</span>
-                                    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:animate-shimmer"></div>
+                            {/* Download Button - 3D Premium Edition */}
+                            <div className="pt-6 flex animate-slide-up delay-500">
+                                <button className="group relative flex items-center gap-4 px-10 py-4 bg-gradient-to-b from-[#3B82F6] via-[#1D4ED8] to-[#1E3A8A] text-white rounded-full font-black text-xl shadow-[0_20px_50px_-10px_rgba(37,99,235,0.6),inset_0_2px_4px_rgba(255,255,255,0.4),inset_0_-2px_4px_rgba(0,0,0,0.4)] hover:shadow-[0_30px_60px_-10px_rgba(37,99,235,0.8)] transition-all duration-300 hover:-translate-y-2 hover:scale-105 active:scale-95 overflow-hidden border border-white/20">
+                                    <Download className="w-7 h-7 filter drop-shadow-md" />
+                                    <span className="drop-shadow-md">حمل التطبيق</span>
+
+                                    {/* Glossy Overlay Shine */}
+                                    <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none"></div>
+
+                                    {/* Shimmer Effect */}
+                                    <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-shimmer transition-transform duration-1000"></div>
                                 </button>
                             </div>
                         </div>
