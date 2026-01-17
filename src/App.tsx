@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -5,50 +6,54 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import Home from "./pages/Home";
-import Products from "./pages/Products";
-import ProductDetail from "./pages/ProductDetail";
-import Stores from "./pages/Stores";
-import Login from "./pages/Login";
-import Cart from "./pages/Cart";
-import NotFound from "./pages/NotFound";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
-import StoreFront from "./pages/StoreFront";
-import MyOrders from "./pages/MyOrders";
-import Profile from "./pages/Profile";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import Terms from "./pages/Terms";
-import Wishlist from "./pages/Wishlist";
-import SellerRegister from "./pages/SellerRegister";
-import Brands from "./pages/Brands";
-import BrandProducts from "./pages/BrandProducts";
-import Sale from "./pages/Sale";
-import NewArrivals from "./pages/NewArrivals";
-import ScrollToTop from "@/components/ScrollToTop";
+import { Skeleton } from "@/components/ui/skeleton";
 
-// Admin Pages (Nested Structure)
-import AdminDashboard from "./pages/admin/Dashboard";
-import AdminProducts from "./pages/admin/Products";
-import AdminCategories from "./pages/admin/Categories";
-import AdminStoreCategories from "./pages/admin/StoreCategories";
-import AdminOrders from "./pages/admin/Orders";
-import AdminStores from "./pages/admin/Stores";
-import AdminDelivery from "./pages/admin/Delivery";
-import AdminFinance from "./pages/admin/Finance";
-import AdminControl from "./pages/admin/Control";
-import AdminReviews from "./pages/admin/Reviews";
-import AdminStoreRegistrations from "./pages/admin/StoreRegistrations";
-import PageBackgrounds from "./pages/admin/PageBackgrounds";
-import AdminSettings from "./pages/admin/Settings";
+// Lazy Loaded Pages
+const Home = lazy(() => import("./pages/Home"));
+const Products = lazy(() => import("./pages/Products"));
+const ProductDetail = lazy(() => import("./pages/ProductDetail"));
+const Stores = lazy(() => import("./pages/Stores"));
+const Login = lazy(() => import("./pages/Login"));
+const Cart = lazy(() => import("./pages/Cart"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const About = lazy(() => import("./pages/About"));
+const Contact = lazy(() => import("./pages/Contact"));
+const StoreFront = lazy(() => import("./pages/StoreFront"));
+const MyOrders = lazy(() => import("./pages/MyOrders"));
+const Profile = lazy(() => import("./pages/Profile"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Wishlist = lazy(() => import("./pages/Wishlist"));
+const SellerRegister = lazy(() => import("./pages/SellerRegister"));
+const Brands = lazy(() => import("./pages/Brands"));
+const BrandProducts = lazy(() => import("./pages/BrandProducts"));
+const Sale = lazy(() => import("./pages/Sale"));
+const NewArrivals = lazy(() => import("./pages/NewArrivals"));
+
+// Admin Pages
+const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
+const AdminProducts = lazy(() => import("./pages/admin/Products"));
+const AdminCategories = lazy(() => import("./pages/admin/Categories"));
+const AdminStoreCategories = lazy(() => import("./pages/admin/StoreCategories"));
+const AdminOrders = lazy(() => import("./pages/admin/Orders"));
+const AdminStores = lazy(() => import("./pages/admin/Stores"));
+const AdminDelivery = lazy(() => import("./pages/admin/Delivery"));
+const AdminFinance = lazy(() => import("./pages/admin/Finance"));
+const AdminControl = lazy(() => import("./pages/admin/Control"));
+const AdminReviews = lazy(() => import("./pages/admin/Reviews"));
+const AdminStoreRegistrations = lazy(() => import("./pages/admin/StoreRegistrations"));
+const PageBackgrounds = lazy(() => import("./pages/admin/PageBackgrounds"));
+const AdminSettings = lazy(() => import("./pages/admin/Settings"));
 
 // Store Owner Pages
 import { StoreOwnerLayout } from "./components/layout/StoreOwnerLayout";
-import StoreOwnerDashboard from "./pages/store-owner/Dashboard";
-import StoreOwnerProducts from "./pages/store-owner/Products";
-import StoreOwnerOrders from "./pages/store-owner/Orders";
-import StoreOwnerProfile from "./pages/store-owner/Profile";
-import StoreOwnerDelivery from "./pages/store-owner/Delivery";
+const StoreOwnerDashboard = lazy(() => import("./pages/store-owner/Dashboard"));
+const StoreOwnerProducts = lazy(() => import("./pages/store-owner/Products"));
+const StoreOwnerOrders = lazy(() => import("./pages/store-owner/Orders"));
+const StoreOwnerProfile = lazy(() => import("./pages/store-owner/Profile"));
+const StoreOwnerDelivery = lazy(() => import("./pages/store-owner/Delivery"));
+
+import ScrollToTop from "@/components/ScrollToTop";
 
 // Contexts
 import { CartProvider } from "./contexts/CartContext";
@@ -110,89 +115,98 @@ const App = () => {
                   <BrowserRouter>
                     <OfflineIndicator />
                     <ScrollToTop />
-                    <Routes>
-                      {/* Public Routes */}
-                      <Route element={<Layout />}>
-                        <Route path="/" element={<Home />} />
-                        <Route path="/products" element={<Products />} />
-                        <Route path="/product/:id" element={<ProductDetail />} />
-                        <Route path="/about" element={<About />} />
-                        <Route path="/contact" element={<Contact />} />
-                        <Route path="/stores" element={<Stores />} />
-                        <Route path="/store/:slug" element={<StoreFront />} />
-                        <Route path="/cart" element={<Cart />} />
-                        <Route path="/wishlist" element={<Wishlist />} />
-                        <Route path="/brands" element={<Brands />} />
-                        <Route path="/brands/:slug" element={<BrandProducts />} />
-                        <Route path="/sale" element={<Sale />} />
-                        <Route path="/new-arrivals" element={<NewArrivals />} />
+                    <Suspense fallback={
+                      <div className="flex items-center justify-center min-h-screen bg-slate-50">
+                        <div className="flex flex-col items-center gap-4">
+                          <Skeleton className="h-12 w-12 rounded-full animate-pulse" />
+                          <div className="h-4 w-24 bg-slate-200 rounded animate-pulse" />
+                        </div>
+                      </div>
+                    }>
+                      <Routes>
+                        {/* Public Routes */}
+                        <Route element={<Layout />}>
+                          <Route path="/" element={<Home />} />
+                          <Route path="/products" element={<Products />} />
+                          <Route path="/product/:id" element={<ProductDetail />} />
+                          <Route path="/about" element={<About />} />
+                          <Route path="/contact" element={<Contact />} />
+                          <Route path="/stores" element={<Stores />} />
+                          <Route path="/store/:slug" element={<StoreFront />} />
+                          <Route path="/cart" element={<Cart />} />
+                          <Route path="/wishlist" element={<Wishlist />} />
+                          <Route path="/brands" element={<Brands />} />
+                          <Route path="/brands/:slug" element={<BrandProducts />} />
+                          <Route path="/sale" element={<Sale />} />
+                          <Route path="/new-arrivals" element={<NewArrivals />} />
+                          <Route
+                            path="/my-orders"
+                            element={
+                              <ProtectedRoute>
+                                <MyOrders />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/profile"
+                            element={
+                              <ProtectedRoute>
+                                <Profile />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route path="/login" element={<Login />} />
+                          <Route path="/about" element={<About />} />
+                          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                          <Route path="/terms-conditions" element={<Terms />} />
+                        </Route>
+
+                        <Route path="/seller-register" element={<SellerRegister />} />
+
+                        {/* Admin Routes - Protected */}
                         <Route
-                          path="/my-orders"
+                          path="/admin"
                           element={
-                            <ProtectedRoute>
-                              <MyOrders />
+                            <ProtectedRoute requiredRole="admin">
+                              <AdminLayout />
                             </ProtectedRoute>
                           }
-                        />
+                        >
+                          <Route index element={<AdminDashboard />} />
+                          <Route path="products" element={<AdminProducts />} />
+                          <Route path="categories" element={<AdminCategories />} />
+                          <Route path="store-categories" element={<AdminStoreCategories />} />
+                          <Route path="orders" element={<AdminOrders />} />
+                          <Route path="stores" element={<AdminStores />} />
+                          <Route path="delivery" element={<AdminDelivery />} />
+                          <Route path="finance" element={<AdminFinance />} />
+                          <Route path="control" element={<AdminControl />} />
+                          <Route path="reviews" element={<AdminReviews />} />
+                          <Route path="store-registrations" element={<AdminStoreRegistrations />} />
+                          <Route path="backgrounds" element={<PageBackgrounds />} />
+                          <Route path="settings" element={<AdminSettings />} />
+                        </Route>
+
+                        {/* Store Owner Routes - Protected */}
                         <Route
-                          path="/profile"
+                          path="/store-dashboard"
                           element={
-                            <ProtectedRoute>
-                              <Profile />
+                            <ProtectedRoute requiredRole="store_owner">
+                              <StoreOwnerLayout />
                             </ProtectedRoute>
                           }
-                        />
-                        <Route path="/login" element={<Login />} />
-                        <Route path="/about" element={<About />} />
-                        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                        <Route path="/terms-conditions" element={<Terms />} />
-                      </Route>
+                        >
+                          <Route index element={<StoreOwnerDashboard />} />
+                          <Route path="products" element={<StoreOwnerProducts />} />
+                          <Route path="orders" element={<StoreOwnerOrders />} />
+                          <Route path="delivery" element={<StoreOwnerDelivery />} />
+                          <Route path="profile" element={<StoreOwnerProfile />} />
+                        </Route>
 
-                      <Route path="/seller-register" element={<SellerRegister />} />
-
-                      {/* Admin Routes - Protected */}
-                      <Route
-                        path="/admin"
-                        element={
-                          <ProtectedRoute requiredRole="admin">
-                            <AdminLayout />
-                          </ProtectedRoute>
-                        }
-                      >
-                        <Route index element={<AdminDashboard />} />
-                        <Route path="products" element={<AdminProducts />} />
-                        <Route path="categories" element={<AdminCategories />} />
-                        <Route path="store-categories" element={<AdminStoreCategories />} />
-                        <Route path="orders" element={<AdminOrders />} />
-                        <Route path="stores" element={<AdminStores />} />
-                        <Route path="delivery" element={<AdminDelivery />} />
-                        <Route path="finance" element={<AdminFinance />} />
-                        <Route path="control" element={<AdminControl />} />
-                        <Route path="reviews" element={<AdminReviews />} />
-                        <Route path="store-registrations" element={<AdminStoreRegistrations />} />
-                        <Route path="backgrounds" element={<PageBackgrounds />} />
-                        <Route path="settings" element={<AdminSettings />} />
-                      </Route>
-
-                      {/* Store Owner Routes - Protected */}
-                      <Route
-                        path="/store-dashboard"
-                        element={
-                          <ProtectedRoute requiredRole="store_owner">
-                            <StoreOwnerLayout />
-                          </ProtectedRoute>
-                        }
-                      >
-                        <Route index element={<StoreOwnerDashboard />} />
-                        <Route path="products" element={<StoreOwnerProducts />} />
-                        <Route path="orders" element={<StoreOwnerOrders />} />
-                        <Route path="delivery" element={<StoreOwnerDelivery />} />
-                        <Route path="profile" element={<StoreOwnerProfile />} />
-                      </Route>
-
-                      {/* 404 */}
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
+                        {/* 404 */}
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </Suspense>
                   </BrowserRouter>
                 </CartProvider>
               </WishlistProvider>
