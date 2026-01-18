@@ -395,9 +395,9 @@ const Home = () => {
                             className="absolute inset-0 w-full h-full object-cover object-top md:object-center transform scale-105 animate-subtle-zoom transition-all duration-1000"
                         />
 
-                        {/* 2. Dark Overlays for Text Readability */}
-                        <div className="absolute inset-0 bg-gradient-to-tr from-slate-950 via-slate-900/60 to-indigo-950/40"></div>
-                        <div className="absolute inset-0 bg-black/40"></div>
+                        {/* 2. Dark Overlays for Text Readability - Adjusted for mobile */}
+                        <div className="absolute inset-0 bg-gradient-to-tr from-slate-950/80 via-slate-900/40 to-indigo-950/30 md:from-slate-950 md:via-slate-900/60 md:to-indigo-950/40"></div>
+                        <div className="absolute inset-0 bg-black/30 md:bg-black/40"></div>
 
                         {/* 3. 3D React Three Fiber Scene - T-Shirt Model */}
 
@@ -410,13 +410,13 @@ const Home = () => {
                         {/* Text Content - Enable pointer events for text/buttons */}
                         <div className="text-white space-y-8 md:space-y-10 text-right order-2 lg:order-1 pointer-events-auto">
                             {/* New Repositioned Badge - Floating on the Left */}
-                            <motion.div variants={itemVariants} className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full bg-gradient-to-r from-blue-600/20 to-indigo-600/20 backdrop-blur-3xl border border-white/30 shadow-[0_0_30px_rgba(0,0,0,0.1)] mb-10 hover:scale-105 transition-transform cursor-default">
-                                <Sparkles className="w-5 h-5 text-yellow-400 fill-yellow-400 animate-pulse" />
-                                <span className="text-white font-black text-sm tracking-widest uppercase">الأناقة تبدأ من هنا</span>
+                            <motion.div variants={itemVariants} className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full bg-gradient-to-r from-blue-600/20 to-indigo-600/20 backdrop-blur-3xl border border-white/30 shadow-[0_0_30px_rgba(0,0,0,0.1)] mb-6 md:mb-10 hover:scale-105 transition-transform cursor-default">
+                                <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-yellow-400 fill-yellow-400 animate-pulse" />
+                                <span className="text-white font-black text-xs md:text-sm tracking-widest uppercase">الأناقة تبدأ من هنا</span>
                             </motion.div>
 
-                            <motion.h1 variants={itemVariants} className="text-6xl md:text-8xl lg:text-9xl font-black leading-[1.1] tracking-tighter">
-                                <span className="block mb-2 text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)]">عالمك الخاص</span>
+                            <motion.h1 variants={itemVariants} className="text-5xl md:text-8xl lg:text-9xl font-black leading-[1.1] tracking-tighter">
+                                <span className="block mb-1 text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)]">عالمك الخاص</span>
                                 <span className="text-[#FBBF24] drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)]">
                                     للتميز والأناقة
                                 </span>
@@ -463,19 +463,32 @@ const Home = () => {
                             </motion.form>
 
                             {/* Buttons Group */}
-                            <motion.div variants={itemVariants} className="pt-6 flex flex-wrap gap-6 items-center">
+                            <motion.div variants={itemVariants} className="pt-6 flex flex-wrap gap-4 items-center">
                                 {/* Download Button */}
-                                <button className="group relative flex items-center gap-4 px-10 py-4 bg-gradient-to-b from-[#3B82F6] via-[#1D4ED8] to-[#1E3A8A] text-white rounded-full font-black text-xl shadow-[0_20px_50px_-10px_rgba(37,99,235,0.6),inset_0_2px_4px_rgba(255,255,255,0.4),inset_0_-2px_4px_rgba(0,0,0,0.4)] hover:shadow-[0_30px_60px_-10px_rgba(37,99,235,0.8)] transition-all duration-300 hover:-translate-y-2 hover:scale-105 active:scale-95 overflow-hidden border border-white/20">
-                                    <Download className="w-7 h-7 filter drop-shadow-md" />
-                                    <span className="drop-shadow-md">حمل التطبيق</span>
+                                <button className="group relative flex items-center gap-4 px-8 py-4 bg-gradient-to-b from-[#3B82F6] via-[#1D4ED8] to-[#1E3A8A] text-white rounded-full font-black text-lg shadow-[0_15px_30px_-5px_rgba(37,99,235,0.4),inset_0_2px_4px_rgba(255,255,255,0.3)] transition-all duration-300 hover:-translate-y-1 hover:scale-105 active:scale-95 overflow-hidden border border-white/20">
+                                    <Download className="w-6 h-6 filter drop-shadow-md" />
+                                    <span className="drop-shadow-md text-sm md:text-xl">حمل التطبيق</span>
                                     <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none"></div>
                                     <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-shimmer transition-transform duration-1000"></div>
                                 </button>
+
+                                {/* Mobile Store CTA - Integrated & Creative */}
+                                <Link to="/seller-register" className="lg:hidden w-full sm:w-auto">
+                                    <motion.button
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        className="w-full group relative flex items-center justify-center gap-4 px-8 py-4 bg-gradient-to-br from-amber-400 via-orange-500 to-orange-600 text-white rounded-full font-black text-lg shadow-[0_15px_30px_-5px_rgba(245,158,11,0.4),inset_0_2px_4px_rgba(255,255,255,0.3)] transition-all duration-300 overflow-hidden border border-white/20"
+                                    >
+                                        <StoreIcon className="w-6 h-6 text-yellow-200 group-hover:scale-110 transition-transform" />
+                                        <span>أنشئ متجرك الآن</span>
+                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:animate-shimmer transition-transform duration-1000"></div>
+                                    </motion.button>
+                                </Link>
                             </motion.div>
                         </div>
 
-                        {/* Store Creation Call to Action - Left Side (Column 2) */}
-                        <div className="flex flex-col items-center lg:items-start order-1 lg:order-2 pointer-events-auto">
+                        {/* Store Creation Call to Action - Left Side (Column 2) - Large Screens Only */}
+                        <div className="hidden lg:flex flex-col items-center lg:items-start order-1 lg:order-2 pointer-events-auto">
                             <motion.div variants={itemVariants} className="relative">
                                 <Link to="/seller-register">
                                     <motion.button

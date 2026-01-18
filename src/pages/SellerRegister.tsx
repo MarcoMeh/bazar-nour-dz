@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Store, User, Phone, Mail, MapPin, FileText, Loader2, ArrowRight } from 'lucide-react';
+import { Store, User, Phone, Mail, MapPin, FileText, Loader2, ArrowRight, DollarSign, Smartphone, Building2, Camera } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { PageBackground } from "@/type_defs";
 import { useSiteSettings } from '@/hooks/useSiteSettings';
@@ -196,10 +196,31 @@ const SellerRegister = () => {
         backgroundAttachment: 'fixed'
     } : {};
 
+    const basePrice = 3000;
+    const currentMonthlyPrice = appliedDiscount || basePrice;
+
     const plans = [
-        { id: '1_month', label: '1 شهر', price: appliedDiscount ? appliedDiscount.toLocaleString() + ' دج' : '3,000 دج', original: appliedDiscount ? '3,000 دج' : null, discount: appliedDiscount ? 'خصم الكود' : null },
-        { id: '3_months', label: '3 أشهر', price: '5,400 دج', original: '6,000 دج', discount: 'تخفيض 10%' },
-        { id: '12_months', label: '12 شهر (سنة)', price: '19,200 دج', original: '24,000 دج', discount: 'تخفيض 20%' },
+        {
+            id: '1_month',
+            label: '1 شهر',
+            price: currentMonthlyPrice.toLocaleString() + ' دج',
+            original: appliedDiscount ? basePrice.toLocaleString() + ' دج' : null,
+            discount: appliedDiscount ? 'خصم الكود' : null
+        },
+        {
+            id: '3_months',
+            label: '3 أشهر',
+            price: (Math.round(currentMonthlyPrice * 3 * 0.9)).toLocaleString() + ' دج',
+            original: (basePrice * 3).toLocaleString() + ' دج',
+            discount: 'تخفيض 10%'
+        },
+        {
+            id: '12_months',
+            label: '12 شهر (سنة)',
+            price: (Math.round(currentMonthlyPrice * 12 * 0.8)).toLocaleString() + ' دج',
+            original: (basePrice * 12).toLocaleString() + ' دج',
+            discount: 'تخفيض 20%'
+        },
     ];
 
     return (
@@ -430,6 +451,26 @@ const SellerRegister = () => {
                                         </div>
                                     ))}
                                 </div>
+
+                                {/* Submit Button - Moved here under plans */}
+                                <Button
+                                    type="submit"
+                                    size="lg"
+                                    className="w-full h-14 text-lg font-bold bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 shadow-lg hover:shadow-xl transition-all mt-6"
+                                    disabled={loading}
+                                >
+                                    {loading ? (
+                                        <>
+                                            <Loader2 className="ml-2 h-5 w-5 animate-spin" />
+                                            جاري الإرسال...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Store className="ml-2 h-5 w-5" />
+                                            إرسال الطلب
+                                        </>
+                                    )}
+                                </Button>
                             </div>
 
                             {/* Contact Box */}
@@ -456,6 +497,79 @@ const SellerRegister = () => {
                                 </Card>
                             )}
 
+                            {/* Payment Instructions */}
+                            <Card className="p-6 bg-slate-950 text-white border-none shadow-2xl relative overflow-hidden group mt-4">
+                                {/* Decorative background element */}
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl -translate-y-12 translate-x-12 animate-pulse"></div>
+
+                                <div className="relative z-10 space-y-4">
+                                    <h3 className="text-xl font-black flex items-center gap-3 border-b border-white/10 pb-4">
+                                        <DollarSign className="w-6 h-6 text-yellow-400" />
+                                        طرق الدفع وتفعيل الحساب
+                                    </h3>
+
+                                    <p className="text-sm font-bold text-gray-300">يرجى دفع حقوق الاشتراك عبر بريدي موب أو الـ CCP:</p>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {/* BaridiMob */}
+                                        <div className="bg-white/5 p-4 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors group/card text-right">
+                                            <div className="flex items-center justify-end gap-3 mb-2">
+                                                <span className="font-bold">بريدي موب (BaridiMob)</span>
+                                                <Smartphone className="w-5 h-5 text-blue-400" />
+                                            </div>
+                                            <code className="text-lg font-mono text-yellow-400 block tracking-tighter select-all p-2 bg-white/5 rounded-lg border border-white/5 group-hover/card:border-yellow-400/30 transition-all text-center">00799999002081894910</code>
+                                        </div>
+
+                                        {/* CCP */}
+                                        <div className="bg-white/5 p-4 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors text-right">
+                                            <div className="flex items-center justify-end gap-3 mb-2">
+                                                <span className="font-bold">حساب البريد (CCP)</span>
+                                                <Building2 className="w-5 h-5 text-red-400" />
+                                            </div>
+                                            <div className="space-y-2 mt-2">
+                                                <div className="flex items-center justify-between gap-4 border-b border-white/5 pb-1">
+                                                    <span className="text-yellow-400 font-mono select-all text-lg">0020818949</span>
+                                                    <span className="text-gray-400 text-[10px]">رقم الحساب (Compte)</span>
+                                                </div>
+                                                <div className="flex items-center justify-between gap-4 border-b border-white/5 pb-1">
+                                                    <span className="text-yellow-400 font-mono select-all text-lg">10</span>
+                                                    <span className="text-gray-400 text-[10px]">المفتاح (Clé)</span>
+                                                </div>
+                                                <div className="flex items-center justify-between gap-4 border-b border-white/5 pb-1">
+                                                    <span className="text-white font-bold text-xs">Ali Mehemmai</span>
+                                                    <span className="text-gray-400 text-[10px]">الاسم (Nom)</span>
+                                                </div>
+                                                <div className="flex items-center justify-between gap-4">
+                                                    <span className="text-white font-bold text-xs">Batna</span>
+                                                    <span className="text-gray-400 text-[10px]">الولاية (Wilaya)</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-yellow-400/10 p-4 rounded-2xl border border-yellow-400/20 flex flex-row-reverse items-start gap-4">
+                                        <div className="bg-yellow-400 p-2 rounded-xl flex-shrink-0 animate-bounce">
+                                            <Camera className="w-5 h-5 text-slate-950" />
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-sm font-bold leading-relaxed">
+                                                <span className="text-yellow-400 underline block mb-1">ملاحظة هامة:</span>
+                                                يرجى إرسال صورة وصل الدفع لتأكيد الطلب وتفعيل متجركم ومنحكم صلاحية الدخول عبر واتساب:
+                                            </p>
+                                            <a
+                                                href="https://wa.me/213791004144"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex flex-row-reverse items-center gap-3 px-6 py-2 bg-green-600/20 hover:bg-green-600/40 text-green-400 rounded-full transition-all mt-3 border border-green-500/30 font-black text-lg"
+                                            >
+                                                <Phone className="w-5 h-5" />
+                                                <span dir="ltr">0791004144</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </Card>
+
                             {/* Info Box */}
                             <Card className="p-4 bg-blue-50 border-blue-200">
                                 <p className="text-sm text-blue-800">
@@ -463,26 +577,6 @@ const SellerRegister = () => {
                                     والتواصل معك خلال 24-48 ساعة لتفعيل حسابك .
                                 </p>
                             </Card>
-
-                            {/* Submit Button */}
-                            <Button
-                                type="submit"
-                                size="lg"
-                                className="w-full h-14 text-lg font-bold bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 shadow-lg hover:shadow-xl transition-all"
-                                disabled={loading}
-                            >
-                                {loading ? (
-                                    <>
-                                        <Loader2 className="ml-2 h-5 w-5 animate-spin" />
-                                        جاري الإرسال...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Store className="ml-2 h-5 w-5" />
-                                        إرسال الطلب
-                                    </>
-                                )}
-                            </Button>
                         </form>
                     </Card>
 
@@ -513,8 +607,8 @@ const SellerRegister = () => {
                         </Card>
                     </div>
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 
