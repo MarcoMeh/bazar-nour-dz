@@ -75,16 +75,16 @@ export const ProductCard = ({
   return (
     <div
       className={cn(
-        "group flex flex-col space-y-4 relative p-3 rounded-[2rem] transition-all duration-500",
-        "bg-white/10 backdrop-blur-2xl border border-white/20 shadow-2xl hover:shadow-[0_20px_60px_-15px_rgba(37,99,235,0.2)]",
-        "hover:-translate-y-2 hover:bg-white/20",
+        "group flex flex-col space-y-4 relative p-3 transition-all duration-500 store-card",
+        "bg-white/10 backdrop-blur-2xl border border-white/20 hover:shadow-[0_20px_60px_-15px_rgba(37,99,235,0.2)]",
         className
       )}
+      style={{ borderRadius: 'var(--store-radius)' }}
     >
       <Link to={`/product/${id}`} className="block relative">
         <div
-          className="relative aspect-[4/5] md:aspect-square w-full overflow-hidden shadow-inner bg-gray-50/10"
-          style={{ borderRadius: '1.5rem' }}
+          className="relative w-full overflow-hidden shadow-inner bg-gray-50/10 product-image-container"
+          style={{ borderRadius: 'calc(var(--store-radius) * 0.8)' }}
         >
           {image_url ? (
             <img
@@ -133,7 +133,7 @@ export const ProductCard = ({
         <div className="flex justify-between items-start gap-3">
           <div className="flex-1">
             <Link to={`/product/${id}`}>
-              <h3 className="font-bold text-sm md:text-base leading-tight line-clamp-2 min-h-[2.4em] text-gray-800 hover:text-primary transition-colors">
+              <h3 className="font-bold text-sm md:text-base leading-tight line-clamp-2 min-h-[2.4em] text-gray-800 hover:text-primary transition-colors product-name">
                 {name_ar}
               </h3>
             </Link>

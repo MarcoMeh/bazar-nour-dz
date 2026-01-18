@@ -43,6 +43,7 @@ const AdminControl = lazy(() => import("./pages/admin/Control"));
 const AdminReviews = lazy(() => import("./pages/admin/Reviews"));
 const AdminStoreRegistrations = lazy(() => import("./pages/admin/StoreRegistrations"));
 const PageBackgrounds = lazy(() => import("./pages/admin/PageBackgrounds"));
+const AdminPromoCodes = lazy(() => import("./pages/admin/PromoCodes"));
 const AdminSettings = lazy(() => import("./pages/admin/Settings"));
 
 // Store Owner Pages
@@ -184,6 +185,7 @@ const App = () => {
                           <Route path="reviews" element={<AdminReviews />} />
                           <Route path="store-registrations" element={<AdminStoreRegistrations />} />
                           <Route path="backgrounds" element={<PageBackgrounds />} />
+                          <Route path="promo-codes" element={<AdminPromoCodes />} />
                           <Route path="settings" element={<AdminSettings />} />
                         </Route>
 

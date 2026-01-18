@@ -47,12 +47,32 @@ export const StoreThemeWrapper: React.FC<StoreThemeWrapperProps> = ({ themeId, c
     // Font Variables
     root.style.setProperty('--store-font', theme.typography.fontFamily);
     root.style.setProperty('--store-heading-font', theme.typography.headingFont);
+    root.style.setProperty('--store-font-size', theme.typography.baseFontSize);
 
     // Component Styles
     root.style.setProperty('--store-nav-style', styles.navStyle);
     root.style.setProperty('--store-header-style', styles.headerStyle);
     root.style.setProperty('--store-card-style', styles.cardStyle);
     root.style.setProperty('--store-layout', styles.layoutType);
+
+    // New Styles
+    root.style.setProperty('--store-font-size', theme.typography.baseFontSize);
+    root.style.setProperty('--store-logo-align', styles.logoAlignment);
+
+    // In RTL, "left" is flex-end and "right" is flex-start
+    const isRTL = document.dir === 'rtl' || document.documentElement.dir === 'rtl';
+    const leftFlex = isRTL ? 'flex-end' : 'flex-start';
+    const rightFlex = isRTL ? 'flex-start' : 'flex-end';
+
+    root.style.setProperty('--store-logo-justify',
+      styles.logoAlignment === 'left' ? leftFlex :
+        styles.logoAlignment === 'right' ? rightFlex : 'center'
+    );
+    root.style.setProperty('--store-product-aspect',
+      styles.productImageAspect === 'square' ? '1/1' :
+        styles.productImageAspect === 'portrait' ? '3/4' : '16/9'
+    );
+    root.style.setProperty('--store-desc-align', styles.descriptionAlignment);
 
     // Load Fonts Dynamically
     const fontFamilies = [theme.typography.fontFamily, theme.typography.headingFont];
@@ -113,8 +133,37 @@ export const StoreThemeWrapper: React.FC<StoreThemeWrapperProps> = ({ themeId, c
           --primary-foreground: ${activeColors.background === '#ffffff' || activeColors.background === '#f8fafc' ? 'white' : 'var(--store-background)'};
         }
         
+        body {
+          font-size: var(--store-font-size);
+        }
+
         h1, h2, h3, h4, h5, h6 {
           font-family: var(--store-heading-font);
+        }
+
+        /* Product Card Shape & Description */
+        .product-image-container {
+          aspect-ratio: var(--store-product-aspect);
+          overflow: hidden;
+        }
+
+        .product-description, .product-name {
+          text-align: var(--store-desc-align);
+        }
+
+        /* Logo Alignment */
+        .store-logo-container {
+          display: flex;
+          flex-direction: column;
+          align-items: var(--store-logo-justify) !important;
+          text-align: var(--store-logo-align) !important;
+          width: 100%;
+        }
+        
+        .store-logo-container.flex-row, 
+        .store-logo-container.flex-wrap {
+          flex-direction: row;
+          justify-content: var(--store-logo-justify) !important;
         }
 
         /* Button Styles */

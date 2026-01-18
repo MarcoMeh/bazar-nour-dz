@@ -12,7 +12,7 @@ import { Store, User, Phone, Mail, MapPin, FileText, Loader2, ArrowRight } from 
 import SEO from '@/components/SEO';
 import { PageBackground } from "@/type_defs";
 import { useSiteSettings } from '@/hooks/useSiteSettings';
-import { Check, ShieldCheck, Zap } from 'lucide-react';
+import { Check, ShieldCheck, Zap, Tags } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 // الولايات الجزائرية
@@ -38,13 +38,50 @@ const SellerRegister = () => {
         wilaya: '',
         description: '',
         selected_plan: '',
+        promo_code: '',
     });
+    const [promoCodeValid, setPromoCodeValid] = useState<boolean | null>(null);
+    const [checkingPromo, setCheckingPromo] = useState(false);
+    const [appliedDiscount, setAppliedDiscount] = useState<number | null>(null);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
         setFormData({
             ...formData,
-            [e.target.name]: e.target.value,
+            [name]: value,
         });
+
+        if (name === 'promo_code') {
+            setPromoCodeValid(null);
+            setAppliedDiscount(null);
+        }
+    };
+
+    const validatePromoCode = async () => {
+        if (!formData.promo_code) return;
+
+        setCheckingPromo(true);
+        try {
+            const { data, error } = await supabase
+                .from('promo_codes')
+                .select('*')
+                .eq('code', formData.promo_code.toUpperCase())
+                .eq('is_active', true)
+                .single();
+
+            if (error || !data) {
+                setPromoCodeValid(false);
+                toast.error('كود الخصم غير صالح');
+            } else {
+                setPromoCodeValid(true);
+                setAppliedDiscount(Number(data.discount_price));
+                toast.success('تم تطبيق الخصم بنجاح!');
+            }
+        } catch (error) {
+            setPromoCodeValid(false);
+        } finally {
+            setCheckingPromo(false);
+        }
     };
 
     const handleWilayaChange = (value: string) => {
@@ -118,6 +155,7 @@ const SellerRegister = () => {
                         wilaya: formData.wilaya,
                         description: formData.description || null,
                         selected_plan: formData.selected_plan,
+                        promo_code: promoCodeValid ? formData.promo_code.toUpperCase() : null,
                         status: 'pending',
                     },
                 ]);
@@ -135,6 +173,7 @@ const SellerRegister = () => {
                 wilaya: '',
                 description: '',
                 selected_plan: '',
+                promo_code: '',
             });
 
             // Navigate to home after 2 seconds
@@ -156,6 +195,12 @@ const SellerRegister = () => {
         backgroundPosition: 'center',
         backgroundAttachment: 'fixed'
     } : {};
+
+    const plans = [
+        { id: '1_month', label: '1 شهر', price: appliedDiscount ? appliedDiscount.toLocaleString() + ' دج' : '3,000 دج', original: appliedDiscount ? '3,000 دج' : null, discount: appliedDiscount ? 'خصم الكود' : null },
+        { id: '3_months', label: '3 أشهر', price: '5,400 دج', original: '6,000 دج', discount: 'تخفيض 10%' },
+        { id: '12_months', label: '12 شهر (سنة)', price: '19,200 دج', original: '24,000 دج', discount: 'تخفيض 20%' },
+    ];
 
     return (
         <div className={`min-h-screen pt-24 pb-12 ${!registerBackground ? 'bg-gradient-to-br from-green-50 via-white to-blue-50' : 'relative'}`} style={containerStyle}>
@@ -237,65 +282,94 @@ const SellerRegister = () => {
                                 />
                             </div>
 
-                            {/* Phone */}
-                            <div>
-                                <Label htmlFor="phone" className="text-lg flex items-center gap-2 mb-2">
-                                    <Phone className="h-5 w-5 text-green-600" />
-                                    رقم الهاتف <span className="text-red-500">*</span>
-                                </Label>
-                                <Input
-                                    id="phone"
-                                    name="phone"
-                                    type="tel"
-                                    value={formData.phone}
-                                    onChange={handleChange}
-                                    placeholder="مثال: 0555123456"
-                                    className="h-12 text-lg"
-                                    dir="ltr"
-                                    required
-                                />
-                                <p className="text-sm text-muted-foreground mt-1">
-                                    يرجى استخدام رقم جزائري صالح (05، 06، أو 07)
-                                </p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Phone */}
+                                <div>
+                                    <Label htmlFor="phone" className="text-lg flex items-center gap-2 mb-2">
+                                        <Phone className="h-5 w-5 text-green-600" />
+                                        رقم الهاتف <span className="text-red-500">*</span>
+                                    </Label>
+                                    <Input
+                                        id="phone"
+                                        name="phone"
+                                        type="tel"
+                                        value={formData.phone}
+                                        onChange={handleChange}
+                                        placeholder="مثال: 0555123456"
+                                        className="h-12 text-lg"
+                                        dir="ltr"
+                                        required
+                                    />
+                                </div>
+
+                                {/* Email */}
+                                <div>
+                                    <Label htmlFor="email" className="text-lg flex items-center gap-2 mb-2">
+                                        <Mail className="h-5 w-5 text-green-600" />
+                                        البريد الإلكتروني <span className="text-red-500">*</span>
+                                    </Label>
+                                    <Input
+                                        id="email"
+                                        name="email"
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={handleChange}
+                                        placeholder="example@email.com"
+                                        className="h-12 text-lg"
+                                        dir="ltr"
+                                        required
+                                    />
+                                </div>
                             </div>
 
-                            {/* Email */}
-                            <div>
-                                <Label htmlFor="email" className="text-lg flex items-center gap-2 mb-2">
-                                    <Mail className="h-5 w-5 text-green-600" />
-                                    البريد الإلكتروني <span className="text-red-500">*</span>
-                                </Label>
-                                <Input
-                                    id="email"
-                                    name="email"
-                                    type="email"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                    placeholder="example@email.com"
-                                    className="h-12 text-lg"
-                                    dir="ltr"
-                                    required
-                                />
-                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Wilaya */}
+                                <div>
+                                    <Label htmlFor="wilaya" className="text-lg flex items-center gap-2 mb-2">
+                                        <MapPin className="h-5 w-5 text-green-600" />
+                                        الولاية <span className="text-red-500">*</span>
+                                    </Label>
+                                    <Select value={formData.wilaya} onValueChange={handleWilayaChange}>
+                                        <SelectTrigger className="h-12 text-lg">
+                                            <SelectValue placeholder="اختر الولاية" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {WILAYAS.map((wilaya) => (
+                                                <SelectItem key={wilaya} value={wilaya}>
+                                                    {wilaya}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
 
-                            {/* Wilaya */}
-                            <div>
-                                <Label htmlFor="wilaya" className="text-lg flex items-center gap-2 mb-2">
-                                    <MapPin className="h-5 w-5 text-green-600" />
-                                    الولاية <span className="text-red-500">*</span>
-                                </Label>
-                                <Select value={formData.wilaya} onValueChange={handleWilayaChange}>
-                                    <SelectTrigger className="h-12 text-lg">
-                                        <SelectValue placeholder="اختر الولاية" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {WILAYAS.map((wilaya) => (
-                                            <SelectItem key={wilaya} value={wilaya}>
-                                                {wilaya}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                {/* Promo Code */}
+                                <div>
+                                    <Label htmlFor="promo_code" className="text-lg flex items-center gap-2 mb-2">
+                                        <Tags className="h-5 w-5 text-green-600" />
+                                        كود الخصم (Promo Code)
+                                    </Label>
+                                    <div className="relative group">
+                                        <Input
+                                            id="promo_code"
+                                            name="promo_code"
+                                            type="text"
+                                            value={formData.promo_code}
+                                            onChange={handleChange}
+                                            onBlur={validatePromoCode}
+                                            placeholder="اكتب كود الخصم هنا"
+                                            className={`h-12 text-lg uppercase tracking-widest pl-12 ${promoCodeValid === true ? 'border-green-500 bg-green-50' : promoCodeValid === false ? 'border-red-500 bg-red-50' : ''}`}
+                                        />
+                                        <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center">
+                                            {checkingPromo ? (
+                                                <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
+                                            ) : promoCodeValid === true ? (
+                                                <Check className="h-5 w-5 text-green-500" />
+                                            ) : null}
+                                        </div>
+                                    </div>
+                                    {promoCodeValid === false && <p className="text-xs text-red-500 mt-1 font-bold">عذراً، كود الخصم غير صالح أو منتهي</p>}
+                                </div>
                             </div>
 
                             {/* Description (Optional) */}
@@ -310,8 +384,8 @@ const SellerRegister = () => {
                                     value={formData.description}
                                     onChange={handleChange}
                                     placeholder="اكتب وصفاً مختصراً عن محلك ونوع المنتجات التي تبيعها..."
-                                    className="min-h-[120px] text-lg resize-none"
-                                    rows={4}
+                                    className="min-h-[100px] text-lg resize-none"
+                                    rows={3}
                                 />
                             </div>
 
@@ -322,11 +396,7 @@ const SellerRegister = () => {
                                     اختر نوع الاشتراك <span className="text-red-500">*</span>
                                 </Label>
                                 <div className="grid grid-cols-1 gap-4">
-                                    {[
-                                        { id: '1_month', label: '1 شهر', price: '2,000 دج', discount: null },
-                                        { id: '3_months', label: '3 أشهر', price: '5,400 دج', original: '6,000 دج', discount: 'تخفيض 10%' },
-                                        { id: '12_months', label: '12 شهر (سنة)', price: '19,200 دج', original: '24,000 دج', discount: 'تخفيض 20%' },
-                                    ].map((plan) => (
+                                    {plans.map((plan) => (
                                         <div
                                             key={plan.id}
                                             onClick={() => handlePlanChange(plan.id)}
@@ -344,7 +414,7 @@ const SellerRegister = () => {
                                                     <div>
                                                         <p className="font-bold text-lg">{plan.label}</p>
                                                         {plan.discount && (
-                                                            <span className="text-[10px] bg-green-200 text-green-800 px-2 py-0.5 rounded-full font-bold">
+                                                            <span className={`text-[10px] ${appliedDiscount && plan.id === '1_month' ? 'bg-blue-200 text-blue-800' : 'bg-green-200 text-green-800'} px-2 py-0.5 rounded-full font-bold`}>
                                                                 {plan.discount}
                                                             </span>
                                                         )}

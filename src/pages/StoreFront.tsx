@@ -153,7 +153,7 @@ const StoreFront = () => {
 
           {/* Store Info Container */}
           <div className={`relative px-6 pb-8 ${store.cover_image_url ? '-mt-16 md:-mt-24' : 'pt-8'}`}>
-            <div className={`flex flex-col ${isElegant || theme.styles.layoutType === 'grid' || theme.styles.layoutType === 'modern' ? 'md:items-center' : 'md:flex-row md:items-end'} gap-6`}>
+            <div className={`flex flex-col gap-6 store-logo-container`}>
 
               {/* Logo & Status */}
               <div className="relative shrink-0">
@@ -171,12 +171,12 @@ const StoreFront = () => {
                 </div>
               </div>
 
-              <div className={`flex-1 ${isElegant || theme.styles.layoutType === 'grid' || theme.styles.layoutType === 'modern' ? 'text-center items-center' : 'text-right'} flex flex-col space-y-2`}>
+              <div className={`flex-1 flex flex-col space-y-2 w-full`}>
                 <div className="flex flex-col gap-1 w-full">
-                  <h1 className={`${isBold ? 'text-4xl md:text-6xl uppercase tracking-tighter' : isElegant ? 'text-4xl md:text-5xl italic' : 'text-3xl md:text-4xl'} font-black w-full`}>
+                  <h1 className={`${isBold ? 'text-4xl md:text-6xl uppercase tracking-tighter' : isElegant ? 'text-4xl md:text-5xl italic' : 'text-3xl md:text-4xl'} font-black w-full product-name`}>
                     {store.name}
                   </h1>
-                  <div className={`flex flex-wrap ${isElegant || theme.styles.layoutType === 'grid' || theme.styles.layoutType === 'modern' ? 'justify-center' : ''} items-center gap-4 text-sm opacity-80 font-semibold w-full`}>
+                  <div className={`flex flex-wrap items-center gap-4 text-sm opacity-80 font-semibold w-full store-logo-container`}>
                     <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4 text-[var(--store-primary)]" /> {store.address || "الجزائر"}</span>
                     {/* Social Media Icons */}
                     <div className="flex items-center gap-3">
@@ -287,7 +287,7 @@ const StoreFront = () => {
                   </div>
                 </div>
                 {store.description && (
-                  <p className={`text-base mt-4 max-w-3xl leading-relaxed opacity-90 ${isElegant || theme.styles.layoutType === 'grid' || theme.styles.layoutType === 'modern' ? 'mx-auto text-center' : ''}`}>
+                  <p className={`text-base mt-4 max-w-3xl leading-relaxed opacity-90 product-description ${isElegant || theme.styles.layoutType === 'grid' || theme.styles.layoutType === 'modern' ? 'mx-auto' : ''}`}>
                     {store.description}
                   </p>
                 )}

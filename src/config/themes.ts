@@ -15,6 +15,7 @@ export interface StoreTheme {
     typography: {
         fontFamily: string;
         headingFont: string;
+        baseFontSize: string;
     };
     styles: {
         borderRadius: string;
@@ -25,6 +26,9 @@ export interface StoreTheme {
         headerStyle: 'standard' | 'minimal' | 'elegant' | 'bold';
         cardStyle: 'standard' | 'minimalist' | 'bordered' | 'glass';
         animations: 'fade' | 'slide' | 'none' | 'pop';
+        logoAlignment: 'left' | 'center' | 'right';
+        productImageAspect: 'square' | 'portrait' | 'video';
+        descriptionAlignment: 'left' | 'center' | 'right';
     };
 }
 
@@ -46,6 +50,7 @@ export const STORE_THEMES: StoreTheme[] = [
         typography: {
             fontFamily: 'Inter, sans-serif',
             headingFont: 'Outfit, sans-serif',
+            baseFontSize: '16px',
         },
         styles: {
             borderRadius: '0.5rem',
@@ -56,6 +61,9 @@ export const STORE_THEMES: StoreTheme[] = [
             headerStyle: 'standard',
             cardStyle: 'standard',
             animations: 'fade',
+            logoAlignment: 'right',
+            productImageAspect: 'square',
+            descriptionAlignment: 'right',
         },
     },
     {
@@ -75,6 +83,7 @@ export const STORE_THEMES: StoreTheme[] = [
         typography: {
             fontFamily: 'Outfit, sans-serif',
             headingFont: 'Playfair Display, serif',
+            baseFontSize: '15px',
         },
         styles: {
             borderRadius: '1.5rem',
@@ -85,6 +94,9 @@ export const STORE_THEMES: StoreTheme[] = [
             headerStyle: 'elegant',
             cardStyle: 'minimalist',
             animations: 'slide',
+            logoAlignment: 'center',
+            productImageAspect: 'portrait',
+            descriptionAlignment: 'center',
         },
     },
     {
@@ -104,6 +116,7 @@ export const STORE_THEMES: StoreTheme[] = [
         typography: {
             fontFamily: 'Inter, sans-serif',
             headingFont: 'Outfit, sans-serif',
+            baseFontSize: '17px',
         },
         styles: {
             borderRadius: '0.25rem',
@@ -114,6 +127,9 @@ export const STORE_THEMES: StoreTheme[] = [
             headerStyle: 'bold',
             cardStyle: 'bordered',
             animations: 'pop',
+            logoAlignment: 'right',
+            productImageAspect: 'square',
+            descriptionAlignment: 'right',
         },
     },
     {
@@ -133,6 +149,7 @@ export const STORE_THEMES: StoreTheme[] = [
         typography: {
             fontFamily: 'Inter, sans-serif',
             headingFont: 'Inter, sans-serif',
+            baseFontSize: '14px',
         },
         styles: {
             borderRadius: '0',
@@ -143,6 +160,9 @@ export const STORE_THEMES: StoreTheme[] = [
             headerStyle: 'minimal',
             cardStyle: 'standard',
             animations: 'none',
+            logoAlignment: 'left',
+            productImageAspect: 'square',
+            descriptionAlignment: 'left',
         },
     },
     {
@@ -162,6 +182,7 @@ export const STORE_THEMES: StoreTheme[] = [
         typography: {
             fontFamily: 'Outfit, sans-serif',
             headingFont: 'Outfit, sans-serif',
+            baseFontSize: '16px',
         },
         styles: {
             borderRadius: '0.5rem',
@@ -172,6 +193,9 @@ export const STORE_THEMES: StoreTheme[] = [
             headerStyle: 'standard',
             cardStyle: 'standard',
             animations: 'fade',
+            logoAlignment: 'right',
+            productImageAspect: 'portrait',
+            descriptionAlignment: 'right',
         },
     },
     {
@@ -191,6 +215,7 @@ export const STORE_THEMES: StoreTheme[] = [
         typography: {
             fontFamily: 'Outfit, sans-serif',
             headingFont: 'Outfit, sans-serif',
+            baseFontSize: '18px',
         },
         styles: {
             borderRadius: '2rem',
@@ -201,6 +226,9 @@ export const STORE_THEMES: StoreTheme[] = [
             headerStyle: 'standard',
             cardStyle: 'minimalist',
             animations: 'pop',
+            logoAlignment: 'center',
+            productImageAspect: 'square',
+            descriptionAlignment: 'center',
         },
     },
     {
@@ -220,6 +248,7 @@ export const STORE_THEMES: StoreTheme[] = [
         typography: {
             fontFamily: 'Playfair Display, serif',
             headingFont: 'Playfair Display, serif',
+            baseFontSize: '16px',
         },
         styles: {
             borderRadius: '0',
@@ -230,6 +259,9 @@ export const STORE_THEMES: StoreTheme[] = [
             headerStyle: 'elegant',
             cardStyle: 'glass',
             animations: 'fade',
+            logoAlignment: 'center',
+            productImageAspect: 'portrait',
+            descriptionAlignment: 'center',
         },
     },
     {
@@ -249,6 +281,7 @@ export const STORE_THEMES: StoreTheme[] = [
         typography: {
             fontFamily: 'Outfit, sans-serif',
             headingFont: 'Playfair Display, serif',
+            baseFontSize: '15px',
         },
         styles: {
             borderRadius: '0',
@@ -259,6 +292,9 @@ export const STORE_THEMES: StoreTheme[] = [
             headerStyle: 'elegant',
             cardStyle: 'minimalist',
             animations: 'slide',
+            logoAlignment: 'center',
+            productImageAspect: 'portrait',
+            descriptionAlignment: 'center',
         },
     },
     {
@@ -278,6 +314,7 @@ export const STORE_THEMES: StoreTheme[] = [
         typography: {
             fontFamily: 'Inter, sans-serif',
             headingFont: 'Anton, sans-serif',
+            baseFontSize: '17px',
         },
         styles: {
             borderRadius: '0.75rem',
@@ -288,6 +325,9 @@ export const STORE_THEMES: StoreTheme[] = [
             headerStyle: 'bold',
             cardStyle: 'bordered',
             animations: 'pop',
+            logoAlignment: 'right',
+            productImageAspect: 'video',
+            descriptionAlignment: 'right',
         },
     },
 ];

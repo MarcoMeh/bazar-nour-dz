@@ -41,6 +41,7 @@ interface StoreRequest {
     wilaya: string;
     description: string | null;
     selected_plan: string | null;
+    promo_code: string | null;
     status: 'pending' | 'approved' | 'rejected';
     admin_notes: string | null;
     created_at: string;
@@ -318,6 +319,7 @@ const StoreRegistrations = () => {
                             <TableHead className="text-right">رقم الهاتف</TableHead>
                             <TableHead className="text-right">الولاية</TableHead>
                             <TableHead className="text-right">الباقة</TableHead>
+                            <TableHead className="text-right">كود البرومو</TableHead>
                             <TableHead className="text-right">تاريخ الطلب</TableHead>
                             <TableHead className="text-right">الحالة</TableHead>
                             <TableHead className="text-right">الإجراءات</TableHead>
@@ -348,6 +350,15 @@ const StoreRegistrations = () => {
                                         <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200">
                                             {getPlanLabel(request.selected_plan)}
                                         </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                        {request.promo_code ? (
+                                            <Badge className="bg-primary/20 text-primary border-primary/30 hover:bg-primary/30">
+                                                {request.promo_code}
+                                            </Badge>
+                                        ) : (
+                                            <span className="text-muted-foreground text-xs">-</span>
+                                        )}
                                     </TableCell>
                                     <TableCell className="text-sm text-muted-foreground">
                                         {formatDate(request.created_at)}
@@ -420,6 +431,10 @@ const StoreRegistrations = () => {
                                 <div>
                                     <Label className="text-sm text-muted-foreground">الباقة المختارة</Label>
                                     <p className="text-lg font-bold mt-1 text-green-700">{getPlanLabel(selectedRequest.selected_plan)}</p>
+                                </div>
+                                <div>
+                                    <Label className="text-sm text-muted-foreground">كود البرومو</Label>
+                                    <p className="text-lg font-black mt-1 text-primary">{selectedRequest.promo_code || "لا يوجد"}</p>
                                 </div>
                                 <div>
                                     <Label className="text-sm text-muted-foreground">الحالة</Label>

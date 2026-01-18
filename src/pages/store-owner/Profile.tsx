@@ -67,6 +67,7 @@ export default function StoreOwnerProfile() {
     });
 
     const [categories, setCategories] = useState<any[]>([]);
+    const [styleFilter, setStyleFilter] = useState('all');
 
     useEffect(() => {
         if (user) {
@@ -672,7 +673,7 @@ export default function StoreOwnerProfile() {
                     <CardHeader className="bg-gradient-to-r from-primary/10 to-transparent border-b">
                         <CardTitle className="flex items-center gap-3 text-xl">
                             <Palette className="h-6 w-6 text-primary animate-pulse" />
-                            تصميم وشخصية المتجر (القوالب)
+                            تصميم وشخصية المتجر (الخط، الأحجام، الأشكال، وشعار المتجر)
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="p-8">
@@ -698,14 +699,20 @@ export default function StoreOwnerProfile() {
                                         {(() => {
                                             const isElegant = activeTheme.styles.headerStyle === 'elegant';
                                             const isBold = activeTheme.styles.headerStyle === 'bold';
+                                            const logoAlign = activeTheme.styles.logoAlignment;
+                                            const descAlign = activeTheme.styles.descriptionAlignment;
+                                            const aspect = activeTheme.styles.productImageAspect === 'square' ? '1/1' : activeTheme.styles.productImageAspect === 'portrait' ? '3/4' : '16/9';
 
                                             return (
-                                                <div className="p-3 h-full overflow-hidden" style={{ fontFamily: activeTheme.typography.fontFamily }}>
+                                                <div className="p-3 h-full overflow-hidden" style={{
+                                                    fontFamily: activeTheme.typography.fontFamily,
+                                                    fontSize: `calc(${activeTheme.typography.baseFontSize} * 0.4)`
+                                                }}>
                                                     {/* Mini Header */}
-                                                    <div className={`mt-4 mb-4 ${isElegant ? 'text-center' : ''}`}>
-                                                        <div className={`w-10 h-10 mx-auto rounded-lg mb-2 shadow-sm`} style={{ backgroundColor: previewColors.primary }}></div>
-                                                        <div className={`h-3 w-2/3 ${isElegant ? 'mx-auto' : ''} rounded-full mb-1`} style={{ backgroundColor: previewColors.text }}></div>
-                                                        <div className={`h-2 w-1/3 ${isElegant ? 'mx-auto' : ''} rounded-full opacity-30`} style={{ backgroundColor: previewColors.text }}></div>
+                                                    <div className={`mt-4 mb-4 flex flex-col ${logoAlign === 'center' ? 'items-center text-center' : logoAlign === 'right' ? 'items-end text-right' : 'items-start text-left'}`}>
+                                                        <div className={`w-8 h-8 rounded-lg mb-2 shadow-sm`} style={{ backgroundColor: previewColors.primary }}></div>
+                                                        <div className={`h-2 w-2/3 rounded-full mb-1`} style={{ backgroundColor: previewColors.text }}></div>
+                                                        <div className={`h-1.5 w-1/3 rounded-full opacity-30`} style={{ backgroundColor: previewColors.text }}></div>
                                                     </div>
 
                                                     {/* Mini Grid */}
@@ -713,15 +720,18 @@ export default function StoreOwnerProfile() {
                                                         {[1, 2, 3, 4].map(i => (
                                                             <div
                                                                 key={i}
-                                                                className="rounded-lg p-1 shadow-sm border border-gray-100/10"
+                                                                className="rounded-lg p-1 shadow-sm border border-gray-100/10 flex flex-col gap-1"
                                                                 style={{
                                                                     backgroundColor: 'rgba(255,255,255,0.1)',
                                                                     borderRadius: activeTheme.styles.borderRadius,
-                                                                    height: activeTheme.styles.layoutType === 'masonry' && i % 2 === 0 ? '60px' : '50px'
+                                                                    justifyContent: 'center'
                                                                 }}
                                                             >
-                                                                <div className="w-full h-2/3 bg-gray-100/50 rounded-md mb-1"></div>
-                                                                <div className="w-full h-1 bg-gray-200 rounded-full"></div>
+                                                                <div className="w-full bg-gray-100/50 rounded-md" style={{ aspectRatio: aspect }}></div>
+                                                                <div className={`w-full flex flex-col gap-0.5 ${descAlign === 'center' ? 'items-center text-center' : descAlign === 'right' ? 'items-end text-right' : 'items-start text-left'}`}>
+                                                                    <div className="w-3/4 h-1 bg-gray-200 rounded-full"></div>
+                                                                    <div className="w-1/2 h-1 bg-gray-300 rounded-full opacity-50"></div>
+                                                                </div>
                                                             </div>
                                                         ))}
                                                     </div>
@@ -740,149 +750,179 @@ export default function StoreOwnerProfile() {
                             </div>
 
                             {/* Selection Controls */}
-                            <div className="flex-1 space-y-8 overflow-hidden">
-                                {/* Step 1: Choose Layout (Shape) */}
-                                <div className="space-y-4">
-                                    <h4 className="font-black text-lg flex items-center gap-2">
-                                        <div className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center">1</div>
-                                        اختر الهيكل (التوزيع)
-                                    </h4>
-                                    <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar scroll-smooth">
-                                        {Array.from(new Set(STORE_THEMES.map(t => t.styles.layoutType))).map(layout => {
-                                            const isSelected = STORE_THEMES.find(t => t.id === storeData.theme_id)?.styles.layoutType === layout;
+                            <div className="flex-1 space-y-10">
+                                {/* Theme Presets Grid */}
+                                <div className="space-y-6">
+                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                        <h4 className="font-black text-xl flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-primary text-white text-sm flex items-center justify-center shadow-lg">1</div>
+                                            اختر النمط المناسب لتخصصك
+                                        </h4>
+                                        <div className="flex flex-wrap gap-2 bg-muted p-1 rounded-xl">
+                                            {['all', 'women', 'men', 'kids', 'luxury', 'sports'].map(cat => (
+                                                <button
+                                                    key={cat}
+                                                    type="button"
+                                                    onClick={() => setStyleFilter(cat)}
+                                                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${styleFilter === cat ? 'bg-white shadow-sm text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                                                >
+                                                    {cat === 'all' ? 'الكل' : cat === 'women' ? 'نسائي' : cat === 'men' ? 'رجالي' : cat === 'kids' ? 'أطفال' : cat === 'luxury' ? 'فخامة' : 'رياضي'}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                        {STORE_THEMES.filter(t => styleFilter === 'all' || t.category === styleFilter).map((theme) => {
+                                            const isSelected = storeData.theme_id === theme.id;
                                             return (
                                                 <div
-                                                    key={layout}
-                                                    onClick={() => {
-                                                        const firstThemeOfLayout = STORE_THEMES.find(t => t.styles.layoutType === layout);
-                                                        if (firstThemeOfLayout) setStoreData({ ...storeData, theme_id: firstThemeOfLayout.id });
-                                                    }}
+                                                    key={theme.id}
+                                                    onClick={() => setStoreData({
+                                                        ...storeData,
+                                                        theme_id: theme.id,
+                                                        primary_color: theme.colors.primary,
+                                                        secondary_color: theme.colors.secondary,
+                                                        background_color: theme.colors.background,
+                                                        text_color: theme.colors.text
+                                                    })}
                                                     className={`
-                                                        shrink-0 w-32 p-4 rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-center gap-2
-                                                        ${isSelected ? 'border-primary bg-primary/5 ring-4 ring-primary/10' : 'border-gray-100 hover:border-primary/30'}
+                                                        relative group cursor-pointer rounded-2xl border-2 transition-all p-3 flex flex-col gap-3
+                                                        ${isSelected
+                                                            ? 'border-primary bg-primary/5 ring-4 ring-primary/10 shadow-xl'
+                                                            : 'border-transparent bg-muted/50 hover:bg-white hover:border-primary/20 hover:shadow-lg'
+                                                        }
                                                     `}
                                                 >
-                                                    <div className="grid grid-cols-2 gap-1 w-12 h-12 opacity-40">
-                                                        {layout === 'grid' && [1, 2, 3, 4].map(i => <div key={i} className="bg-current rounded-[2px]" />)}
-                                                        {layout === 'masonry' && [1, 2, 3, 4].map(i => <div key={i} className={`bg-current rounded-[2px] ${i % 2 === 0 ? 'h-full' : 'h-2/3'}`} />)}
-                                                        {layout === 'compact' && [1, 2, 3, 4, 5, 6].map(i => <div key={i} className="bg-current rounded-[1px]" />)}
-                                                        {layout === 'modern' && <div className="col-span-2 h-full bg-current rounded-md" />}
+                                                    {/* Color Bubbles Preview */}
+                                                    <div className="flex gap-1">
+                                                        <div className="w-4 h-4 rounded-full border border-white" style={{ backgroundColor: theme.colors.primary }}></div>
+                                                        <div className="w-4 h-4 rounded-full border border-white" style={{ backgroundColor: theme.colors.secondary }}></div>
+                                                        <div className="w-4 h-4 rounded-full border border-white" style={{ backgroundColor: theme.colors.background }}></div>
                                                     </div>
-                                                    <span className="text-xs font-bold uppercase tracking-widest">{layout}</span>
+
+                                                    <div className="flex flex-col">
+                                                        <span className="text-sm font-black">{theme.nameAr}</span>
+                                                        <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-tighter">
+                                                            {theme.styles.layoutType} • {theme.category}
+                                                        </span>
+                                                    </div>
+
+                                                    {isSelected && (
+                                                        <div className="absolute -top-2 -right-2 bg-primary text-white p-1 rounded-full shadow-lg">
+                                                            <Check className="w-3 h-3" />
+                                                        </div>
+                                                    )}
                                                 </div>
                                             );
                                         })}
                                     </div>
                                 </div>
 
-                                {/* Step 2: Customize Colors */}
-                                <div className="space-y-4">
+                                {/* Step 2: Custom Colors */}
+                                <div className="space-y-6 pt-6 border-t border-dashed">
                                     <div className="flex items-center justify-between">
-                                        <h4 className="font-black text-lg flex items-center gap-2">
-                                            <div className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center">2</div>
-                                            تخصيص الألوان
+                                        <h4 className="font-black text-xl flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-primary text-white text-sm flex items-center justify-center shadow-lg">2</div>
+                                            تعديل الألوان بحرية (اختياري)
                                         </h4>
                                         <Button
                                             type="button"
-                                            variant="ghost"
+                                            variant="outline"
                                             size="sm"
                                             onClick={() => setStoreData({
                                                 ...storeData,
-                                                primary_color: "",
-                                                secondary_color: "",
-                                                background_color: "",
-                                                text_color: ""
+                                                primary_color: activeTheme.colors.primary,
+                                                secondary_color: activeTheme.colors.secondary,
+                                                background_color: activeTheme.colors.background,
+                                                text_color: activeTheme.colors.text
                                             })}
-                                            className="text-xs text-muted-foreground hover:text-destructive"
+                                            className="text-xs font-bold rounded-xl"
                                         >
-                                            إعادة تعيين للأصل
+                                            استعادة ألوان القالب
                                         </Button>
                                     </div>
 
                                     <div className="grid gap-6 md:grid-cols-2">
-                                        <div className="space-y-2">
-                                            <Label className="text-xs font-bold text-muted-foreground uppercase">اللون الرئيسي (الأزرار والعناوين)</Label>
-                                            <div className="flex gap-2">
-                                                <div className="h-10 w-10 rounded-lg shadow-sm border overflow-hidden shrink-0">
+                                        <div className="space-y-3 p-4 rounded-2xl bg-muted/30 border">
+                                            <Label className="text-xs font-black text-muted-foreground uppercase tracking-wider">اللون الأساسي (الأزرار والعناوين)</Label>
+                                            <div className="flex gap-3">
+                                                <div className="h-12 w-12 rounded-xl shadow-inner border overflow-hidden shrink-0">
                                                     <input
                                                         type="color"
                                                         value={storeData.primary_color || activeTheme.colors.primary}
                                                         onChange={(e) => setStoreData({ ...storeData, primary_color: e.target.value })}
-                                                        className="w-[150%] h-[150%] -translate-x-[25%] -translate-y-[25%] cursor-pointer"
+                                                        className="w-[200%] h-[200%] -translate-x-[25%] -translate-y-[25%] cursor-pointer"
                                                     />
                                                 </div>
                                                 <Input
                                                     value={storeData.primary_color || activeTheme.colors.primary}
                                                     onChange={(e) => setStoreData({ ...storeData, primary_color: e.target.value })}
-                                                    className="font-mono text-sm uppercase"
-                                                    placeholder={activeTheme.colors.primary}
+                                                    className="font-mono text-sm h-12 rounded-xl"
                                                 />
                                             </div>
                                         </div>
 
-                                        <div className="space-y-2">
-                                            <Label className="text-xs font-bold text-muted-foreground uppercase">اللون الثانوي (التفاصيل والايقونات)</Label>
-                                            <div className="flex gap-2">
-                                                <div className="h-10 w-10 rounded-lg shadow-sm border overflow-hidden shrink-0">
+                                        <div className="space-y-3 p-4 rounded-2xl bg-muted/30 border">
+                                            <Label className="text-xs font-black text-muted-foreground uppercase tracking-wider">اللون الثانوي (الزينة والأيقونات)</Label>
+                                            <div className="flex gap-3">
+                                                <div className="h-12 w-12 rounded-xl shadow-inner border overflow-hidden shrink-0">
                                                     <input
                                                         type="color"
                                                         value={storeData.secondary_color || activeTheme.colors.secondary}
                                                         onChange={(e) => setStoreData({ ...storeData, secondary_color: e.target.value })}
-                                                        className="w-[150%] h-[150%] -translate-x-[25%] -translate-y-[25%] cursor-pointer"
+                                                        className="w-[200%] h-[200%] -translate-x-[25%] -translate-y-[25%] cursor-pointer"
                                                     />
                                                 </div>
                                                 <Input
                                                     value={storeData.secondary_color || activeTheme.colors.secondary}
                                                     onChange={(e) => setStoreData({ ...storeData, secondary_color: e.target.value })}
-                                                    className="font-mono text-sm uppercase"
-                                                    placeholder={activeTheme.colors.secondary}
+                                                    className="font-mono text-sm h-12 rounded-xl"
                                                 />
                                             </div>
                                         </div>
 
-                                        <div className="space-y-2">
-                                            <Label className="text-xs font-bold text-muted-foreground uppercase">لون الخلفية (كامل المتجر)</Label>
-                                            <div className="flex gap-2">
-                                                <div className="h-10 w-10 rounded-lg shadow-sm border overflow-hidden shrink-0">
+                                        <div className="space-y-3 p-4 rounded-2xl bg-muted/30 border">
+                                            <Label className="text-xs font-black text-muted-foreground uppercase tracking-wider">لون خلفية المتجر</Label>
+                                            <div className="flex gap-3">
+                                                <div className="h-12 w-12 rounded-xl shadow-inner border overflow-hidden shrink-0">
                                                     <input
                                                         type="color"
                                                         value={storeData.background_color || activeTheme.colors.background}
                                                         onChange={(e) => setStoreData({ ...storeData, background_color: e.target.value })}
-                                                        className="w-[150%] h-[150%] -translate-x-[25%] -translate-y-[25%] cursor-pointer"
+                                                        className="w-[200%] h-[200%] -translate-x-[25%] -translate-y-[25%] cursor-pointer"
                                                     />
                                                 </div>
                                                 <Input
                                                     value={storeData.background_color || activeTheme.colors.background}
                                                     onChange={(e) => setStoreData({ ...storeData, background_color: e.target.value })}
-                                                    className="font-mono text-sm uppercase"
-                                                    placeholder={activeTheme.colors.background}
+                                                    className="font-mono text-sm h-12 rounded-xl"
                                                 />
                                             </div>
                                         </div>
 
-                                        <div className="space-y-2">
-                                            <Label className="text-xs font-bold text-muted-foreground uppercase">لون النص</Label>
-                                            <div className="flex gap-2">
-                                                <div className="h-10 w-10 rounded-lg shadow-sm border overflow-hidden shrink-0">
+                                        <div className="space-y-3 p-4 rounded-2xl bg-muted/30 border">
+                                            <Label className="text-xs font-black text-muted-foreground uppercase tracking-wider">لون النصوص</Label>
+                                            <div className="flex gap-3">
+                                                <div className="h-12 w-12 rounded-xl shadow-inner border overflow-hidden shrink-0">
                                                     <input
                                                         type="color"
                                                         value={storeData.text_color || activeTheme.colors.text}
                                                         onChange={(e) => setStoreData({ ...storeData, text_color: e.target.value })}
-                                                        className="w-[150%] h-[150%] -translate-x-[25%] -translate-y-[25%] cursor-pointer"
+                                                        className="w-[200%] h-[200%] -translate-x-[25%] -translate-y-[25%] cursor-pointer"
                                                     />
                                                 </div>
                                                 <Input
                                                     value={storeData.text_color || activeTheme.colors.text}
                                                     onChange={(e) => setStoreData({ ...storeData, text_color: e.target.value })}
-                                                    className="font-mono text-sm uppercase"
-                                                    placeholder={activeTheme.colors.text}
+                                                    className="font-mono text-sm h-12 rounded-xl"
                                                 />
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-
                             </div>
+
                         </div>
                     </CardContent>
                 </Card>

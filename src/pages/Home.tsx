@@ -430,7 +430,7 @@ const Home = () => {
                             <motion.div variants={itemVariants} className="flex flex-wrap items-center gap-6">
                                 <div className="flex items-center gap-3 text-white font-bold">
                                     <Truck className="h-6 w-6 text-yellow-400" />
-                                    <span>دفع لكل الولايات</span>
+                                    <span>توصيل لكل الولايات</span>
                                 </div>
                                 <div className="w-1.5 h-1.5 rounded-full bg-white/40"></div>
                                 <div className="flex items-center gap-3 text-white font-bold">
@@ -462,18 +462,38 @@ const Home = () => {
                                 </div>
                             </motion.form>
 
-                            {/* Download Button - 3D Premium Edition */}
-                            <motion.div variants={itemVariants} className="pt-6 flex">
+                            {/* Buttons Group */}
+                            <motion.div variants={itemVariants} className="pt-6 flex flex-wrap gap-6 items-center">
+                                {/* Download Button */}
                                 <button className="group relative flex items-center gap-4 px-10 py-4 bg-gradient-to-b from-[#3B82F6] via-[#1D4ED8] to-[#1E3A8A] text-white rounded-full font-black text-xl shadow-[0_20px_50px_-10px_rgba(37,99,235,0.6),inset_0_2px_4px_rgba(255,255,255,0.4),inset_0_-2px_4px_rgba(0,0,0,0.4)] hover:shadow-[0_30px_60px_-10px_rgba(37,99,235,0.8)] transition-all duration-300 hover:-translate-y-2 hover:scale-105 active:scale-95 overflow-hidden border border-white/20">
                                     <Download className="w-7 h-7 filter drop-shadow-md" />
                                     <span className="drop-shadow-md">حمل التطبيق</span>
-
-                                    {/* Glossy Overlay Shine */}
                                     <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none"></div>
-
-                                    {/* Shimmer Effect */}
                                     <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-shimmer transition-transform duration-1000"></div>
                                 </button>
+                            </motion.div>
+                        </div>
+
+                        {/* Store Creation Call to Action - Left Side (Column 2) */}
+                        <div className="flex flex-col items-center lg:items-start order-1 lg:order-2 pointer-events-auto">
+                            <motion.div variants={itemVariants} className="relative">
+                                <Link to="/seller-register">
+                                    <motion.button
+                                        whileHover={{ scale: 1.05, y: -5 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        className="group relative overflow-hidden px-10 py-8 md:px-16 md:py-10 bg-gradient-to-br from-primary via-indigo-600 to-indigo-800 text-white rounded-[2rem] font-black text-2xl md:text-4xl shadow-[0_20px_50px_-10px_rgba(65,84,241,0.6),inset_0_2px_4px_rgba(255,255,255,0.3)] hover:shadow-[0_40px_80px_-10px_rgba(65,84,241,0.8)] transition-all duration-500 flex flex-col items-center gap-4"
+                                    >
+                                        <StoreIcon className="w-12 h-12 md:w-16 md:h-16 mb-2 group-hover:rotate-12 transition-transform duration-300 text-yellow-400" />
+                                        <span>أنشئ متجرك الآن</span>
+
+                                        {/* Shimmer Effect */}
+                                        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer transition-transform duration-1000"></div>
+                                    </motion.button>
+                                </Link>
+
+                                {/* Decorative orbit elements */}
+                                <div className="absolute -top-10 -right-10 w-20 h-20 bg-primary/30 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700 animate-pulse"></div>
+                                <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-indigo-600/30 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700 animate-pulse"></div>
                             </motion.div>
                         </div>
                     </div>
@@ -639,105 +659,6 @@ const Home = () => {
                                 <p className="text-xl">لا توجد متاجر متاحة حالياً</p>
                             </div>
                         )}
-                    </div>
-                </motion.section>
-            )}
-
-            {/* SELlER BANNER SECTION - FULL IMPACT */}
-            {settings.stores_visible && (
-                <motion.section
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true, margin: "-100px" }}
-                    variants={containerVariants}
-                    className="relative py-24 overflow-hidden"
-                >
-                    {/* Immersive Background */}
-                    <div className="absolute inset-0 bg-[#0f172a]">
-                        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px]"></div>
-                        <div className="absolute left-0 top-0 h-full w-full bg-gradient-to-br from-indigo-600/20 via-transparent to-primary/20"></div>
-
-                        {/* Animated Glows */}
-                        <motion.div
-                            animate={{
-                                scale: [1, 1.2, 1],
-                                opacity: [0.3, 0.5, 0.3]
-                            }}
-                            transition={{ duration: 8, repeat: Infinity }}
-                            className="absolute -top-[20%] -left-[10%] w-[60%] h-[100%] bg-primary/30 rounded-full blur-[120px]"
-                        ></motion.div>
-                        <motion.div
-                            animate={{
-                                scale: [1, 1.1, 1],
-                                opacity: [0.2, 0.4, 0.2]
-                            }}
-                            transition={{ duration: 10, repeat: Infinity, delay: 2 }}
-                            className="absolute -bottom-[20%] -right-[10%] w-[60%] h-[100%] bg-indigo-600/30 rounded-full blur-[120px]"
-                        ></motion.div>
-                    </div>
-
-                    <div className="container mx-auto px-4 relative z-10">
-                        <div className="glass-card border-white/10 bg-white/5 backdrop-blur-2xl p-8 md:p-16 rounded-[3rem] shadow-2xl overflow-hidden group">
-                            <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
-                                {/* Left Side: Messaging */}
-                                <div className="flex-1 text-center lg:text-right space-y-6">
-                                    <motion.div variants={itemVariants}>
-                                        <Badge className="bg-primary/20 text-primary border-primary/30 px-6 py-2 rounded-full text-sm font-bold animate-pulse">
-                                            بادر بالحجز الآن - أماكن محدودة
-                                        </Badge>
-                                    </motion.div>
-                                    <motion.h2 variants={itemVariants} className="text-4xl md:text-6xl font-black text-white leading-tight">
-                                        هل تملك منتجات رائعة؟ <br />
-                                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-indigo-400">
-                                            حولها إلى أرباح حقيقية
-                                        </span>
-                                    </motion.h2>
-                                    <motion.p variants={itemVariants} className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto lg:mr-0 leading-relaxed font-medium">
-                                        انضم إلى نخبة البائعين في الجزائر وافتح متجرك الاحترافي خلال دقائق.
-                                        نوفر لك كل الأدوات التي تحتاجها للنجاح والنمو.
-                                    </motion.p>
-
-                                    {/* Features list visually simplified for banner */}
-                                    <motion.div variants={itemVariants} className="flex flex-wrap justify-center lg:justify-start gap-4 pt-4">
-                                        <div className="flex items-center gap-2 text-white/80 font-bold bg-white/5 px-4 py-2 rounded-xl">
-                                            <Shield className="w-5 h-5 text-green-400" />
-                                            <span>بدون عمولات</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 text-white/80 font-bold bg-white/5 px-4 py-2 rounded-xl">
-                                            <Zap className="w-5 h-5 text-yellow-400" />
-                                            <span>تفعيل سريع</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 text-white/80 font-bold bg-white/5 px-4 py-2 rounded-xl">
-                                            <TrendingUp className="w-5 h-5 text-blue-400" />
-                                            <span>دعم فني متواصل</span>
-                                        </div>
-                                    </motion.div>
-                                </div>
-
-                                {/* Right Side: 3D Button Action */}
-                                <div className="flex-shrink-0">
-                                    <motion.div variants={itemVariants} className="relative">
-                                        <Link to="/seller-register">
-                                            <motion.button
-                                                whileHover={{ scale: 1.05, y: -5 }}
-                                                whileTap={{ scale: 0.95 }}
-                                                className="group relative overflow-hidden px-16 py-8 bg-gradient-to-br from-primary via-indigo-600 to-indigo-800 text-white rounded-[2rem] font-black text-3xl shadow-[0_20px_50px_-10px_rgba(65,84,241,0.6),inset_0_2px_4px_rgba(255,255,255,0.3)] hover:shadow-[0_40px_80px_-10px_rgba(65,84,241,0.8)] transition-all duration-500 flex flex-col items-center gap-4"
-                                            >
-                                                <StoreIcon className="w-12 h-12 mb-2 group-hover:rotate-12 transition-transform duration-300" />
-                                                <span>أنشئ متجرك الآن</span>
-
-                                                {/* Shimmer Effect */}
-                                                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer transition-transform duration-1000"></div>
-                                            </motion.button>
-                                        </Link>
-
-                                        {/* Decorative orbit elements */}
-                                        <div className="absolute -top-10 -right-10 w-20 h-20 bg-primary/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-                                        <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-indigo-600/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-                                    </motion.div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </motion.section>
             )}
