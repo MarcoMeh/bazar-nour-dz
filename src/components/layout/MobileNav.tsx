@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Grid, ShoppingCart, User, Heart } from "lucide-react";
+import { Home, Grid, ShoppingCart, User, Heart, Store, ShoppingBag } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { motion } from "framer-motion";
@@ -22,9 +22,14 @@ export const MobileNav = () => {
             icon: Home
         },
         {
-            name: "الأقسام",
+            name: "المنتجات",
             path: "/products",
-            icon: Grid
+            icon: ShoppingBag
+        },
+        {
+            name: "المحلات",
+            path: "/stores",
+            icon: Store
         },
         {
             name: "المفضلة",
