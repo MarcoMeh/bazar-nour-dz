@@ -260,14 +260,37 @@ export default function Cart() {
     }
   };
 
-  const handleOrderViaWhatsApp = () => {
+  const handleOrderViaWhatsApp = async () => {
     if (!formData.phone || !formData.name) {
       toast.error("يرجى إدخال الرقام والاسم أولاً");
       return;
     }
-    const storePhone = "213600000000"; // Should be dynamic based on storeId
-    const message = `مرحباً، أود طلب المنتجات التالية:\n${items.map(it => `- ${it.name_ar} (x${it.quantity})`).join('\n')}\nالاسم: ${formData.name}\nالهاتف: ${formData.phone}\nالولاية: ${selectedWilaya?.name_ar || 'غير محدد'}`;
-    window.open(`https://wa.me/${storePhone}?text=${encodeURIComponent(message)}`, '_blank');
+
+    const storeId = items[0]?.ownerId;
+    if (!storeId) {
+      toast.error("خطأ في تحديد المتجر");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data: store, error } = await supabase
+        .from('stores')
+        .select('whatsapp, phone_numbers')
+        .eq('id', storeId)
+        .single();
+
+      if (error) throw error;
+
+      const storePhone = store?.whatsapp || (store?.phone_numbers && store.phone_numbers[0]) || "213600000000";
+      const message = `مرحباً، أود طلب المنتجات التالية:\n${items.map(it => `- ${it.name_ar} (x${it.quantity})`).join('\n')}\nالاسم: ${formData.name}\nالهاتف: ${formData.phone}\nالولاية: ${selectedWilaya?.name_ar || 'غير محدد'}`;
+      window.open(`https://wa.me/${storePhone.replace(/\s+/g, '')}?text=${encodeURIComponent(message)}`, '_blank');
+    } catch (err) {
+      console.error("Error fetching store phone:", err);
+      toast.error("فشل في العثور على رقم واتساب المتجر");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -312,6 +335,12 @@ export default function Cart() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-bold text-base sm:text-lg mb-1 truncate">{item.name_ar}</h3>
+                        {item.storeName && (
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
+                            <Store className="h-3 w-3" />
+                            <span>{item.storeName}</span>
+                          </div>
+                        )}
                         <p className="text-primary font-black text-lg mb-3">{item.price} دج</p>
 
                         <div className="flex flex-wrap gap-2 mb-4">
@@ -536,9 +565,17 @@ export default function Cart() {
                 </div>
 
                 <div className="pt-6 space-y-3">
+                  {isDeliveryBlocked && (
+                    <p className="text-destructive text-center text-xs font-bold mb-2">
+                      {deliveryMethods.error || "التوصيل غير متوفر لهذه الولاية"}
+                    </p>
+                  )}
                   <Button
                     type="submit"
-                    className="w-full h-16 text-xl font-black rounded-2xl shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
+                    className={cn(
+                      "w-full h-16 text-xl font-black rounded-2xl shadow-lg transition-all",
+                      isDeliveryBlocked ? "bg-gray-300 shadow-none cursor-not-allowed" : "shadow-primary/20 hover:scale-[1.02] active:scale-95"
+                    )}
                     size="lg"
                     disabled={loading || isDeliveryBlocked}
                   >

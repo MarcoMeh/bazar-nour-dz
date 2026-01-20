@@ -25,48 +25,7 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { SizeSelector } from "@/components/SizeSelector";
 import { ColorSelector } from "@/components/ColorSelector";
 
-// Utility to compress images
-const compressImage = async (file: File): Promise<File> => {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (event) => {
-            const img = new Image();
-            img.src = event.target?.result as string;
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const MAX_WIDTH = 1200; // Resize to max width
-                let width = img.width;
-                let height = img.height;
-
-                if (width > MAX_WIDTH) {
-                    height *= MAX_WIDTH / width;
-                    width = MAX_WIDTH;
-                }
-
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx?.drawImage(img, 0, 0, width, height);
-
-                canvas.toBlob((blob) => {
-                    if (blob) {
-                        // Create new file with jpeg compression
-                        const newFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
-                            type: 'image/jpeg',
-                            lastModified: Date.now(),
-                        });
-                        resolve(newFile);
-                    } else {
-                        reject(new Error("Canvas to Blob failed"));
-                    }
-                }, 'image/jpeg', 0.7); // 70% quality
-            };
-            img.onerror = (err) => reject(err);
-        };
-        reader.onerror = (err) => reject(err);
-    });
-};
+import { compressImage } from "@/lib/image-upload";
 
 export default function StoreOwnerProducts() {
     // ... (rest of the component)

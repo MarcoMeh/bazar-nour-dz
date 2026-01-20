@@ -29,7 +29,7 @@ const NewArrivals = () => {
 
             let query = supabase
                 .from('products')
-                .select('*')
+                .select('*, stores(name)')
                 .gte('created_at', daysAgo.toISOString());
 
             // Apply sorting
@@ -51,7 +51,11 @@ const NewArrivals = () => {
             const { data, error } = await query;
 
             if (error) throw error;
-            setProducts(data || []);
+            const mappedProducts = (data || []).map((p: any) => ({
+                ...p,
+                storeName: p.stores?.name
+            }));
+            setProducts(mappedProducts || []);
         } catch (error: any) {
             console.error('Error fetching new products:', error);
             toast.error('خطأ في تحميل المنتجات');

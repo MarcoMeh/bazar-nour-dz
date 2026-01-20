@@ -30,7 +30,7 @@ const BrandProducts = () => {
 
             let query = supabase
                 .from('products')
-                .select('*')
+                .select('*, stores(name)')
                 .ilike('brand', decodedBrand);
 
             // Apply sorting
@@ -53,10 +53,14 @@ const BrandProducts = () => {
             if (error) throw error;
 
             if (data && data.length > 0) {
+                const mappedProducts = (data || []).map((p: any) => ({
+                    ...p,
+                    storeName: p.stores?.name
+                }));
                 // Cast to any to avoid TS error about missing brand property
                 const firstItem = data[0] as any;
                 setBrandName(firstItem.brand || decodedBrand);
-                setProducts(data);
+                setProducts(mappedProducts);
             } else {
                 setBrandName(decodedBrand);
                 setProducts([]);

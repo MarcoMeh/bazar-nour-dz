@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/contexts/CartContext';
 import { useWishlist } from '@/contexts/WishlistContext';
-import { ShoppingBag, Eye, Heart, Plus } from 'lucide-react';
+import { ShoppingBag, Eye, Heart, Plus, Sparkles, Store as StoreIcon } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 interface ProductCardProps {
@@ -20,6 +20,7 @@ interface ProductCardProps {
   colors?: string[];
   sizes?: string[];
   brand?: string;
+  storeName?: string;
   onQuickView?: (product: any) => void;
   onAddToWishlist?: (productId: string) => void;
   className?: string;
@@ -37,6 +38,7 @@ export const ProductCard = ({
   colors,
   sizes,
   brand,
+  storeName,
   onQuickView,
   className,
 }: ProductCardProps) => {
@@ -53,7 +55,7 @@ export const ProductCard = ({
       return;
     }
     if (!is_sold_out) {
-      addItem({ id, name_ar, price, image_url, ownerId: store_id, is_free_delivery });
+      addItem({ id, name_ar, price, image_url, ownerId: store_id, is_free_delivery, storeName });
     }
   };
 
@@ -137,6 +139,16 @@ export const ProductCard = ({
                 {name_ar}
               </h3>
             </Link>
+            {storeName && (
+              <Link
+                to={`/store/${store_id}`}
+                onClick={(e) => e.stopPropagation()}
+                className="flex items-center gap-1 mt-1 text-xs text-muted-foreground group/store w-fit hover:underline"
+              >
+                <StoreIcon className="w-3 h-3 text-primary/70 group-hover/store:text-primary transition-colors" />
+                <span className="group-hover/store:text-primary transition-colors">{storeName}</span>
+              </Link>
+            )}
             <div className="mt-2 flex items-center gap-2">
               <span className="font-black text-gray-900 text-lg">
                 {price.toLocaleString()} <span className="text-xs font-medium opacity-60">دج</span>
@@ -156,9 +168,22 @@ export const ProductCard = ({
                 : "bg-gradient-to-b from-primary to-primary-dark text-white hover:shadow-primary/30 hover:shadow-2xl hover:-translate-y-1"
             )}
           >
-            {is_sold_out ? <span className="text-sm font-black">×</span> : <Plus className="h-6 w-6" />}
+            {is_sold_out ? (
+              <span className="text-sm font-black">×</span>
+            ) : (colors && colors.length > 0) || (sizes && sizes.length > 0) ? (
+              <Eye className="h-6 w-6" />
+            ) : (
+              <Plus className="h-6 w-6" />
+            )}
           </Button>
         </div>
+
+        {((colors && colors.length > 0) || (sizes && sizes.length > 0)) && !is_sold_out && (
+          <div className="flex items-center gap-1.5 text-[10px] font-bold text-primary/60 bg-primary/5 px-2 py-1 rounded-md w-fit">
+            <Sparkles className="h-3 w-3" />
+            <span>خيارات متوفرة</span>
+          </div>
+        )}
 
         {brand && (
           <div className="flex items-center gap-1 opacity-60 text-[10px] font-bold">

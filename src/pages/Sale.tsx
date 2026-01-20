@@ -24,7 +24,7 @@ const Sale = () => {
         try {
             let query = supabase
                 .from('products')
-                .select('*')
+                .select('*, stores(name)')
                 .not('discount_percentage', 'is', null)
                 .gt('discount_percentage', 0);
 
@@ -46,7 +46,11 @@ const Sale = () => {
             const { data, error } = await query;
 
             if (error) throw error;
-            setProducts(data || []);
+            const mappedProducts = (data || []).map((p: any) => ({
+                ...p,
+                storeName: p.stores?.name
+            }));
+            setProducts(mappedProducts || []);
         } catch (error: any) {
             console.error('Error fetching sale products:', error);
             toast.error('خطأ في تحميل المنتجات');

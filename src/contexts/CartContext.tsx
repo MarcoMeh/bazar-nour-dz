@@ -13,6 +13,7 @@ export interface CartItem {
   size?: string | null;
   // optional: product_owner (supplier username) if you want per-store
   ownerId?: string | null;
+  storeName?: string | null;
   is_free_delivery?: boolean;
   // delivery availability flags
   is_delivery_home_available?: boolean;

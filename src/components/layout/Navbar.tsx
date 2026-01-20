@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Search, ShoppingCart, Menu, User, LogOut, Package, Settings, LayoutDashboard, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,10 +26,15 @@ export const Navbar = () => {
     const { totalItems } = useCart();
     const { user, signOut } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
     const [searchQuery, setSearchQuery] = useState("");
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [userRole, setUserRole] = useState<string | null>(null);
     const [isScrolled, setIsScrolled] = useState(false);
+
+    const isHomePage = location.pathname === "/";
+    // Use dark text if scrolled OR if not on home page
+    const useDarkText = isScrolled || !isHomePage;
 
     useEffect(() => {
         const handleScroll = () => {
@@ -89,10 +94,10 @@ export const Navbar = () => {
             <div className="container mx-auto">
                 {/* Main Header Row */}
                 <div className={`
-                    rounded-2xl px-4 md:px-6 py-3 flex items-center justify-between gap-3 md:gap-4 shadow-2xl transition-all duration-300
+                    rounded-2xl px-4 md:px-6 py-2 md:py-3 flex items-center justify-between gap-3 md:gap-4 shadow-2xl transition-all duration-300
                     ${isScrolled
-                        ? "bg-black/60 lg:bg-white/20 backdrop-blur-2xl border-white/30 ring-1 ring-black/5"
-                        : "bg-black/40 lg:bg-white/2 backdrop-blur-3xl border-white/10 ring-1 ring-black/5"
+                        ? "bg-black/30 lg:bg-white/10 backdrop-blur-md border-white/20 ring-1 ring-black/5 shadow-lg"
+                        : "bg-black/10 lg:bg-white/5 backdrop-blur-sm border-white/10 ring-1 ring-black/5 shadow-none"
                     }
                 `}>
                     {/* RIGHT: Logo (Appears first in DOM for RTL right-alignment) */}
@@ -126,14 +131,17 @@ export const Navbar = () => {
                             `}>
                                 <Button
                                     type="submit"
-                                    className="h-9 w-9 md:h-10 md:w-10 min-w-[36px] md:min-w-[40px] rounded-full bg-primary text-white ml-2 p-0 flex items-center justify-center shadow-lg hover:scale-105 transition-transform"
+                                    className={`
+                                        rounded-full bg-primary text-white ml-2 p-0 flex items-center justify-center shadow-lg hover:scale-105 transition-all
+                                        ${isScrolled ? "h-8 w-8 md:h-10 md:w-10 min-w-[32px] md:min-w-[40px]" : "h-9 w-9 md:h-10 md:w-10 min-w-[36px] md:min-w-[40px]"}
+                                    `}
                                 >
-                                    <Search className="h-5 w-5" />
+                                    <Search className={`${isScrolled ? "h-4 w-4" : "h-5 w-5"}`} />
                                 </Button>
                                 <Input
                                     type="search"
                                     placeholder="ما الذي تبحث عنه؟"
-                                    className={`border-none bg-transparent focus-visible:ring-0 text-right pr-4 pl-2 h-10 w-full font-bold transition-colors ${isScrolled ? "text-gray-900" : "text-black"} placeholder:text-gray-500`}
+                                    className={`border-none bg-transparent focus-visible:ring-0 text-right pr-4 pl-2 font-bold transition-all ${isScrolled ? "text-gray-900 h-8 text-sm" : "text-black h-10 w-full"} placeholder:text-gray-500`}
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                 />
@@ -147,7 +155,7 @@ export const Navbar = () => {
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className={`transition-all rounded-xl h-10 w-10 text-white lg:text-white ${isScrolled ? "text-gray-900 lg:text-gray-900 hover:bg-black/5" : "hover:bg-white/20"}`}
+                                className={`transition-all rounded-xl h-10 w-10 ${useDarkText ? "text-gray-900 hover:bg-black/5" : "text-white hover:bg-white/20"}`}
                             >
                                 <User className="h-6 w-6" strokeWidth={2.5} />
                                 <span className="sr-only">حسابي</span>
@@ -158,7 +166,7 @@ export const Navbar = () => {
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className={`relative transition-all rounded-xl h-10 w-10 text-white lg:text-white ${isScrolled ? "text-gray-900 lg:text-gray-900 hover:bg-black/5" : "hover:bg-white/20"}`}
+                                className={`relative transition-all rounded-xl h-10 w-10 ${useDarkText ? "text-gray-900 hover:bg-black/5" : "text-white hover:bg-white/20"}`}
                             >
                                 <ShoppingCart className="h-6 w-6" strokeWidth={2.5} />
                                 {totalItems > 0 && (
@@ -175,7 +183,7 @@ export const Navbar = () => {
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className={`hidden lg:flex transition-all rounded-xl h-10 w-10 ${isScrolled ? "text-gray-900 hover:bg-black/5" : "text-white hover:bg-white/20"}`}
+                                    className={`hidden lg:flex transition-all rounded-xl h-10 w-10 ${useDarkText ? "text-gray-900 hover:bg-black/5" : "text-white hover:bg-white/20"}`}
                                 >
                                     <Menu className="h-6 w-6" />
                                     <span className="sr-only">القائمة</span>
@@ -204,13 +212,13 @@ export const Navbar = () => {
                     <div className={`
                         rounded-2xl px-10 py-2.5 flex items-center gap-8 shadow-xl transition-all duration-300 animate-fade-in
                         ${isScrolled
-                            ? "bg-white/20 backdrop-blur-xl border-white/20 ring-1 ring-black/5"
-                            : "bg-white/2 backdrop-blur-lg border-white/10 ring-1 ring-black/5"
+                            ? "bg-white/10 backdrop-blur-md border-white/10 ring-1 ring-black/5"
+                            : "bg-white/5 backdrop-blur-sm border-white/5 ring-1 ring-black/5"
                         }
                     `}>
-                        <Link to="/" className={`font-black text-sm transition-all hover:scale-110 ${isScrolled ? "text-gray-800 hover:text-primary" : "text-white hover:text-white/80"}`}>الرئيسية</Link>
-                        <Link to="/stores" className={`font-black text-sm transition-all hover:scale-110 ${isScrolled ? "text-gray-800 hover:text-primary" : "text-white hover:text-white/80"}`}>المحلات</Link>
-                        <Link to="/products" className={`font-black text-sm transition-all hover:scale-110 ${isScrolled ? "text-gray-800 hover:text-primary" : "text-white hover:text-white/80"}`}>المنتجات</Link>
+                        <Link to="/" className={`font-black text-sm transition-all hover:scale-110 ${useDarkText ? "text-gray-800 hover:text-primary" : "text-white hover:text-white/80"}`}>الرئيسية</Link>
+                        <Link to="/stores" className={`font-black text-sm transition-all hover:scale-110 ${useDarkText ? "text-gray-800 hover:text-primary" : "text-white hover:text-white/80"}`}>المحلات</Link>
+                        <Link to="/products" className={`font-black text-sm transition-all hover:scale-110 ${useDarkText ? "text-gray-800 hover:text-primary" : "text-white hover:text-white/80"}`}>المنتجات</Link>
                         <Link to="/products?flash_sale=true" className="flex items-center gap-2 font-black text-sm transition-all hover:scale-110 group">
                             <span className="relative flex h-2 w-2">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
@@ -218,7 +226,7 @@ export const Navbar = () => {
                             </span>
                             <span className={isScrolled ? "text-red-600" : "text-red-400"}>العروض</span>
                         </Link>
-                        <Link to="/products?sort=trending" className={`font-black text-sm transition-all hover:scale-110 ${isScrolled ? "text-gray-800 hover:text-primary" : "text-white hover:text-white/80"}`}>الأكثر مبيعاً</Link>
+                        <Link to="/products?sort=trending" className={`font-black text-sm transition-all hover:scale-110 ${useDarkText ? "text-gray-800 hover:text-primary" : "text-white hover:text-white/80"}`}>الأكثر مبيعاً</Link>
                     </div>
                 </div>
             </div>

@@ -47,7 +47,7 @@ const AdvancedSearch = () => {
     const performSearch = async () => {
         setLoading(true);
         try {
-            let queryBuilder = supabase.from('products').select('*');
+            let queryBuilder = supabase.from('products').select('*, stores(name)');
 
             // Text search
             if (query) {
@@ -88,7 +88,11 @@ const AdvancedSearch = () => {
 
             if (error) throw error;
 
-            setProducts(data || []);
+            const mappedProducts = (data || []).map((p: any) => ({
+                ...p,
+                storeName: p.stores?.name
+            }));
+            setProducts(mappedProducts || []);
 
             // Update URL
             const params = new URLSearchParams();

@@ -30,6 +30,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { useAdmin } from "@/contexts/AdminContext";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { compressImage } from "@/lib/image-upload";
 
 interface Product {
     id: string;
@@ -186,8 +187,16 @@ export default function AdminProducts() {
         try {
             if (!event.target.files || event.target.files.length === 0) return;
             setUploading(true);
-            const file = event.target.files[0];
-            const fileExt = file.name.split('.').pop();
+            let file = event.target.files[0];
+
+            // Compress image before upload
+            try {
+                file = await compressImage(file);
+            } catch (err) {
+                console.error("Compression failed, uploading original:", err);
+            }
+
+            const fileExt = "jpg"; // We force jpg in compression
             const fileName = `${Math.random()}.${fileExt}`;
             const filePath = `${fileName}`;
 
@@ -449,24 +458,29 @@ export default function AdminProducts() {
                             )}
 
                             <div className="flex flex-col gap-4 border p-4 rounded-lg">
-                                <div className="flex items-center justify-between">
-                                    <Label>صورة المنتج</Label>
-                                    <div className="flex items-center gap-2">
-                                        <Input
-                                            id="prod-image"
-                                            type="file"
-                                            accept="image/*"
-                                            className="hidden"
-                                            onChange={handleImageUpload}
-                                        />
-                                        <Label
-                                            htmlFor="prod-image"
-                                            className="cursor-pointer bg-secondary text-secondary-foreground hover:bg-secondary/90 h-9 px-4 py-2 rounded-md text-sm font-medium flex items-center"
-                                        >
-                                            <Upload className="w-4 h-4 ml-2" />
-                                            رفع صورة
-                                        </Label>
+                                <div className="flex flex-col gap-1">
+                                    <div className="flex items-center justify-between">
+                                        <Label>صورة المنتج</Label>
+                                        <div className="flex items-center gap-2">
+                                            <Input
+                                                id="prod-image"
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                onChange={handleImageUpload}
+                                            />
+                                            <Label
+                                                htmlFor="prod-image"
+                                                className="cursor-pointer bg-secondary text-secondary-foreground hover:bg-secondary/90 h-9 px-4 py-2 rounded-md text-sm font-medium flex items-center"
+                                            >
+                                                <Upload className="w-4 h-4 ml-2" />
+                                                رفع صورة
+                                            </Label>
+                                        </div>
                                     </div>
+                                    <p className="text-[10px] text-muted-foreground mt-1">
+                                        * يمكنك إضافة صورة رئيسية و 3 صور إضافية (الحد الأقصى 4 صور)
+                                    </p>
                                 </div>
                                 {formData.image_url && (
                                     <div className="relative w-full h-40 bg-muted rounded-md overflow-hidden">

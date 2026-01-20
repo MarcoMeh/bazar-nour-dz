@@ -45,6 +45,7 @@ export interface Product {
     created_at?: string;
     view_count?: number;
     average_rating?: number;
+    storeName?: string;
 }
 
 export interface ProductsResponse {
@@ -165,7 +166,10 @@ async function fetchProducts(filters: ProductFilters = {}): Promise<ProductsResp
     // We return only the product fields to maintain compatibility.
     const products = (data || []).map((item: any) => {
         const { stores, ...product } = item;
-        return product;
+        return {
+            ...product,
+            storeName: stores?.name
+        };
     }) as Product[];
 
     return {

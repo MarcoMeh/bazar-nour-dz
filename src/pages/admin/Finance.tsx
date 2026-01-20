@@ -249,6 +249,7 @@ export default function AdminFinance() {
                 <TabsList>
                     <TabsTrigger value="revenues">سجل الإيرادات (الاشتراكات)</TabsTrigger>
                     <TabsTrigger value="expenses">سجل المصاريف</TabsTrigger>
+                    <TabsTrigger value="monthly">التقرير الشهري</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="revenues">
@@ -329,6 +330,47 @@ export default function AdminFinance() {
                                             </TableCell>
                                         </TableRow>
                                     )}
+                                </TableBody>
+                            </Table>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+                <TabsContent value="monthly">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>التقرير المالي الشهري</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead className="text-right">الشهر</TableHead>
+                                        <TableHead className="text-right">الإيرادات</TableHead>
+                                        <TableHead className="text-right">المصاريف</TableHead>
+                                        <TableHead className="text-right">الصافي</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {Object.entries(
+                                        [...revenues.map(r => ({ date: r.payment_date, amount: r.amount, type: 'rev' })),
+                                        ...expenses.map(e => ({ date: e.expense_date, amount: e.amount, type: 'exp' }))]
+                                            .reduce((acc: any, item) => {
+                                                const monthKey = format(new Date(item.date), "MMMM yyyy", { locale: ar });
+                                                if (!acc[monthKey]) acc[monthKey] = { rev: 0, exp: 0 };
+                                                if (item.type === 'rev') acc[monthKey].rev += Number(item.amount);
+                                                else acc[monthKey].exp += Number(item.amount);
+                                                return acc;
+                                            }, {})
+                                    ).sort((a, b) => new Date(b[0]).getTime() - new Date(a[0]).getTime()).map(([month, data]: [string, any]) => (
+                                        <TableRow key={month}>
+                                            <TableCell className="font-bold">{month}</TableCell>
+                                            <TableCell className="text-green-600">{data.rev.toLocaleString()} دج</TableCell>
+                                            <TableCell className="text-red-600">{data.exp.toLocaleString()} دج</TableCell>
+                                            <TableCell className={data.rev - data.exp >= 0 ? "text-green-700 font-black" : "text-red-700 font-black"}>
+                                                {(data.rev - data.exp).toLocaleString()} دج
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
                                 </TableBody>
                             </Table>
                         </CardContent>

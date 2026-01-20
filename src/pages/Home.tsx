@@ -69,6 +69,7 @@ interface Product {
     is_sold_out: boolean;
     is_free_delivery: boolean;
     store_id: string;
+    storeName?: string;
 }
 
 interface Store {
@@ -205,7 +206,7 @@ const Home = () => {
             .from("categories")
             .select("*")
             .order("name")
-            .limit(12);
+            .limit(24);
 
         console.log("Fetched categories:", data, "Error:", error);
         if (data) setMainCategories(data);
@@ -273,6 +274,7 @@ const Home = () => {
                 is_delivery_desktop_available: item.is_delivery_desktop_available ?? false,
                 is_sold_out: item.is_sold_out ?? false,
                 is_free_delivery: item.is_free_delivery ?? false,
+                storeName: item.stores?.name,
             }));
             setNewestProducts(formattedProducts);
             // Simulate best sellers by shuffling or taking a slice
@@ -367,6 +369,13 @@ const Home = () => {
                     -webkit-backdrop-filter: blur(12px);
                     border: 1px solid rgba(255, 255, 255, 0.5);
                 }
+                @keyframes subtle-zoom {
+                    0% { transform: scale(1); }
+                    100% { transform: scale(1.1); }
+                }
+                .animate-subtle-zoom {
+                    animation: subtle-zoom 20s infinite alternate ease-in-out;
+                }
                 @keyframes shimmer {
                     0% { transform: translateX(-100%); }
                     100% { transform: translateX(100%); }
@@ -406,7 +415,7 @@ const Home = () => {
                         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay z-20"></div>
                     </div>
 
-                    <div className="container mx-auto px-4 relative z-10 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center pt-32 pb-12 md:pt-40 md:pb-20 pointer-events-none">
+                    <div className="container mx-auto px-4 relative z-10 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center pt-36 pb-12 md:pt-48 md:pb-20 pointer-events-none">
                         {/* Text Content - Enable pointer events for text/buttons */}
                         <div className="text-white space-y-8 md:space-y-10 text-right order-2 lg:order-1 pointer-events-auto">
                             {/* New Repositioned Badge - Floating on the Left */}
@@ -665,6 +674,16 @@ const Home = () => {
                                     ))
                             )}
                         </div>
+
+                        {stores.length > 0 && (
+                            <div className="mt-16 flex justify-center">
+                                <Link to="/stores">
+                                    <Button variant="outline" size="lg" className="rounded-full px-12 font-bold border-gray-200 hover:bg-gray-50 transition-all shadow-sm">
+                                        عرض كل المتاجر
+                                    </Button>
+                                </Link>
+                            </div>
+                        )}
 
                         {stores.length === 0 && !loading && (
                             <div className="text-center py-20 opacity-50">

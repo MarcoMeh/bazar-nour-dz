@@ -41,6 +41,9 @@ interface Product {
   colors?: string[];
   sizes?: string[];
   track_inventory: boolean;
+  stores?: {
+    name: string;
+  };
 }
 
 interface Variant {
@@ -91,7 +94,7 @@ const ProductDetail = () => {
     setLoading(true);
     const { data, error } = (await supabase
       .from('products')
-      .select('*, store_id, is_delivery_home_available, is_delivery_desk_available, is_sold_out, is_free_delivery, colors, sizes, additional_images, track_inventory')
+      .select('*, store_id, is_delivery_home_available, is_delivery_desk_available, is_sold_out, is_free_delivery, colors, sizes, additional_images, track_inventory, stores(name)')
       .eq('id', id)
       .maybeSingle()) as { data: Product | null; error: PostgrestError | null };
 
@@ -153,6 +156,7 @@ const ProductDetail = () => {
         price: product.price,
         image_url: product.image_url,
         ownerId: product.store_id,
+        storeName: product.stores?.name,
         color: selectedColor,
         size: selectedSize,
         is_free_delivery: product.is_free_delivery,
@@ -231,8 +235,8 @@ const ProductDetail = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <SEO
-        title={product.name}
-        description={product.description || `تسوق ${product.name} الآن بسعر ${product.price} دج. أفضل جودة وتوصيل سريع.`}
+        title={product.name_ar || product.name}
+        description={product.description_ar || product.description || `تسوق ${product.name_ar || product.name} الآن بسعر ${Math.round(product.price)} دج. أفضل جودة وتوصيل سريع.`}
         image={product.image_url}
         type="product"
       />
@@ -307,10 +311,10 @@ const ProductDetail = () => {
           <div className="space-y-6">
             <div>
               <h1 className="text-3xl md:text-4xl font-bold mb-4">
-                {product.name}
+                {product.name_ar || product.name}
               </h1>
               <div className="text-3xl font-bold text-primary mb-6">
-                {product.price.toFixed(2)} دج
+                {Math.round(product.price)} دج
               </div>
             </div>
 
