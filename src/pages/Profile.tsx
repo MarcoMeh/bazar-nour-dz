@@ -119,7 +119,7 @@ export default function Profile() {
     }
 
     return (
-        <div className="container py-8 min-h-screen max-w-4xl">
+        <div className="container pt-28 pb-8 min-h-screen max-w-4xl">
             <h1 className="text-3xl font-bold mb-8 flex items-center gap-2">
                 <User className="h-8 w-8" />
                 الإعدادات الشخصية

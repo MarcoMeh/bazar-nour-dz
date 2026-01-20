@@ -8,7 +8,11 @@ import {
     LogOut,
     Truck,
     Store,
+    Clock,
+    ShieldCheck,
+    Ban,
 } from "lucide-react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -24,6 +28,36 @@ export const StoreOwnerSidebar = ({ onLinkClick }: StoreOwnerSidebarProps) => {
     const location = useLocation();
     const navigate = useNavigate();
     const { storeId } = useAdmin();
+    const [storeStatus, setStoreStatus] = useState<string | null>(null);
+    const [subscriptionDaysLeft, setSubscriptionDaysLeft] = useState<number | null>(null);
+
+    useEffect(() => {
+        const fetchStoreStatus = async () => {
+            if (!storeId) return;
+
+            const { data, error } = await supabase
+                .from('stores')
+                .select('is_active, subscription_end_date')
+                .eq('id', storeId)
+                .single();
+
+            if (data && !error) {
+                // Cast data to any to avoid type errors if table types aren't updated
+                const storeData = data as any;
+                setStoreStatus(storeData.is_active ? 'active' : 'inactive');
+
+                if (storeData.subscription_end_date) {
+                    const end = new Date(storeData.subscription_end_date);
+                    const now = new Date();
+                    const diffTime = end.getTime() - now.getTime();
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    setSubscriptionDaysLeft(diffDays > 0 ? diffDays : 0);
+                }
+            }
+        };
+
+        fetchStoreStatus();
+    }, [storeId]);
 
     const handleLogout = async () => {
         try {
@@ -84,6 +118,51 @@ export const StoreOwnerSidebar = ({ onLinkClick }: StoreOwnerSidebarProps) => {
             </nav>
 
             <div className="border-t border-white/10 p-4 mt-auto space-y-3 relative z-10 bg-white/10">
+                {/* Subscription Status Card */}
+                {storeStatus && (
+                    <div className={cn(
+                        "rounded-xl p-3 border backdrop-blur-sm transition-all duration-300",
+                        storeStatus === 'active'
+                            ? "bg-emerald-500/10 border-emerald-500/20"
+                            : "bg-red-500/10 border-red-500/20"
+                    )}>
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs font-bold text-gray-500">حالة الاشتراك</span>
+                            <div className={cn(
+                                "flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-black",
+                                storeStatus === 'active'
+                                    ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
+                                    : "bg-red-500 text-white shadow-lg shadow-red-500/20"
+                            )}>
+                                {storeStatus === 'active' ? (
+                                    <>
+                                        <ShieldCheck className="h-3 w-3" />
+                                        <span>مفعل</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Ban className="h-3 w-3" />
+                                        <span>غير مفعل</span>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+
+                        {subscriptionDaysLeft !== null && (
+                            <div className="flex items-center gap-2 text-xs font-medium text-gray-600">
+                                <Clock className="h-3.5 w-3.5 text-primary" />
+                                <span>متبقي:</span>
+                                <span className={cn(
+                                    "font-black text-sm",
+                                    subscriptionDaysLeft <= 7 ? "text-red-500 animate-pulse" : "text-primary"
+                                )}>
+                                    {subscriptionDaysLeft} يوم
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 <Link
                     to="/"
                     onClick={onLinkClick}

@@ -151,16 +151,41 @@ export const Navbar = () => {
 
                     {/* LEFT: Action Icons */}
                     <div className="flex items-center gap-1 md:gap-3">
-                        <Link to="/profile" className="hidden lg:block">
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className={`transition-all rounded-xl h-10 w-10 ${useDarkText ? "text-gray-900 hover:bg-black/5" : "text-white hover:bg-white/20"}`}
-                            >
-                                <User className="h-6 w-6" strokeWidth={2.5} />
-                                <span className="sr-only">حسابي</span>
-                            </Button>
-                        </Link>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className={`hidden lg:flex transition-all rounded-xl h-10 w-10 ${useDarkText ? "text-gray-900 hover:bg-black/5" : "text-white hover:bg-white/20"}`}
+                                >
+                                    <User className="h-6 w-6" strokeWidth={2.5} />
+                                    <span className="sr-only">قائمة المستخدم</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-56 font-bold">
+                                <DropdownMenuLabel className="text-right">حسابي</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+
+                                {(userRole === 'admin' || userRole === 'store_owner') && (
+                                    <DropdownMenuItem className="flex items-center gap-2 justify-end cursor-pointer" onClick={() => navigate(userRole === 'admin' ? '/admin' : '/store-dashboard')}>
+                                        <span>{userRole === 'admin' ? 'لوحة التحكم' : 'لوحة المتجر'}</span>
+                                        <LayoutDashboard className="h-4 w-4" />
+                                    </DropdownMenuItem>
+                                )}
+
+                                <DropdownMenuItem className="flex items-center gap-2 justify-end cursor-pointer" onClick={() => navigate('/profile')}>
+                                    <span>الإعدادات الشخصية</span>
+                                    <Settings className="h-4 w-4" />
+                                </DropdownMenuItem>
+
+                                <DropdownMenuSeparator />
+
+                                <DropdownMenuItem className="flex items-center gap-2 justify-end cursor-pointer text-red-500 focus:text-red-600" onClick={handleLogout}>
+                                    <span>تسجيل الخروج</span>
+                                    <LogOut className="h-4 w-4" />
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
 
                         <Link to="/cart" className="hidden lg:block">
                             <Button

@@ -950,7 +950,7 @@ export default function StoreOwnerProfile() {
                 <div className="h-32" />
 
                 {/* Sticky Save Bar */}
-                <div className="fixed bottom-0 left-0 right-0 z-50 p-4 md:p-6 bg-white/80 backdrop-blur-md border-t shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] flex justify-center lg:justify-end lg:pr-72">
+                <div className="fixed bottom-0 left-0 right-0 lg:right-64 z-40 p-4 md:p-6 bg-white/80 backdrop-blur-md border-t shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] flex justify-center lg:justify-end">
                     <div className="max-w-5xl w-full flex justify-end">
                         <Button
                             type="submit"
