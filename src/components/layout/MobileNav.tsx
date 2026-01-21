@@ -45,7 +45,7 @@ export const MobileNav = () => {
         },
         {
             name: "حسابي",
-            path: "/profile",
+            path: "/store-dashboard",
             icon: User
         },
     ];

@@ -173,11 +173,6 @@ export const Navbar = () => {
                                     </DropdownMenuItem>
                                 )}
 
-                                <DropdownMenuItem className="flex items-center gap-2 justify-end cursor-pointer" onClick={() => navigate('/profile')}>
-                                    <span>الإعدادات الشخصية</span>
-                                    <Settings className="h-4 w-4" />
-                                </DropdownMenuItem>
-
                                 <DropdownMenuSeparator />
 
                                 <DropdownMenuItem className="flex items-center gap-2 justify-end cursor-pointer text-red-500 focus:text-red-600" onClick={handleLogout}>

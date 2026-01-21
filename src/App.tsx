@@ -20,7 +20,6 @@ const About = lazy(() => import("./pages/About"));
 const Contact = lazy(() => import("./pages/Contact"));
 const StoreFront = lazy(() => import("./pages/StoreFront"));
 const MyOrders = lazy(() => import("./pages/MyOrders"));
-const Profile = lazy(() => import("./pages/Profile"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Wishlist = lazy(() => import("./pages/Wishlist"));
@@ -145,14 +144,6 @@ const App = () => {
                             element={
                               <ProtectedRoute>
                                 <MyOrders />
-                              </ProtectedRoute>
-                            }
-                          />
-                          <Route
-                            path="/profile"
-                            element={
-                              <ProtectedRoute>
-                                <Profile />
                               </ProtectedRoute>
                             }
                           />
