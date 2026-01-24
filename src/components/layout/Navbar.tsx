@@ -69,8 +69,15 @@ export const Navbar = () => {
     };
 
     const handleLogout = async () => {
-        await signOut();
-        navigate("/");
+        try {
+            await signOut();
+            navigate("/");
+            // Force reload to ensure all states are cleared
+            // window.location.reload(); 
+        } catch (error) {
+            console.error("Logout error", error);
+            navigate("/");
+        }
     };
 
     const DashboardIcon = () => {
@@ -167,15 +174,32 @@ export const Navbar = () => {
                                 <DropdownMenuSeparator />
 
                                 {(userRole === 'admin' || userRole === 'store_owner') && (
-                                    <DropdownMenuItem className="flex items-center gap-2 justify-end cursor-pointer" onClick={() => navigate(userRole === 'admin' ? '/admin' : '/store-dashboard')}>
-                                        <span>{userRole === 'admin' ? 'لوحة التحكم' : 'لوحة المتجر'}</span>
-                                        <LayoutDashboard className="h-4 w-4" />
+                                    <>
+                                        <DropdownMenuItem className="flex items-center gap-2 justify-end cursor-pointer" onClick={() => navigate(userRole === 'admin' ? '/admin' : '/store-dashboard')}>
+                                            <span>{userRole === 'admin' ? 'لوحة التحكم' : 'لوحة المتجر'}</span>
+                                            <LayoutDashboard className="h-4 w-4" />
+                                        </DropdownMenuItem>
+
+                                        {userRole === 'store_owner' && (
+                                            <DropdownMenuItem className="flex items-center gap-2 justify-end cursor-pointer" onClick={() => navigate('/store-dashboard/profile')}>
+                                                <span>الملف الشخصي</span>
+                                                <Store className="h-4 w-4" />
+                                            </DropdownMenuItem>
+                                        )}
+                                    </>
+                                )}
+
+                                {/* Customer Links */}
+                                {userRole === 'customer' && (
+                                    <DropdownMenuItem className="flex items-center gap-2 justify-end cursor-pointer" onClick={() => navigate('/my-orders')}>
+                                        <span>طلباتي</span>
+                                        <Package className="h-4 w-4" />
                                     </DropdownMenuItem>
                                 )}
 
                                 <DropdownMenuSeparator />
 
-                                <DropdownMenuItem className="flex items-center gap-2 justify-end cursor-pointer text-red-500 focus:text-red-600" onClick={handleLogout}>
+                                <DropdownMenuItem className="flex items-center gap-2 justify-end cursor-pointer text-red-500 focus:text-red-600 focus:bg-red-50" onClick={handleLogout}>
                                     <span>تسجيل الخروج</span>
                                     <LogOut className="h-4 w-4" />
                                 </DropdownMenuItem>

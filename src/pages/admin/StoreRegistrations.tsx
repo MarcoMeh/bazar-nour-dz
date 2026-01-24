@@ -225,8 +225,12 @@ const StoreRegistrations = () => {
         }
     };
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('ar-DZ', {
+    const formatDate = (dateString: string | null | undefined) => {
+        if (!dateString) return '-';
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return '-';
+
+        return date.toLocaleDateString('ar-DZ', {
             year: 'numeric',
             month: 'long',
             day: 'numeric',
@@ -236,7 +240,11 @@ const StoreRegistrations = () => {
     };
 
     const getPlanLabel = (plan: string | null) => {
-        switch (plan) {
+        if (!plan) return 'غير محدد';
+        // Ensure plan is a string to prevent object rendering crashes
+        const planStr = String(plan);
+
+        switch (planStr) {
             case '1_month':
                 return '1 شهر (3,000 دج)';
             case '3_months':
@@ -244,7 +252,7 @@ const StoreRegistrations = () => {
             case '12_months':
                 return '12 شهر (28,800 دج)';
             default:
-                return plan || 'غير محدد';
+                return planStr;
         }
     };
 
