@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { generateSlug } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { createClient } from '@supabase/supabase-js';
 import { Button } from '@/components/ui/button';
@@ -151,8 +152,9 @@ const StoreRegistrations = () => {
                     .insert({
                         owner_id: userId,
                         name: selectedRequest.store_name,
+                        slug: generateSlug(selectedRequest.store_name || ""),
                         description: selectedRequest.description,
-                        is_active: false,
+                        is_active: true,
                         phone_numbers: selectedRequest.phone ? [selectedRequest.phone] : []
                     })
                     .select()

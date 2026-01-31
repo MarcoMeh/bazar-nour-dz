@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { generateSlug } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,7 +28,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Pencil, Trash2, Loader2, Upload, ToggleRight } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Upload, ToggleRight, Power, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { createClient } from "@supabase/supabase-js";
@@ -49,6 +50,7 @@ interface Store {
     id: string;
     owner_id: string;
     name: string;
+    slug?: string | null;
     description: string | null;
     image_url: string | null;
     is_active: boolean;
@@ -75,6 +77,7 @@ interface Store {
 // Form data interface
 interface StoreFormData {
     store_name: string;
+    slug: string;
     owner_name: string;
     email: string;
     phone: string;
@@ -98,6 +101,7 @@ export default function AdminStores() {
     const [editingStore, setEditingStore] = useState<Store | null>(null);
     const [formData, setFormData] = useState<StoreFormData>({
         store_name: "",
+        slug: "",
         owner_name: "",
         email: "",
         phone: "",
@@ -237,6 +241,7 @@ export default function AdminStores() {
         setEditingStore(store);
         setFormData({
             store_name: store.name || "",
+            slug: store.slug || "",
             owner_name: store.profiles?.full_name || "",
             email: store.profiles?.email || "",
             phone: store.profiles?.phone || "",
@@ -301,6 +306,7 @@ export default function AdminStores() {
                 // 1. Update Store details
                 const updates: { [key: string]: any } = {};
                 if (formData.store_name !== editingStore.name) updates.name = formData.store_name;
+                if (formData.slug !== editingStore.slug) updates.slug = formData.slug || generateSlug(formData.store_name);
                 if (formData.image_url !== editingStore.image_url) updates.image_url = formData.image_url;
                 if (formData.cover_image_url !== editingStore.cover_image_url) updates.cover_image_url = formData.cover_image_url;
                 if (formData.description !== editingStore.description) updates.description = formData.description;
@@ -432,6 +438,7 @@ export default function AdminStores() {
                     .insert({
                         owner_id: userId,
                         name: formData.store_name,
+                        slug: formData.slug || generateSlug(formData.store_name),
                         description: formData.description,
                         image_url: formData.image_url,
                         is_active: true,
@@ -465,6 +472,7 @@ export default function AdminStores() {
             setEditingStore(null);
             setFormData({
                 store_name: "",
+                slug: "",
                 owner_name: "",
                 email: "",
                 phone: "",
@@ -544,6 +552,51 @@ export default function AdminStores() {
         }
     };
 
+    const handleActivateStore = async (store: Store) => {
+        try {
+            const { error } = await supabase
+                .from('stores')
+                .update({ is_active: true })
+                .eq('id', store.id);
+
+            if (error) throw error;
+            toast.success("تم تفعيل المحل بنجاح");
+            fetchStores();
+        } catch (error: any) {
+            toast.error("فشل تفعيل المحل");
+        }
+    };
+
+    const handleRegenerateSlugs = async () => {
+        if (!confirm("هل تريد توليد روابط (Slugs) للمحلات التي لا تمتلك واحداً؟")) return;
+        setLoading(true);
+        try {
+            // Fetch all stores
+            const { data: allStores, error: fetchError } = await supabase.from("stores").select("id, name, slug");
+            if (fetchError) throw fetchError;
+
+            let updatedCount = 0;
+            for (const store of allStores) {
+                if (!store.slug || store.slug.trim() === "") {
+                    const newSlug = generateSlug(store.name);
+                    const { error: updateError } = await supabase
+                        .from("stores")
+                        .update({ slug: newSlug })
+                        .eq("id", store.id);
+
+                    if (!updateError) updatedCount++;
+                }
+            }
+            toast.success(`تم تحديث روابط ${updatedCount} محل.`);
+            fetchStores();
+        } catch (error: any) {
+            console.error(error);
+            toast.error("حدث خطأ أثناء تحديث الروابط");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="p-8">
             <div className="flex items-center justify-between mb-8">
@@ -554,6 +607,7 @@ export default function AdminStores() {
                         setEditingStore(null);
                         setFormData({
                             store_name: "",
+                            slug: "",
                             owner_name: "",
                             email: "",
                             phone: "",
@@ -570,12 +624,18 @@ export default function AdminStores() {
                     }
                 }}>
                     {isAdmin && (
-                        <DialogTrigger asChild>
-                            <Button>
-                                <Plus className="ml-2 h-4 w-4" />
-                                إضافة محل
+                        <div className="flex gap-2">
+                            <Button onClick={handleRegenerateSlugs} variant="outline" title="تحديث الروابط المفقودة">
+                                <RefreshCw className="mr-2 h-4 w-4" />
+                                إصلاح الروابط
                             </Button>
-                        </DialogTrigger>
+                            <DialogTrigger asChild>
+                                <Button>
+                                    <Plus className="ml-2 h-4 w-4" />
+                                    إضافة محل
+                                </Button>
+                            </DialogTrigger>
+                        </div>
                     )}
                     <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
@@ -667,6 +727,18 @@ export default function AdminStores() {
                                     onChange={(e) => setFormData({ ...formData, store_name: e.target.value })}
                                     placeholder="أدخل اسم المحل"
                                 />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="slug">رابط المحل (Slug)</Label>
+                                <Input
+                                    id="slug"
+                                    value={formData.slug}
+                                    onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                                    placeholder="your-store-name"
+                                    dir="ltr"
+                                />
+                                <p className="text-xs text-muted-foreground">اتركه فارغاً ليتم توليده تلقائياً من اسم المحل.</p>
                             </div>
 
                             <div className="grid gap-2">
@@ -928,10 +1000,10 @@ export default function AdminStores() {
                                             {(() => {
                                                 const isSuspended = store.is_manually_suspended;
                                                 const isExpired = store.subscription_end_date && new Date(store.subscription_end_date) < new Date();
-                                                const isActive = !isSuspended && !isExpired; // Assuming simple logic: if not suspended and not expired, it's active. 
-                                                // Actually, if date is null, let's treat as 'Trial' or 'Active' for now unless defined otherwise. 
-                                                // Prompt implied expiration logic: Today > EndDate.
 
+                                                if (!store.is_active) {
+                                                    return <span className="px-2 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-500 border border-gray-200">غير مفعل</span>;
+                                                }
                                                 if (isSuspended) {
                                                     return <span className="px-2 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700">مجمد</span>;
                                                 }
@@ -953,6 +1025,17 @@ export default function AdminStores() {
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex gap-2">
+                                                {!store.is_active && (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="icon"
+                                                        className="text-blue-600 hover:bg-blue-50 border-blue-200"
+                                                        title="تفعيل المحل"
+                                                        onClick={() => handleActivateStore(store)}
+                                                    >
+                                                        <Power className="h-4 w-4" />
+                                                    </Button>
+                                                )}
                                                 <Button
                                                     variant="outline"
                                                     size="icon"

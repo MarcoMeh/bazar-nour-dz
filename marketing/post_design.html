@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bazzarna Brand Post</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
+    <style>
+        :root {
+            /* Branding Colors */
+            --brand-blue: #1E40AF;
+            --brand-purple: #7C3AED;
+            --brand-orange: #F59E0B;
+            --card-glass: rgba(255, 255, 255, 0.92);
+        }
+
+        body {
+            margin: 0;
+            padding: 40px;
+            font-family: 'Tajawal', sans-serif;
+            background: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .controls {
+            margin-bottom: 25px;
+            display: flex;
+            gap: 15px;
+            background: white;
+            padding: 10px 25px;
+            border-radius: 100px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            padding: 12px 30px;
+            font-family: 'Tajawal', sans-serif;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            border-radius: 50px;
+            background: var(--brand-blue);
+            color: white;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(30, 64, 175, 0.3);
+        }
+
+        .canvas-wrapper {
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        #post-canvas {
+            width: 1080px;
+            height: 1080px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+
+            /* --- THE REQUESTED BACKGROUND --- */
+            /* Vivrant gradient mesh of Logo Colors */
+            background: linear-gradient(135deg, #1E3A8A 0%, #7C3AED 50%, #F59E0B 100%);
+        }
+
+        /* Decorative Abstract Shapes */
+        .shape-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            opacity: 0.6;
+        }
+
+        .blob-1 {
+            top: -10%;
+            right: -10%;
+            width: 600px;
+            height: 600px;
+            background: #60A5FA;
+        }
+
+        .blob-2 {
+            bottom: -10%;
+            left: -10%;
+            width: 600px;
+            height: 600px;
+            background: #fbbf24;
+        }
+
+        /* --- Header Section --- */
+        .content-layer {
+            z-index: 10;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 60px;
+            justify-content: space-between;
+        }
+
+        .header-card {
+            /* Creative: White with subtle pearlescent sheen */
+            background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%);
+            border-radius: 30px;
+            padding: 40px;
+            text-align: center;
+            /* Soft colored glow shadow instead of black */
+            box-shadow: 0 20px 50px -10px rgba(30, 64, 175, 0.25);
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid rgba(255, 255, 255, 1);
+        }
+
+        /* Top colored stripe */
+        .header-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: linear-gradient(90deg, var(--brand-blue), var(--brand-purple), var(--brand-orange));
+        }
+
+        .logo-img {
+            height: 70px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 72px;
+            color: #111827;
+            margin: 0;
+            line-height: 1.1;
+            font-weight: 900;
+        }
+
+        /* --- Features Grid --- */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            flex-grow: 1;
+            margin-bottom: 30px;
+        }
+
+        .feature-item {
+            /* Solid white to remove grey, but with depth */
+            background: #FFFFFF;
+            border-radius: 24px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            /* Creative colored shadow lift */
+            box-shadow: 0 10px 20px -5px rgba(124, 58, 237, 0.15);
+            transition: transform 0.2s;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Creative subtle accent line on left */
+        .feature-item::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 15%;
+            bottom: 15%;
+            width: 4px;
+            background: linear-gradient(to bottom, var(--brand-orange), var(--brand-purple));
+            border-top-left-radius: 4px;
+            border-bottom-left-radius: 4px;
+            opacity: 0.8;
+        }
+
+        .icon-box {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #F0F9FF, #E0F2FE);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: var(--brand-blue);
+            /* Default fallback */
+        }
+
+        .brand-icon {
+            stroke: url(#brand-gradient);
+            /* Will use SVG defs if added, or fallback */
+            stroke: var(--brand-blue);
+            stroke-width: 2.5;
+        }
+
+        .feat-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .feat-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #1F2937;
+        }
+
+        .feat-desc {
+            font-size: 16px;
+            color: #4B5563;
+            font-weight: 500;
+        }
+
+        /* --- Footer --- */
+        .footer-card {
+            background: white;
+            border-radius: 100px;
+            /* Pillow shape */
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .cta-txt {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(45deg, var(--brand-blue), var(--brand-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .url-txt {
+            font-size: 24px;
+            font-weight: 700;
+            color: #374151;
+            direction: ltr;
+        }
+
+        /* --- Editable --- */
+        [contenteditable="true"]:hover {
+            cursor: text;
+            background-color: rgba(0, 0, 0, 0.03);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="controls">
+        <button onclick="downloadImage()">⬇️ حفظ التصميم</button>
+        <div style="color:#666; font-size:14px; display:flex; align-items:center;">
+            <span>🎨 ألوان اللوغو + 69 ولاية</span>
+        </div>
+    </div>
+
+    <div class="canvas-wrapper">
+        <div id="post-canvas">
+
+            <!-- Blobs for depth -->
+            <div class="shape-blob blob-1"></div>
+            <div class="shape-blob blob-2"></div>
+
+            <div class="content-layer">
+
+                <!-- Main Header Card -->
+                <div class="header-card">
+                    <img src="./logo.png" alt="Bazzarna" class="logo-img">
+                    <h1 contenteditable="true">انطلق بتجارتك نحو المستقبل</h1>
+                </div>
+
+                <!-- 6 Features Grid -->
+                <div class="grid-container">
+                    <!-- 1 -->
+                    <div class="feature-item">
+                        <div class="icon-box">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" class="brand-icon">
+                                <path
+                                    d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.34-.402.56-1.5 .56-1.5a6.658 6.658 0 0 0 .17-1.46c.321-2.84 2.117-6.088 3.02-7.85a96.53 96.53 0 0 0 -5.29 2.31c-1.76.9-5.01 2.7-7.85 3.02a6.66 6.66 0 0 0 -1.46.17c0 0-1.1 .22-1.5 .56z"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <path d="M12 4l-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <path d="M10.873 13.127l-5.127 5.127" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                                <path d="M14.5 9.5L19.5 4.5" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                                <path d="M12 12L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </div>
+                        <div class="feat-info">
+                            <div class="feat-title" contenteditable="true">انطلاق فوري</div>
+                            <div class="feat-desc" contenteditable="true">متجرك جاهز في دقائق</div>
+                        </div>
+                    </div>
+
+                    <!-- 2 -->
+                    <div class="feature-item">
+                        <div class="icon-box">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" class="brand-icon">
+                                <path d="M12 21a9 9 0 0 0 9-9c0-4.97-4.03-9-9-9s-9 4.03-9 9 4.03 9 9 9z"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <path d="M12 7v5" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <path d="M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <circle cx="8" cy="13" r="1" fill="currentColor" />
+                                <circle cx="16" cy="13" r="1" fill="currentColor" />
+                                <path d="M9.172 17.172a4 4 0 0 1 5.656 0" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </div>
+                        <div class="feat-info">
+                            <div class="feat-title" contenteditable="true">هوية خاصة</div>
+                            <div class="feat-desc" contenteditable="true">تصميم يعكس علامتك</div>
+                        </div>
+                    </div>
+
+                    <!-- 3 -->
+                    <div class="feature-item">
+                        <div class="icon-box">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" class="brand-icon">
+                                <path
+                                    d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <polyline points="3.27 6.96 12 12.01 20.73 6.96" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round"></polyline>
+                                <line x1="12" y1="22.08" x2="12" y2="12" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round"></line>
+                            </svg>
+                        </div>
+                        <div class="feat-info">
+                            <div class="feat-title" contenteditable="true">إدارة المنتجات</div>
+                            <div class="feat-desc" contenteditable="true">تحكم كامل وسهل</div>
+                        </div>
+                    </div>
+
+                    <!-- 4 -->
+                    <div class="feature-item">
+                        <div class="icon-box">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" class="brand-icon">
+                                <rect x="1" y="3" width="15" height="13" rx="2" ry="2" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></rect>
+                                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></polygon>
+                                <circle cx="5.5" cy="18.5" r="2.5" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round"></circle>
+                                <circle cx="18.5" cy="18.5" r="2.5" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round"></circle>
+                            </svg>
+                        </div>
+                        <div class="feat-info">
+                            <div class="feat-title" contenteditable="true">توصيل شامل</div>
+                            <div class="feat-desc" contenteditable="true">تغطية لـ 69 ولاية</div>
+                        </div>
+                    </div>
+
+                    <!-- 5 -->
+                    <div class="feature-item">
+                        <div class="icon-box">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" class="brand-icon">
+                                <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round"></rect>
+                                <line x1="2" y1="10" x2="22" y2="10" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round"></line>
+                            </svg>
+                        </div>
+                        <div class="feat-info">
+                            <div class="feat-title" contenteditable="true">دفع آمن</div>
+                            <div class="feat-desc" contenteditable="true">دعم الدفع عند الاستلام</div>
+                        </div>
+                    </div>
+
+                    <!-- 6 -->
+                    <div class="feature-item">
+                        <div class="icon-box">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" class="brand-icon">
+                                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round"></polyline>
+                                <polyline points="17 6 23 6 23 12" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round"></polyline>
+                            </svg>
+                        </div>
+                        <div class="feat-info">
+                            <div class="feat-title" contenteditable="true">تقارير ونمو</div>
+                            <div class="feat-desc" contenteditable="true">متابعة لحظية للمبيعات</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Pill -->
+                <div class="footer-card">
+                    <div class="cta-txt" contenteditable="true">ابدأ مجاناً الآن</div>
+                    <div class="url-txt" contenteditable="true">bazzarna.store</div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function resize() {
+            const wrapper = document.querySelector('.canvas-wrapper');
+            const scale = Math.min((window.innerHeight - 120) / 1080, (window.innerWidth - 60) / 1080);
+            wrapper.style.transform = `scale(${Math.max(scale, 0.2)})`;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        function downloadImage() {
+            var node = document.getElementById('post-canvas');
+            htmlToImage.toJpeg(node, { quality: 1.0, pixelRatio: 2 })
+                .then(function (dataUrl) {
+                    var link = document.createElement('a');
+                    link.download = 'bazzarna-gradient-' + Date.now() + '.jpg';
+                    link.href = dataUrl;
+                    link.click();
+                })
+                .catch(function (error) {
+                    console.error('oops, something went wrong!', error);
+                    alert("Error capturing image.");
+                });
+        }
+    </script>
+</body>
+
+</html>

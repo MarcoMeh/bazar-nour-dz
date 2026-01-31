@@ -22,16 +22,6 @@ export const MobileNav = () => {
             icon: Home
         },
         {
-            name: "المنتجات",
-            path: "/products",
-            icon: ShoppingBag
-        },
-        {
-            name: "المحلات",
-            path: "/stores",
-            icon: Store
-        },
-        {
             name: "المفضلة",
             path: "/wishlist",
             icon: Heart,
@@ -42,11 +32,6 @@ export const MobileNav = () => {
             path: "/cart",
             icon: ShoppingCart,
             count: totalItems
-        },
-        {
-            name: "حسابي",
-            path: "/store-dashboard",
-            icon: User
         },
     ];
 

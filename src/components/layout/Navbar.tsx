@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Search, ShoppingCart, Menu, User, LogOut, Package, Settings, LayoutDashboard, Store } from "lucide-react";
+import { Search, ShoppingCart, Menu, User, LogOut, Package, Settings, LayoutDashboard, Store, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -158,55 +158,9 @@ export const Navbar = () => {
 
                     {/* LEFT: Action Icons */}
                     <div className="flex items-center gap-1 md:gap-3">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className={`hidden lg:flex transition-all rounded-xl h-10 w-10 ${useDarkText ? "text-gray-900 hover:bg-black/5" : "text-white hover:bg-white/20"}`}
-                                >
-                                    <User className="h-6 w-6" strokeWidth={2.5} />
-                                    <span className="sr-only">قائمة المستخدم</span>
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-56 font-bold">
-                                <DropdownMenuLabel className="text-right">حسابي</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
 
-                                {(userRole === 'admin' || userRole === 'store_owner') && (
-                                    <>
-                                        <DropdownMenuItem className="flex items-center gap-2 justify-end cursor-pointer" onClick={() => navigate(userRole === 'admin' ? '/admin' : '/store-dashboard')}>
-                                            <span>{userRole === 'admin' ? 'لوحة التحكم' : 'لوحة المتجر'}</span>
-                                            <LayoutDashboard className="h-4 w-4" />
-                                        </DropdownMenuItem>
 
-                                        {userRole === 'store_owner' && (
-                                            <DropdownMenuItem className="flex items-center gap-2 justify-end cursor-pointer" onClick={() => navigate('/store-dashboard/profile')}>
-                                                <span>الملف الشخصي</span>
-                                                <Store className="h-4 w-4" />
-                                            </DropdownMenuItem>
-                                        )}
-                                    </>
-                                )}
-
-                                {/* Customer Links */}
-                                {userRole === 'customer' && (
-                                    <DropdownMenuItem className="flex items-center gap-2 justify-end cursor-pointer" onClick={() => navigate('/my-orders')}>
-                                        <span>طلباتي</span>
-                                        <Package className="h-4 w-4" />
-                                    </DropdownMenuItem>
-                                )}
-
-                                <DropdownMenuSeparator />
-
-                                <DropdownMenuItem className="flex items-center gap-2 justify-end cursor-pointer text-red-500 focus:text-red-600 focus:bg-red-50" onClick={handleLogout}>
-                                    <span>تسجيل الخروج</span>
-                                    <LogOut className="h-4 w-4" />
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-
-                        <Link to="/cart" className="hidden lg:block">
+                        <Link to="/cart" className="block">
                             <Button
                                 variant="ghost"
                                 size="icon"
@@ -227,7 +181,7 @@ export const Navbar = () => {
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className={`hidden lg:flex transition-all rounded-xl h-10 w-10 ${useDarkText ? "text-gray-900 hover:bg-black/5" : "text-white hover:bg-white/20"}`}
+                                    className={`flex transition-all rounded-xl h-10 w-10 ${useDarkText ? "text-gray-900 hover:bg-black/5" : "text-white hover:bg-white/20"}`}
                                 >
                                     <Menu className="h-6 w-6" />
                                     <span className="sr-only">القائمة</span>
@@ -238,11 +192,37 @@ export const Navbar = () => {
                                     <Link to="/" className="text-xl font-bold hover:text-blue-400" onClick={() => setIsSheetOpen(false)}>الرئيسية</Link>
                                     <Link to="/products" className="text-xl font-bold hover:text-blue-400" onClick={() => setIsSheetOpen(false)}>المنتجات</Link>
                                     <Link to="/stores" className="text-xl font-bold hover:text-blue-400" onClick={() => setIsSheetOpen(false)}>المحلات</Link>
+
                                     <div className="h-px bg-white/10 my-2" />
+
+                                    {/* Account Section in Mobile Menu */}
                                     {user ? (
-                                        <button onClick={() => { handleLogout(); setIsSheetOpen(false); }} className="text-xl font-bold text-red-500 flex items-center gap-3">
-                                            <LogOut className="h-6 w-6" /> تسجيل الخروج
-                                        </button>
+                                        <>
+                                            <div className="text-sm text-white/50 mb-2">حسابي</div>
+
+                                            {userRole === 'customer' && (
+                                                <Link to="/my-orders" className="text-xl font-bold hover:text-blue-400 flex items-center gap-2" onClick={() => setIsSheetOpen(false)}>
+                                                    طلباتي <Package className="h-5 w-5" />
+                                                </Link>
+                                            )}
+
+                                            {(userRole === 'admin' || userRole === 'store_owner') && (
+                                                <>
+                                                    <Link to={userRole === 'admin' ? '/admin' : '/store-dashboard'} className="text-xl font-bold hover:text-blue-400 flex items-center gap-3" onClick={() => setIsSheetOpen(false)}>
+                                                        {userRole === 'admin' ? 'لوحة التحكم' : 'لوحة المتجر'} <LayoutDashboard className="h-5 w-5" />
+                                                    </Link>
+                                                    {userRole === 'store_owner' && (
+                                                        <Link to="/store-dashboard/profile" className="text-xl font-bold hover:text-blue-400 flex items-center gap-3" onClick={() => setIsSheetOpen(false)}>
+                                                            الملف الشخصي <User className="h-5 w-5" />
+                                                        </Link>
+                                                    )}
+                                                </>
+                                            )}
+
+                                            <button onClick={() => { handleLogout(); setIsSheetOpen(false); }} className="text-xl font-bold text-red-500 flex items-center gap-3 mt-4">
+                                                تسجيل الخروج <LogOut className="h-6 w-6" />
+                                            </button>
+                                        </>
                                     ) : (
                                         <Link to="/login" className="text-xl font-bold hover:text-blue-400" onClick={() => setIsSheetOpen(false)}>تسجيل الدخول</Link>
                                     )}
