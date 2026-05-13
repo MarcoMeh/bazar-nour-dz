@@ -156,7 +156,7 @@ export const ProductCard = ({
             </div>
           </div>
 
-          {/* ADD BUTTON - PREMIUM 3D STYLE */}
+          {/* ADD BUTTON */}
           <Button
             size="icon"
             disabled={is_sold_out}

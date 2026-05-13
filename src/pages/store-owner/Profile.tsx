@@ -20,7 +20,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { MultiSelect } from "@/components/MultiSelect";
-import { STORE_THEMES } from "@/config/themes";
+import { STORE_THEMES, COLOR_PALETTES } from "@/config/themes";
 
 export default function StoreOwnerProfile() {
     const { user } = useAuth();
@@ -68,6 +68,7 @@ export default function StoreOwnerProfile() {
 
     const [categories, setCategories] = useState<any[]>([]);
     const [styleFilter, setStyleFilter] = useState('all');
+    const [showAdvancedColors, setShowAdvancedColors] = useState(false);
 
     useEffect(() => {
         if (user) {
@@ -781,167 +782,177 @@ export default function StoreOwnerProfile() {
                             </div>
                         </div>
 
-                        {/* Step 3: Color Controls Container */}
+                        {/* Step 2: Simplified Color Palettes */}
+                        <div className="space-y-6 pt-8 border-t border-dashed">
+                            <h4 className="font-black text-lg flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-primary text-white text-sm flex items-center justify-center shadow-lg">2</div>
+                                اختر مجموعة الألوان المناسبة لمحلّك
+                            </h4>
+                            
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                {COLOR_PALETTES.map((palette) => {
+                                    const isSelected = storeData.primary_color === palette.primary && 
+                                                     storeData.background_color === palette.background;
+                                    return (
+                                        <div
+                                            key={palette.name}
+                                            onClick={() => setStoreData({
+                                                ...storeData,
+                                                primary_color: palette.primary,
+                                                background_color: palette.background,
+                                                text_color: palette.text
+                                            })}
+                                            className={`
+                                                cursor-pointer rounded-xl border-2 p-3 transition-all
+                                                ${isSelected ? 'border-primary bg-primary/5' : 'border-transparent bg-muted/30 hover:bg-white'}
+                                            `}
+                                        >
+                                            <div className="flex flex-col gap-2">
+                                                <div className="flex gap-1 h-8 rounded-md overflow-hidden shadow-sm">
+                                                    <div className="flex-1" style={{ backgroundColor: palette.primary }}></div>
+                                                    <div className="flex-1" style={{ backgroundColor: palette.background }}></div>
+                                                    <div className="flex-1" style={{ backgroundColor: palette.text }}></div>
+                                                </div>
+                                                <span className="text-[10px] font-bold text-center">{palette.name}</span>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Step 3: Color Controls Container (Advanced) */}
                         <div className="space-y-6 pt-8 border-t border-dashed">
                             <div className="flex items-center justify-between gap-4">
-                                <h4 className="font-black text-lg flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-primary text-white text-sm flex items-center justify-center shadow-lg">2</div>
-                                    تعديل الألوان بحرية (اختياري)
-                                </h4>
+                                <div className="space-y-1">
+                                    <h4 className="font-black text-lg flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-slate-400 text-white text-sm flex items-center justify-center shadow-lg">3</div>
+                                        تعديل يدوي للألوان
+                                    </h4>
+                                    <p className="text-xs text-muted-foreground mr-11">للمستخدمين المتقدمين فقط</p>
+                                </div>
                                 <Button
                                     type="button"
-                                    variant="outline"
+                                    variant="ghost"
                                     size="sm"
-                                    onClick={() => setStoreData({
-                                        ...storeData,
-                                        primary_color: activeTheme.colors.primary,
-                                        secondary_color: activeTheme.colors.secondary,
-                                        background_color: activeTheme.colors.background,
-                                        text_color: activeTheme.colors.text
-                                    })}
-                                    className="text-[10px] md:text-xs font-bold rounded-lg h-8 md:h-10"
+                                    onClick={() => setShowAdvancedColors(!showAdvancedColors)}
+                                    className="text-primary font-bold"
                                 >
-                                    استعادة ألوان القالب
+                                    {showAdvancedColors ? 'إخفاء الإعدادات المتقدمة' : 'إظهار الإعدادات المتقدمة'}
                                 </Button>
                             </div>
 
-                            <div className="grid gap-4 md:grid-cols-2">
-                                {/* Primary Color */}
-                                <div className="space-y-3 p-4 rounded-xl bg-muted/20 border">
-                                    <Label className="text-[10px] font-black text-muted-foreground uppercase">اللون الأساسي (الأزرار والعناوين)</Label>
-                                    <div className="flex flex-col gap-3">
-                                        <div className="flex gap-2">
-                                            <div className="h-10 w-10 rounded-lg overflow-hidden border shrink-0 shadow-inner">
-                                                <input
-                                                    type="color"
-                                                    value={storeData.primary_color || activeTheme.colors.primary}
-                                                    onChange={(e) => setStoreData({ ...storeData, primary_color: e.target.value })}
-                                                    className="w-full h-full scale-150 cursor-pointer"
-                                                />
-                                            </div>
-                                            <Input
-                                                value={storeData.primary_color || activeTheme.colors.primary}
-                                                onChange={(e) => setStoreData({ ...storeData, primary_color: e.target.value })}
-                                                className="font-mono text-xs h-10 rounded-lg"
-                                            />
-                                        </div>
-                                        {/* Recommended Palette */}
-                                        <div className="flex flex-wrap gap-1.5">
-                                            {['#1e40af', '#e11d48', '#059669', '#ca8a04', '#7c3aed', '#ec4899', '#f97316', '#0f172a'].map(color => (
-                                                <button
-                                                    key={color}
-                                                    type="button"
-                                                    onClick={() => setStoreData({ ...storeData, primary_color: color })}
-                                                    className={`w-6 h-6 rounded-full border border-white/20 shadow-sm transition-transform hover:scale-125 ${storeData.primary_color === color ? 'ring-2 ring-primary ring-offset-2' : ''}`}
-                                                    style={{ backgroundColor: color }}
-                                                />
-                                            ))}
-                                        </div>
+                            {showAdvancedColors && (
+                                <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <div className="flex justify-end">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => setStoreData({
+                                                ...storeData,
+                                                primary_color: activeTheme.colors.primary,
+                                                secondary_color: activeTheme.colors.secondary,
+                                                background_color: activeTheme.colors.background,
+                                                text_color: activeTheme.colors.text
+                                            })}
+                                            className="text-[10px] md:text-xs font-bold rounded-lg h-8 md:h-10"
+                                        >
+                                            استعادة ألوان القالب الأصلية
+                                        </Button>
                                     </div>
-                                </div>
+                                    
+                                    <div className="grid gap-4 md:grid-cols-2">
+                                        {/* Primary Color */}
+                                        <div className="space-y-3 p-4 rounded-xl bg-muted/20 border">
+                                            <Label className="text-[10px] font-black text-muted-foreground uppercase">اللون الأساسي (الأزرار والعناوين)</Label>
+                                            <div className="flex flex-col gap-3">
+                                                <div className="flex gap-2">
+                                                    <div className="h-10 w-10 rounded-lg overflow-hidden border shrink-0 shadow-inner">
+                                                        <input
+                                                            type="color"
+                                                            value={storeData.primary_color || activeTheme.colors.primary}
+                                                            onChange={(e) => setStoreData({ ...storeData, primary_color: e.target.value })}
+                                                            className="w-full h-full scale-150 cursor-pointer"
+                                                        />
+                                                    </div>
+                                                    <Input
+                                                        value={storeData.primary_color || activeTheme.colors.primary}
+                                                        onChange={(e) => setStoreData({ ...storeData, primary_color: e.target.value })}
+                                                        className="font-mono text-xs h-10 rounded-lg"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
 
-                                {/* Secondary Color */}
-                                <div className="space-y-3 p-4 rounded-xl bg-muted/20 border">
-                                    <Label className="text-[10px] font-black text-muted-foreground uppercase">اللون الثانوي (الزينة والأيقونات)</Label>
-                                    <div className="flex flex-col gap-3">
-                                        <div className="flex gap-2">
-                                            <div className="h-10 w-10 rounded-lg overflow-hidden border shrink-0 shadow-inner">
-                                                <input
-                                                    type="color"
-                                                    value={storeData.secondary_color || activeTheme.colors.secondary}
-                                                    onChange={(e) => setStoreData({ ...storeData, secondary_color: e.target.value })}
-                                                    className="w-full h-full scale-150 cursor-pointer"
-                                                />
+                                        {/* Secondary Color */}
+                                        <div className="space-y-3 p-4 rounded-xl bg-muted/20 border">
+                                            <Label className="text-[10px] font-black text-muted-foreground uppercase">اللون الثانوي (الزينة والأيقونات)</Label>
+                                            <div className="flex flex-col gap-3">
+                                                <div className="flex gap-2">
+                                                    <div className="h-10 w-10 rounded-lg overflow-hidden border shrink-0 shadow-inner">
+                                                        <input
+                                                            type="color"
+                                                            value={storeData.secondary_color || activeTheme.colors.secondary}
+                                                            onChange={(e) => setStoreData({ ...storeData, secondary_color: e.target.value })}
+                                                            className="w-full h-full scale-150 cursor-pointer"
+                                                        />
+                                                    </div>
+                                                    <Input
+                                                        value={storeData.secondary_color || activeTheme.colors.secondary}
+                                                        onChange={(e) => setStoreData({ ...storeData, secondary_color: e.target.value })}
+                                                        className="font-mono text-xs h-10 rounded-lg"
+                                                    />
+                                                </div>
                                             </div>
-                                            <Input
-                                                value={storeData.secondary_color || activeTheme.colors.secondary}
-                                                onChange={(e) => setStoreData({ ...storeData, secondary_color: e.target.value })}
-                                                className="font-mono text-xs h-10 rounded-lg"
-                                            />
                                         </div>
-                                        {/* Recommended Palette */}
-                                        <div className="flex flex-wrap gap-1.5">
-                                            {['#60a5fa', '#fb7185', '#34d399', '#facc15', '#a78bfa', '#fbcfe8', '#fdba74', '#94a3b8'].map(color => (
-                                                <button
-                                                    key={color}
-                                                    type="button"
-                                                    onClick={() => setStoreData({ ...storeData, secondary_color: color })}
-                                                    className={`w-6 h-6 rounded-full border border-white/20 shadow-sm transition-transform hover:scale-125 ${storeData.secondary_color === color ? 'ring-2 ring-primary ring-offset-2' : ''}`}
-                                                    style={{ backgroundColor: color }}
-                                                />
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
 
-                                {/* Background Color */}
-                                <div className="space-y-3 p-4 rounded-xl bg-muted/20 border">
-                                    <Label className="text-[10px] font-black text-muted-foreground uppercase">خلفية المتجر</Label>
-                                    <div className="flex flex-col gap-3">
-                                        <div className="flex gap-2">
-                                            <div className="h-10 w-10 rounded-lg overflow-hidden border shrink-0 shadow-inner">
-                                                <input
-                                                    type="color"
-                                                    value={storeData.background_color || activeTheme.colors.background}
-                                                    onChange={(e) => setStoreData({ ...storeData, background_color: e.target.value })}
-                                                    className="w-full h-full scale-150 cursor-pointer"
-                                                />
+                                        {/* Background Color */}
+                                        <div className="space-y-3 p-4 rounded-xl bg-muted/20 border">
+                                            <Label className="text-[10px] font-black text-muted-foreground uppercase">خلفية المتجر</Label>
+                                            <div className="flex flex-col gap-3">
+                                                <div className="flex gap-2">
+                                                    <div className="h-10 w-10 rounded-lg overflow-hidden border shrink-0 shadow-inner">
+                                                        <input
+                                                            type="color"
+                                                            value={storeData.background_color || activeTheme.colors.background}
+                                                            onChange={(e) => setStoreData({ ...storeData, background_color: e.target.value })}
+                                                            className="w-full h-full scale-150 cursor-pointer"
+                                                        />
+                                                    </div>
+                                                    <Input
+                                                        value={storeData.background_color || activeTheme.colors.background}
+                                                        onChange={(e) => setStoreData({ ...storeData, background_color: e.target.value })}
+                                                        className="font-mono text-xs h-10 rounded-lg"
+                                                    />
+                                                </div>
                                             </div>
-                                            <Input
-                                                value={storeData.background_color || activeTheme.colors.background}
-                                                onChange={(e) => setStoreData({ ...storeData, background_color: e.target.value })}
-                                                className="font-mono text-xs h-10 rounded-lg"
-                                            />
                                         </div>
-                                        {/* Recommended Palette */}
-                                        <div className="flex flex-wrap gap-1.5">
-                                            {['#ffffff', '#f8fafc', '#f1f5f9', '#0a0a0a', '#111111', '#fff1f2', '#f0f9ff', '#fafafa'].map(color => (
-                                                <button
-                                                    key={color}
-                                                    type="button"
-                                                    onClick={() => setStoreData({ ...storeData, background_color: color })}
-                                                    className={`w-6 h-6 rounded-full border border-white/20 shadow-sm transition-transform hover:scale-125 ${storeData.background_color === color ? 'ring-2 ring-primary ring-offset-2' : ''}`}
-                                                    style={{ backgroundColor: color }}
-                                                />
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
 
-                                {/* Text Color */}
-                                <div className="space-y-3 p-4 rounded-xl bg-muted/20 border">
-                                    <Label className="text-[10px) font-black text-muted-foreground uppercase">لون النصوص</Label>
-                                    <div className="flex flex-col gap-3">
-                                        <div className="flex gap-2">
-                                            <div className="h-10 w-10 rounded-lg overflow-hidden border shrink-0 shadow-inner">
-                                                <input
-                                                    type="color"
-                                                    value={storeData.text_color || activeTheme.colors.text}
-                                                    onChange={(e) => setStoreData({ ...storeData, text_color: e.target.value })}
-                                                    className="w-full h-full scale-150 cursor-pointer"
-                                                />
+                                        {/* Text Color */}
+                                        <div className="space-y-3 p-4 rounded-xl bg-muted/20 border">
+                                            <Label className="text-[10px] font-black text-muted-foreground uppercase">لون النصوص</Label>
+                                            <div className="flex flex-col gap-3">
+                                                <div className="flex gap-2">
+                                                    <div className="h-10 w-10 rounded-lg overflow-hidden border shrink-0 shadow-inner">
+                                                        <input
+                                                            type="color"
+                                                            value={storeData.text_color || activeTheme.colors.text}
+                                                            onChange={(e) => setStoreData({ ...storeData, text_color: e.target.value })}
+                                                            className="w-full h-full scale-150 cursor-pointer"
+                                                        />
+                                                    </div>
+                                                    <Input
+                                                        value={storeData.text_color || activeTheme.colors.text}
+                                                        onChange={(e) => setStoreData({ ...storeData, text_color: e.target.value })}
+                                                        className="font-mono text-xs h-10 rounded-lg"
+                                                    />
+                                                </div>
                                             </div>
-                                            <Input
-                                                value={storeData.text_color || activeTheme.colors.text}
-                                                onChange={(e) => setStoreData({ ...storeData, text_color: e.target.value })}
-                                                className="font-mono text-xs h-10 rounded-lg"
-                                            />
-                                        </div>
-                                        {/* Recommended Palette */}
-                                        <div className="flex flex-wrap gap-1.5">
-                                            {['#0f172a', '#1e3a8a', '#4c0519', '#ffffff', '#e2e8f0', '#334155', '#166534', '#991b1b'].map(color => (
-                                                <button
-                                                    key={color}
-                                                    type="button"
-                                                    onClick={() => setStoreData({ ...storeData, text_color: color })}
-                                                    className={`w-6 h-6 rounded-full border border-white/20 shadow-sm transition-transform hover:scale-125 ${storeData.text_color === color ? 'ring-2 ring-primary ring-offset-2' : ''}`}
-                                                    style={{ backgroundColor: color }}
-                                                />
-                                            ))}
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
                     </CardContent>
                 </Card>

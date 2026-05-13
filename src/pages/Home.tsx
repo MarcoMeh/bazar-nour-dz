@@ -38,7 +38,7 @@ import Autoplay from "embla-carousel-autoplay";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import SEO from "@/components/SEO";
-// import Spline from '@splinetool/react-spline'; // REMOVED
+
 
 // Assets
 import { PageBackground } from "@/type_defs";
@@ -341,16 +341,7 @@ const Home = () => {
                     0%, 100% { transform: translate(0, 0); opacity: 0; }
                     50% { transform: translate(100px, -100px); opacity: 0.5; }
                 }
-                .3d-perspective {
-                    perspective: 1000px;
-                }
-                .3d-card {
-                    transform-style: preserve-3d;
-                    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-                }
-                .3d-card:hover {
-                    transform: translateZ(20px) rotateX(2deg) rotateY(-2deg);
-                }
+
                 @keyframes sparkle {
                     0%, 100% { transform: scale(0) rotate(0deg); opacity: 0; }
                     50% { transform: scale(1) rotate(180deg); opacity: 0.8; }
@@ -386,7 +377,7 @@ const Home = () => {
                 `}
             </style>
 
-            {/* 1. HERO SECTION - 3D ENSEMBLE EDITION */}
+            {/* 1. HERO SECTION */}
             {settings.hero_visible && (
                 <motion.section
                     initial="hidden"
@@ -395,7 +386,7 @@ const Home = () => {
                     className="relative min-h-[65vh] md:min-h-[90vh] flex items-center justify-center overflow-hidden"
                 >
 
-                    {/* Background Layer (Image + 3D Overlay) */}
+                    {/* Background Layer (Image Overlay) */}
                     <div className="absolute inset-0 z-0 overflow-hidden">
                         {/* 1. Original Image Background */}
                         <img
@@ -408,7 +399,7 @@ const Home = () => {
                         <div className="absolute inset-0 bg-gradient-to-tr from-slate-950/80 via-slate-900/40 to-indigo-950/30 md:from-slate-950 md:via-slate-900/60 md:to-indigo-950/40"></div>
                         <div className="absolute inset-0 bg-black/30 md:bg-black/40"></div>
 
-                        {/* 3. 3D React Three Fiber Scene - T-Shirt Model */}
+
 
 
                         {/* Pattern Overlay */}
@@ -585,7 +576,7 @@ const Home = () => {
                         </div>
 
                         {/* Stores Grid */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 3d-perspective">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                             {loading ? (
                                 [1, 2, 3, 4, 5, 6, 7, 8].map(i => (
                                     <div key={i} className="space-y-4">
@@ -603,7 +594,7 @@ const Home = () => {
                                     .map((store, index) => (
                                         <div
                                             key={store.id}
-                                            className="group relative flex flex-col items-center 3d-card"
+                                            className="group relative flex flex-col items-center"
                                         >
                                             <div className="relative w-full aspect-[4/5] rounded-[2.5rem] overflow-hidden bg-white shadow-2xl transition-all duration-500 group-hover:shadow-[0_20px_50px_rgba(0,0,0,0.15)] group-hover:-translate-y-2 border border-gray-100">
 
@@ -974,7 +965,7 @@ const Home = () => {
                                     <Skeleton key={i} className="h-[400px] rounded-2xl" />
                                 ))
                                 : bestSellers.map((product) => (
-                                    <motion.div variants={itemVariants} key={product.id} className="3d-card h-full">
+                                    <motion.div variants={itemVariants} key={product.id} className="h-full">
                                         <ProductCard
                                             {...product}
                                             onQuickView={setQuickViewProduct}
@@ -1021,7 +1012,7 @@ const Home = () => {
                                     <Skeleton key={i} className="h-[400px] rounded-2xl" />
                                 ))
                                 : newestProducts.map((product) => (
-                                    <motion.div variants={itemVariants} key={product.id} className="3d-card h-full">
+                                    <motion.div variants={itemVariants} key={product.id} className="h-full">
                                         <ProductCard
                                             {...product}
                                             onQuickView={setQuickViewProduct}

@@ -199,3 +199,54 @@ export const STORE_THEMES: StoreTheme[] = [
         },
     },
 ];
+
+export const COLOR_PALETTES = [
+    {
+        name: 'كلاسيكي احترافي',
+        primary: '#1e40af',
+        background: '#ffffff',
+        text: '#0f172a',
+    },
+    {
+        name: 'أناقة وردية',
+        primary: '#9d174d',
+        background: '#fff1f2',
+        text: '#4c0519',
+    },
+    {
+        name: 'برتقالي حيوي',
+        primary: '#f97316',
+        background: '#fff7ed',
+        text: '#7c2d12',
+    },
+    {
+        name: 'زمردي فاخر',
+        primary: '#047857',
+        background: '#f0fdf4',
+        text: '#064e3b',
+    },
+    {
+        name: 'ليلي غامق',
+        primary: '#ca8a04',
+        background: '#0a0a0a',
+        text: '#ffffff',
+    },
+    {
+        name: 'بنفسجي ملكي',
+        primary: '#7c3aed',
+        background: '#f5f3ff',
+        text: '#2e1065',
+    },
+    {
+        name: 'أزرق سماوي',
+        primary: '#0ea5e9',
+        background: '#f0f9ff',
+        text: '#0c4a6e',
+    },
+    {
+        name: 'أسود وبياض',
+        primary: '#000000',
+        background: '#ffffff',
+        text: '#000000',
+    }
+];

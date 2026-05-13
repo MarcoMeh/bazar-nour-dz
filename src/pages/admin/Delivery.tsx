@@ -16,11 +16,7 @@ interface Company {
   id: string;
   name: string;
   logo_url?: string;
-  phone1?: string;
-  phone2?: string;
-  phone3?: string;
   website_url?: string;
-  address?: string;
   delivery_zones?: Zone[];
 }
 
@@ -83,11 +79,7 @@ export default function AdminDelivery() {
     try {
       const payload = {
         name: formData.get("name") as string,
-        phone1: formData.get("phone1") as string,
-        phone2: formData.get("phone2") as string,
-        phone3: formData.get("phone3") as string,
         website_url: formData.get("website_url") as string,
-        address: formData.get("address") as string,
       };
 
       const { data, error } = await supabase.from("delivery_companies").insert([payload]).select().single();
@@ -126,27 +118,9 @@ export default function AdminDelivery() {
                 <Label>اسم الشركة</Label>
                 <Input name="name" required placeholder="مثال: Yalidine" />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label>الهاتف 1</Label>
-                  <Input name="phone1" placeholder="0550..." />
-                </div>
-                <div className="space-y-2">
-                  <Label>الهاتف 2</Label>
-                  <Input name="phone2" placeholder="0551..." />
-                </div>
-                <div className="space-y-2">
-                  <Label>الهاتف 3</Label>
-                  <Input name="phone3" placeholder="0552..." />
-                </div>
-              </div>
               <div className="space-y-2">
                 <Label>الموقع الإلكتروني</Label>
                 <Input name="website_url" type="url" placeholder="https://..." />
-              </div>
-              <div className="space-y-2">
-                <Label>العنوان</Label>
-                <Input name="address" placeholder="الجزائر العاصمة..." />
               </div>
               <Button type="submit" className="w-full">حفظ لشركة جديدة</Button>
             </form>
@@ -221,22 +195,14 @@ function CompanyEditor({ company, wilayas, onUpdate }: { company: Company, wilay
   const [isUpdating, setIsUpdating] = useState(false);
   const [editData, setEditData] = useState({
     name: company.name,
-    phone1: company.phone1 || "",
-    phone2: company.phone2 || "",
-    phone3: company.phone3 || "",
     website_url: company.website_url || "",
-    address: company.address || ""
   });
 
   // Sync state when company ID changes (to ensure we're editing the right one)
   useEffect(() => {
     setEditData({
       name: company.name,
-      phone1: company.phone1 || "",
-      phone2: company.phone2 || "",
-      phone3: company.phone3 || "",
       website_url: company.website_url || "",
-      address: company.address || ""
     });
   }, [company.id]);
 
@@ -320,45 +286,6 @@ function CompanyEditor({ company, wilayas, onUpdate }: { company: Company, wilay
                   dir="ltr"
                 />
               </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs">الهاتف 1</Label>
-                <Input
-                  value={editData.phone1}
-                  onChange={(e) => setEditData({ ...editData, phone1: e.target.value })}
-                  className="h-9"
-                  dir="ltr"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">الهاتف 2</Label>
-                <Input
-                  value={editData.phone2}
-                  onChange={(e) => setEditData({ ...editData, phone2: e.target.value })}
-                  className="h-9"
-                  dir="ltr"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">الهاتف 3</Label>
-                <Input
-                  value={editData.phone3}
-                  onChange={(e) => setEditData({ ...editData, phone3: e.target.value })}
-                  className="h-9"
-                  dir="ltr"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs">العنوان الكامل</Label>
-              <Input
-                value={editData.address}
-                onChange={(e) => setEditData({ ...editData, address: e.target.value })}
-                className="h-9"
-              />
             </div>
 
             <div className="flex justify-end pt-2">

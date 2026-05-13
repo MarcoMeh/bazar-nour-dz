@@ -13,11 +13,7 @@ import { Loader2, Save, Truck, Info } from "lucide-react";
 interface DeliveryCompany {
     id: string;
     name: string;
-    phone1?: string;
-    phone2?: string;
-    phone3?: string;
     website_url?: string;
-    address?: string;
 }
 
 interface WilayaData {
@@ -241,17 +237,7 @@ export default function StoreOwnerDelivery() {
                                 const company = companies.find(c => c.id === selectedCompanyId);
                                 if (!company) return null;
                                 return (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {(company.phone1 || company.phone2 || company.phone3) && (
-                                            <div className="p-3 bg-muted/30 rounded-lg border">
-                                                <div className="text-[10px] text-muted-foreground mb-1 uppercase tracking-wider font-bold">أرقام الهاتف</div>
-                                                <div className="space-y-1">
-                                                    {company.phone1 && <div className="text-sm font-medium">{company.phone1}</div>}
-                                                    {company.phone2 && <div className="text-sm font-medium">{company.phone2}</div>}
-                                                    {company.phone3 && <div className="text-sm font-medium">{company.phone3}</div>}
-                                                </div>
-                                            </div>
-                                        )}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {company.website_url && (
                                             <div className="p-3 bg-muted/30 rounded-lg border">
                                                 <div className="text-[10px] text-muted-foreground mb-1 uppercase tracking-wider font-bold">الموقع الإلكتروني</div>
@@ -263,12 +249,6 @@ export default function StoreOwnerDelivery() {
                                                 >
                                                     {company.website_url.replace(/^https?:\/\//, '')}
                                                 </a>
-                                            </div>
-                                        )}
-                                        {company.address && (
-                                            <div className="p-3 bg-muted/30 rounded-lg border lg:col-span-1">
-                                                <div className="text-[10px] text-muted-foreground mb-1 uppercase tracking-wider font-bold">العنوان الرئيسي</div>
-                                                <div className="text-sm font-medium">{company.address}</div>
                                             </div>
                                         )}
                                     </div>
