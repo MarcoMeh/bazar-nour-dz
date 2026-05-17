@@ -50,15 +50,35 @@ export const Navbar = () => {
                 setUserRole(null);
                 return;
             }
-            const { data } = await supabase
-                .from('profiles')
-                .select('role')
-                .eq('id', user.id)
-                .single();
-            if (data) setUserRole(data.role);
+
+            // 1. Try to get role from metadata first for instant responsiveness
+            const metaRole = user.user_metadata?.role || user.app_metadata?.role;
+            if (metaRole) {
+                setUserRole(metaRole);
+            }
+
+            // 2. Fetch/Confirm from profiles table
+            try {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', user.id)
+                    .single();
+                
+                if (data && data.role) {
+                    setUserRole(data.role);
+                } else if (error) {
+                    console.error("Error fetching user role from profiles:", error);
+                }
+            } catch (err) {
+                console.error("Critical error fetching user role:", err);
+            }
         };
-        fetchUserRole();
-    }, [user]);
+
+        if (user) {
+            fetchUserRole();
+        }
+    }, [user, isSheetOpen]);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -199,6 +219,13 @@ export const Navbar = () => {
                                     {user ? (
                                         <>
                                             <div className="text-sm text-white/50 mb-2">حسابي</div>
+
+                                            {!userRole && (
+                                                <div className="flex items-center gap-2 text-white/40 text-sm py-2 animate-pulse bg-white/5 rounded-lg px-3 backdrop-blur-sm border border-white/5">
+                                                    <span className="h-2.5 w-2.5 rounded-full bg-blue-400 animate-ping"></span>
+                                                    <span>جاري تحميل بيانات حسابك...</span>
+                                                </div>
+                                            )}
 
                                             {userRole === 'customer' && (
                                                 <Link to="/my-orders" className="text-xl font-bold hover:text-blue-400 flex items-center gap-2" onClick={() => setIsSheetOpen(false)}>

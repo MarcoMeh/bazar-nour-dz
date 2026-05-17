@@ -94,14 +94,29 @@ const OrdersTable = ({ orders, onView, onDelete, onConfirmDelivery, getStatusBad
                     </TableRow>
                 ) : (
                     orders.map((order) => (
-                        <TableRow key={order.id}>
+                        <TableRow key={order.id} className="hover:bg-gray-50/50">
                             <TableCell className="font-medium">
                                 <div className="flex flex-col">
-                                    <span>#{order.id.slice(0, 6)}</span>
-                                    <span className="text-xs text-muted-foreground md:hidden">{order.full_name || "غير معروف"}</span>
+                                    <span 
+                                        className="cursor-pointer text-blue-600 hover:text-blue-800 hover:underline transition-colors font-mono"
+                                        onClick={() => onView(order)}
+                                    >
+                                        #{order.id.slice(0, 6)}
+                                    </span>
+                                    <span 
+                                        className="text-xs text-muted-foreground md:hidden cursor-pointer hover:text-blue-700 hover:underline"
+                                        onClick={() => onView(order)}
+                                    >
+                                        {order.full_name || "غير معروف"}
+                                    </span>
                                 </div>
                             </TableCell>
-                            <TableCell className="hidden md:table-cell">{order.full_name || order.profiles?.full_name || "غير معروف"}</TableCell>
+                            <TableCell 
+                                className="hidden md:table-cell cursor-pointer font-semibold text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                                onClick={() => onView(order)}
+                            >
+                                {order.full_name || order.profiles?.full_name || "غير معروف"}
+                            </TableCell>
                             <TableCell className="hidden sm:table-cell text-muted-foreground dir-ltr text-right">{format(new Date(order.created_at), "yyyy-MM-dd")}</TableCell>
                             <TableCell className="text-center">{getStatusBadge(order.status)}</TableCell>
                             <TableCell>

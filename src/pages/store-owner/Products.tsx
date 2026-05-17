@@ -39,6 +39,7 @@ export default function StoreOwnerProducts() {
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [productToDelete, setProductToDelete] = useState<string | null>(null);
     const [storeId, setStoreId] = useState<string | null>(null);
+    const [isExpressMode, setIsExpressMode] = useState(false);
 
     const [formData, setFormData] = useState({
         name_ar: "",
@@ -71,6 +72,40 @@ export default function StoreOwnerProducts() {
             fetchProducts();
         }
     }, [storeId]);
+
+    // Auto-generate variants when colors or sizes change to avoid manual click
+    useEffect(() => {
+        const { colors, sizes } = formData;
+        const newVariants: any[] = [];
+
+        if (colors.length === 0 && sizes.length === 0) {
+            newVariants.push({ color: null, size: null, stock_quantity: 0 });
+        } else if (colors.length > 0 && sizes.length === 0) {
+            colors.forEach(color => newVariants.push({ color, size: null, stock_quantity: 0 }));
+        } else if (colors.length === 0 && sizes.length > 0) {
+            sizes.forEach(size => newVariants.push({ color: null, size, stock_quantity: 0 }));
+        } else {
+            colors.forEach(color => {
+                sizes.forEach(size => {
+                    newVariants.push({ color, size, stock_quantity: 0 });
+                });
+            });
+        }
+
+        // Merge with existing stock if possible
+        const mergedVariants = newVariants.map(nv => {
+            const existing = formData.variants.find(ev => ev.color === nv.color && ev.size === nv.size);
+            return existing ? { ...nv, stock_quantity: existing.stock_quantity, id: existing.id } : nv;
+        });
+
+        // Prevent infinite loops by comparing combinations
+        const currentCombos = formData.variants.map(v => `${v.color}-${v.size}`).join(",");
+        const newCombos = mergedVariants.map(v => `${v.color}-${v.size}`).join(",");
+
+        if (currentCombos !== newCombos) {
+            setFormData(prev => ({ ...prev, variants: mergedVariants }));
+        }
+    }, [formData.colors, formData.sizes]);
 
     const fetchStoreId = async () => {
         const { data: { user } } = await supabase.auth.getUser();
@@ -383,8 +418,17 @@ export default function StoreOwnerProducts() {
                     </DialogTrigger>
 
                     <DialogContent className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[95vw] sm:max-w-xl max-h-[92vh] overflow-y-auto overflow-x-hidden p-0 bg-white rounded-2xl shadow-2xl border-none focus-visible:outline-none">
-                        <DialogHeader className="p-4 border-b sticky top-0 bg-white z-10 text-right">
-                            <DialogTitle className="text-lg font-bold">{editingProduct ? "تعديل بيانات المنتج" : "إضافة منتج جديد"}</DialogTitle>
+                        <DialogHeader className="p-4 border-b sticky top-0 bg-white z-10 text-right flex flex-row items-center justify-between gap-4">
+                            <DialogTitle className="text-lg font-bold">{editingProduct ? "تعديل البيانات" : "إضافة منتج جديد"}</DialogTitle>
+                            <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full shadow-sm ml-4">
+                                <Label htmlFor="express-mode" className="text-xs font-black text-amber-700 cursor-pointer whitespace-nowrap">الوضع السريع ⚡</Label>
+                                <Switch
+                                    id="express-mode"
+                                    checked={isExpressMode}
+                                    onCheckedChange={setIsExpressMode}
+                                    className="data-[state=checked]:bg-amber-500 scale-75"
+                                />
+                            </div>
                         </DialogHeader>
 
                         <form onSubmit={handleSubmit} className="p-4 space-y-5 overflow-x-hidden">
@@ -421,8 +465,8 @@ export default function StoreOwnerProducts() {
                                     </div>
                                 </div>
 
-                                {/* 2. الصور الثانوية: تظهر فقط إذا تم رفع الرئيسية */}
-                                {formData.image_url && (
+                                {/* 2. الصور الثانوية: تظهر فقط إذا تم رفع الرئيسية وتأجيلها في الوضع السريع */}
+                                {!isExpressMode && formData.image_url && (
                                     <div className="animate-in fade-in slide-in-from-top-4 p-4 bg-gray-50 rounded-xl border">
                                         <Label className="block mb-3 text-sm font-semibold">صور إضافية (المعرض)</Label>
                                         <div className="grid grid-cols-4 gap-3">
@@ -495,135 +539,140 @@ export default function StoreOwnerProducts() {
                                 </div>
                             </div>
 
-                            {/* 4. تفاصيل إضافية */}
-                            <div className="space-y-4">
-                                <Label>الوصف</Label>
-                                <Textarea placeholder="اكتب تفاصيل المنتج..." className="min-h-[80px]" value={formData.description_ar} onChange={(e) => setFormData((prev) => ({ ...prev, description_ar: e.target.value }))} />
+                            {/* 4. تفاصيل إضافية (مخفية في الوضع السريع) */}
+                            {!isExpressMode && (
+                                <div className="space-y-4">
+                                    <Label>الوصف</Label>
+                                    <Textarea placeholder="اكتب تفاصيل المنتج..." className="min-h-[80px]" value={formData.description_ar} onChange={(e) => setFormData((prev) => ({ ...prev, description_ar: e.target.value }))} />
 
-                                <div className="space-y-6">
-                                    <div className="p-4 bg-gray-50/50 rounded-xl border border-gray-100">
-                                        <Label className="mb-3 block font-bold text-gray-700">المقاسات المتاحة</Label>
-                                        <SizeSelector selectedSizes={formData.sizes} onSizesChange={(sizes) => setFormData((prev) => ({ ...prev, sizes }))} />
-                                    </div>
-                                    <div className="p-4 bg-gray-50/50 rounded-xl border border-gray-100">
-                                        <Label className="mb-3 block font-bold text-gray-700">الألوان المتاحة</Label>
-                                        <ColorSelector selectedColors={formData.colors} onColorsChange={(colors) => setFormData((prev) => ({ ...prev, colors }))} />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* 5. الإعدادات (Switches Grid) */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                                <div className="flex items-center justify-between p-3 border rounded-xl hover:bg-slate-50 transition-colors bg-white gap-2">
-                                    <Label htmlFor="home_delivery" className="flex-1 cursor-pointer text-xs font-semibold text-right">توصيل منزل</Label>
-                                    <Switch
-                                        id="home_delivery"
-                                        checked={formData.is_delivery_home_available}
-                                        onCheckedChange={(c) => setFormData(prev => ({ ...prev, is_delivery_home_available: c }))}
-                                    />
-                                </div>
-                                <div className="flex items-center justify-between p-3 border rounded-xl hover:bg-slate-50 transition-colors bg-white gap-2">
-                                    <Label htmlFor="office_delivery" className="flex-1 cursor-pointer text-xs font-semibold text-right">توصيل مكتب</Label>
-                                    <Switch
-                                        id="office_delivery"
-                                        checked={formData.is_delivery_desk_available}
-                                        onCheckedChange={(c) => setFormData(prev => ({ ...prev, is_delivery_desk_available: c }))}
-                                    />
-                                </div>
-                                <div className="flex items-center justify-between p-3 border rounded-xl hover:bg-green-50/30 border-green-100 transition-colors bg-white gap-2">
-                                    <Label htmlFor="free_delivery" className="flex-1 cursor-pointer text-xs font-semibold text-green-700 text-right">توصيل مجاني</Label>
-                                    <Switch
-                                        id="free_delivery"
-                                        checked={formData.is_free_delivery}
-                                        onCheckedChange={(c) => setFormData(prev => ({ ...prev, is_free_delivery: c }))}
-                                    />
-                                </div>
-                                <div className="flex items-center justify-between p-3 border rounded-xl hover:bg-red-50/30 border-red-100 transition-colors bg-white gap-2">
-                                    <Label htmlFor="sold_out" className="flex-1 cursor-pointer text-xs font-semibold text-red-600 text-right">نفد المخزون</Label>
-                                    <Switch
-                                        id="sold_out"
-                                        checked={formData.is_sold_out}
-                                        onCheckedChange={(c) => setFormData(prev => ({ ...prev, is_sold_out: c }))}
-                                    />
-                                </div>
-                            </div>
-
-                            {/* 6. إدارة المخزون المتقدمة */}
-                            <div className="p-4 bg-amber-50/50 rounded-xl border border-amber-100 space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <div className="p-1.5 bg-amber-100 rounded-lg text-amber-700">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m7.5 4.27 9 5.15" /><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" /><path d="m3.3 7 8.7 5 8.7-5" /><path d="M12 22V12" /></svg>
+                                    <div className="space-y-6">
+                                        <div className="p-4 bg-gray-50/50 rounded-xl border border-gray-100">
+                                            <Label className="mb-3 block font-bold text-gray-700">المقاسات المتاحة</Label>
+                                            <SizeSelector selectedSizes={formData.sizes} onSizesChange={(sizes) => setFormData((prev) => ({ ...prev, sizes }))} />
                                         </div>
-                                        <h3 className="font-semibold text-sm text-amber-900">إدارة المخزون (تتبع دقيق)</h3>
-                                    </div>
-                                    <Switch
-                                        checked={formData.track_inventory}
-                                        onCheckedChange={(c) => setFormData(prev => ({ ...prev, track_inventory: c }))}
-                                    />
-                                </div>
-
-                                {formData.track_inventory && (
-                                    <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
-                                        <div className="flex items-center gap-3">
-                                            <Label className="text-xs font-semibold whitespace-nowrap">الإشعار عند انخفاض الكمية لـ:</Label>
-                                            <Input
-                                                type="number"
-                                                className="h-8 w-20 bg-white"
-                                                value={formData.low_stock_threshold}
-                                                onChange={(e) => setFormData(prev => ({ ...prev, low_stock_threshold: e.target.value }))}
-                                            />
+                                        <div className="p-4 bg-gray-50/50 rounded-xl border border-gray-100">
+                                            <Label className="mb-3 block font-bold text-gray-700">الألوان المتاحة</Label>
+                                            <ColorSelector selectedColors={formData.colors} onColorsChange={(colors) => setFormData((prev) => ({ ...prev, colors }))} />
                                         </div>
+                                    </div>
+                                </div>
+                            )}
 
-                                        <div className="space-y-2">
-                                            <div className="flex justify-between items-center">
-                                                <Label className="text-xs font-bold">تحديد الكميات حسب المقاس واللون:</Label>
-                                                <Button type="button" variant="outline" size="sm" onClick={generateVariants} className="h-7 text-[10px] bg-white">
-                                                    تحديث القائمة
-                                                </Button>
+                            {/* 5. الإعدادات (مخفية في الوضع السريع) */}
+                            {!isExpressMode && (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                                    <div className="flex items-center justify-between p-3 border rounded-xl hover:bg-slate-50 transition-colors bg-white gap-2">
+                                        <Label htmlFor="home_delivery" className="flex-1 cursor-pointer text-xs font-semibold text-right">توصيل منزل</Label>
+                                        <Switch
+                                            id="home_delivery"
+                                            checked={formData.is_delivery_home_available}
+                                            onCheckedChange={(c) => setFormData(prev => ({ ...prev, is_delivery_home_available: c }))}
+                                        />
+                                    </div>
+                                    <div className="flex items-center justify-between p-3 border rounded-xl hover:bg-slate-50 transition-colors bg-white gap-2">
+                                        <Label htmlFor="office_delivery" className="flex-1 cursor-pointer text-xs font-semibold text-right">توصيل مكتب</Label>
+                                        <Switch
+                                            id="office_delivery"
+                                            checked={formData.is_delivery_desk_available}
+                                            onCheckedChange={(c) => setFormData(prev => ({ ...prev, is_delivery_desk_available: c }))}
+                                        />
+                                    </div>
+                                    <div className="flex items-center justify-between p-3 border rounded-xl hover:bg-green-50/30 border-green-100 transition-colors bg-white gap-2">
+                                        <Label htmlFor="free_delivery" className="flex-1 cursor-pointer text-xs font-semibold text-green-700 text-right">توصيل مجاني</Label>
+                                        <Switch
+                                            id="free_delivery"
+                                            checked={formData.is_free_delivery}
+                                            onCheckedChange={(c) => setFormData(prev => ({ ...prev, is_free_delivery: c }))}
+                                        />
+                                    </div>
+                                    <div className="flex items-center justify-between p-3 border rounded-xl hover:bg-red-50/30 border-red-100 transition-colors bg-white gap-2">
+                                        <Label htmlFor="sold_out" className="flex-1 cursor-pointer text-xs font-semibold text-red-600 text-right">نفد المخزون</Label>
+                                        <Switch
+                                            id="sold_out"
+                                            checked={formData.is_sold_out}
+                                            onCheckedChange={(c) => setFormData(prev => ({ ...prev, is_sold_out: c }))}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* 6. إدارة المخزون المتقدمة (مخفية في الوضع السريع) */}
+                            {!isExpressMode && (
+                                <div className="p-4 bg-amber-50/50 rounded-xl border border-amber-100 space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <div className="p-1.5 bg-amber-100 rounded-lg text-amber-700">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m7.5 4.27 9 5.15" /><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" /><path d="m3.3 7 8.7 5 8.7-5" /><path d="M12 22V12" /></svg>
+                                            </div>
+                                            <h3 className="font-semibold text-sm text-amber-900">إدارة المخزون (تتبع دقيق)</h3>
+                                        </div>
+                                        <Switch
+                                            checked={formData.track_inventory}
+                                            onCheckedChange={(c) => setFormData(prev => ({ ...prev, track_inventory: c }))}
+                                        />
+                                    </div>
+
+                                    {formData.track_inventory && (
+                                        <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                                            <div className="flex items-center gap-3">
+                                                <Label className="text-xs font-semibold whitespace-nowrap">الإشعار عند انخفاض الكمية لـ:</Label>
+                                                <Input
+                                                    type="number"
+                                                    className="h-8 w-20 bg-white"
+                                                    value={formData.low_stock_threshold}
+                                                    onChange={(e) => setFormData(prev => ({ ...prev, low_stock_threshold: e.target.value }))}
+                                                />
                                             </div>
 
-                                            <div className="max-h-60 overflow-y-auto border rounded-lg bg-white">
-                                                <Table className="text-[12px]">
-                                                    <TableHeader className="bg-gray-50 sticky top-0 z-10">
-                                                        <TableRow>
-                                                            <TableHead className="h-8 text-right">اللون</TableHead>
-                                                            <TableHead className="h-8 text-right">المقاس</TableHead>
-                                                            <TableHead className="h-8 text-right">الكمية</TableHead>
-                                                        </TableRow>
-                                                    </TableHeader>
-                                                    <TableBody>
-                                                        {formData.variants.length === 0 ? (
+                                            <div className="space-y-2">
+                                                <div className="flex justify-between items-center">
+                                                    <Label className="text-xs font-bold">تحديد الكميات حسب المقاس واللون:</Label>
+                                                    <Button type="button" variant="outline" size="sm" onClick={generateVariants} className="h-7 text-[10px] bg-white">
+                                                        تحديث القائمة
+                                                    </Button>
+                                                </div>
+
+                                                <div className="max-h-60 overflow-y-auto border rounded-lg bg-white">
+                                                    <Table className="text-[12px]">
+                                                        <TableHeader className="bg-gray-50 sticky top-0 z-10">
                                                             <TableRow>
-                                                                <TableCell colSpan={3} className="text-center py-4 text-muted-foreground italic">
-                                                                    اضغط على "تحديث القائمة" بعد اختيار الألوان والمقاسات
-                                                                </TableCell>
+                                                                <TableHead className="h-8 text-right">اللون</TableHead>
+                                                                <TableHead className="h-8 text-right">المقاس</TableHead>
+                                                                <TableHead className="h-8 text-right">الكمية</TableHead>
                                                             </TableRow>
-                                                        ) : (
-                                                            formData.variants.map((variant, idx) => (
-                                                                <TableRow key={idx}>
-                                                                    <TableCell className="py-2">{variant.color || "—"}</TableCell>
-                                                                    <TableCell className="py-2">{variant.size || "—"}</TableCell>
-                                                                    <TableCell className="py-2">
-                                                                        <Input
-                                                                            type="number"
-                                                                            min="0"
-                                                                            className="h-7 w-16 text-center font-mono"
-                                                                            value={variant.stock_quantity}
-                                                                            onChange={(e) => {
-                                                                                const val = parseInt(e.target.value) || 0;
-                                                                                const newVariants = [...formData.variants];
-                                                                                newVariants[idx].stock_quantity = Math.max(0, val).toString();
-                                                                                setFormData(prev => ({ ...prev, variants: newVariants }));
-                                                                            }}
-                                                                        />
+                                                        </TableHeader>
+                                                        <TableBody>
+                                                            {formData.variants.length === 0 ? (
+                                                                <TableRow>
+                                                                    <TableCell colSpan={3} className="text-center py-4 text-muted-foreground italic">
+                                                                        اضغط على "تحديث القائمة" بعد اختيار الألوان والمقاسات
                                                                     </TableCell>
                                                                 </TableRow>
-                                                            ))
-                                                        )}
-                                                    </TableBody>
-                                                </Table>
-                                            </div>
+                                                            ) : (
+                                                                formData.variants.map((variant, idx) => (
+                                                                    <TableRow key={idx}>
+                                                                        <TableCell className="py-2">{variant.color || "—"}</TableCell>
+                                                                        <TableCell className="py-2">{variant.size || "—"}</TableCell>
+                                                                        <TableCell className="py-2">
+                                                                            <Input
+                                                                                type="number"
+                                                                                min="0"
+                                                                                className="h-7 w-16 text-center font-mono"
+                                                                                value={variant.stock_quantity}
+                                                                                onChange={(e) => {
+                                                                                    const val = parseInt(e.target.value) || 0;
+                                                                                    const newVariants = [...formData.variants];
+                                                                                    newVariants[idx].stock_quantity = Math.max(0, val).toString();
+                                                                                    setFormData(prev => ({ ...prev, variants: newVariants }));
+                                                                                }}
+                                                                            />
+                                                                        </TableCell>
+                                                                    </TableRow>
+                                                                ))
+                                                            )}
+                                                        </TableBody>
+                                                    </Table>
+                                                </div>
                                             <p className="text-[10px] text-amber-600 mt-1">
                                                 * سيتم استخدام هذه الكميات للتحقق من التوفر أثناء الطلب.
                                             </p>
@@ -631,6 +680,7 @@ export default function StoreOwnerProducts() {
                                     </div>
                                 )}
                             </div>
+                            )}
 
                             <div className="sticky bottom-0 pt-4 pb-2 bg-white border-t mt-4 flex gap-3">
                                 <Button type="submit" className="flex-1 h-12 text-lg font-bold shadow-lg" disabled={uploading}>

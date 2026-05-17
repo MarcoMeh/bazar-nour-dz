@@ -40,24 +40,48 @@ export default function Login() {
         setLoading(true);
 
         try {
-            let loginEmail = email;
+            let loginEmail = email.trim();
             let usernameNotFound = false;
 
             // Check if input is NOT an email
-            if (!email.includes('@')) {
-                // Try to find email by store name or phone using our secure RPC function
-                const { data: foundEmail, error: lookupError } = await supabase
-                    .rpc('get_login_email', { identifier: email });
-
-                if (lookupError) {
-                    console.error("Error looking up identifier:", lookupError);
+            if (!loginEmail.includes('@')) {
+                // 1. Direct query lookup by phone number
+                const cleanPhone = loginEmail;
+                
+                // Normalizing phone format variants (removing leading zero or converting country code)
+                let formattedPhone = cleanPhone;
+                if (cleanPhone.startsWith('0') && cleanPhone.length === 10) {
+                    formattedPhone = cleanPhone.substring(1); // e.g. "555123456" instead of "0555123456"
+                } else if (cleanPhone.startsWith('+213')) {
+                    formattedPhone = cleanPhone.replace('+213', '0'); // e.g. "0555123456" instead of "+213555123456"
+                } else if (cleanPhone.startsWith('213')) {
+                    formattedPhone = '0' + cleanPhone.substring(3);
                 }
 
-                if (foundEmail) {
-                    loginEmail = foundEmail;
+                // Query database profiles table directly by phone number formats
+                const { data: profileByPhone, error: phoneError } = await supabase
+                    .from("profiles")
+                    .select("email")
+                    .or(`phone.eq.${cleanPhone},phone.eq.${formattedPhone}`)
+                    .maybeSingle();
+
+                if (profileByPhone?.email) {
+                    loginEmail = profileByPhone.email;
                 } else {
-                    usernameNotFound = true;
-                    throw new Error("اسم المستخدم أو رقم الهاتف غير موجود");
+                    // 2. Fallback to existing RPC for store name or other identifiers
+                    const { data: foundEmail, error: lookupError } = await supabase
+                        .rpc('get_login_email', { identifier: loginEmail });
+
+                    if (lookupError) {
+                        console.error("Error looking up identifier via RPC:", lookupError);
+                    }
+
+                    if (foundEmail) {
+                        loginEmail = foundEmail;
+                    } else {
+                        usernameNotFound = true;
+                        throw new Error("رقم الهاتف أو اسم المستخدم غير مسجل لدينا");
+                    }
                 }
             }
 
@@ -70,10 +94,10 @@ export default function Login() {
                 // Supabase returns "Invalid login credentials" for both wrong email and wrong password
                 // We can provide better messages based on context
                 if (usernameNotFound) {
-                    throw new Error("اسم المتجر غير موجود");
+                    throw new Error("رقم الهاتف أو اسم المستخدم غير مسجل لدينا");
                 } else if (error.message.includes("Invalid login credentials")) {
                     // If email format is valid, likely wrong password or email doesn't exist
-                    throw new Error("البريد الإلكتروني أو كلمة السر خاطئة");
+                    throw new Error("البيانات المدخلة أو كلمة السر خاطئة");
                 } else if (error.message.includes("Email not confirmed")) {
                     throw new Error("يرجى تأكيد البريد الإلكتروني أولاً");
                 } else {
@@ -133,11 +157,11 @@ export default function Login() {
                     <form onSubmit={handleLogin} className="space-y-6">
                         <div className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="email">البريد الإلكتروني، اسم المتجر </Label>
+                                <Label htmlFor="email">البريد الإلكتروني، رقم الهاتف، أو اسم المتجر</Label>
                                 <Input
                                     id="email"
                                     type="text"
-                                    placeholder="example@mail.com, Store Name, or 055..."
+                                    placeholder="example@mail.com, 0555123456, or Store Name"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
