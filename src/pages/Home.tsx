@@ -616,7 +616,7 @@ const Home = () => {
                                                                 <StoreIcon className="h-20 w-20" />
                                                             </div>
                                                         )}
-                                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-500"></div>
+                                                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent opacity-85 transition-opacity duration-500"></div>
                                                     </div>
                                                 </Link>
 

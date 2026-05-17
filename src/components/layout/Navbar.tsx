@@ -126,7 +126,7 @@ export const Navbar = () => {
                     </div>
 
                     {/* CENTER: Search Bar */}
-                    <div className="flex-1 max-w-2xl lg:block">
+                    <div className="flex-1 max-w-2xl hidden lg:block">
                         <form onSubmit={handleSearch} className="relative group/search">
                             <div className={`
                                 flex items-center rounded-full overflow-hidden transition-all duration-300 border-2

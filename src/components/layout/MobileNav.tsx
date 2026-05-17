@@ -15,6 +15,9 @@ export const MobileNav = () => {
         return false;
     };
 
+    // Hide mobile navigation bar on product detail pages to avoid UI stacking issues on iOS
+    if (pathname.startsWith("/product/")) return null;
+
     const navItems = [
         {
             name: "الرئيسية",
@@ -36,8 +39,8 @@ export const MobileNav = () => {
     ];
 
     return (
-        <div className="fixed bottom-4 left-4 right-4 z-50 md:hidden">
-            <div className="bg-black/80 backdrop-blur-2xl border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] rounded-3xl flex justify-around items-center h-20 px-2">
+        <div className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] left-4 right-4 z-50 md:hidden">
+            <div className="bg-black/80 backdrop-blur-2xl border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] rounded-3xl flex justify-around items-center h-20 px-2 pb-safe">
                 {navItems.map((item) => (
                     <Link
                         key={item.path}

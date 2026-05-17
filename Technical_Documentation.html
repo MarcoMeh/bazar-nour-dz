@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bazzarna | Technical Architecture & Design</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --text-light: #F5F5F5;
+            --accent-green: #2ECC71;
+            --accent-red: #E74C3C;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --card-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding: 40px;
+            background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(18, 18, 18, 1));
+            border-radius: 20px;
+            border: 1px solid var(--card-border);
+        }
+
+        h1 { font-weight: 700; color: var(--accent-green); margin: 0; font-size: 2.5rem; }
+        h2 { border-right: 4px solid var(--accent-green); padding-right: 15px; margin-top: 50px; color: var(--accent-green); }
+        h3 { color: #fff; margin-top: 30px; }
+
+        .card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover { transform: translateY(-5px); }
+
+        .architecture-box {
+            font-family: monospace;
+            background: #000;
+            color: #0f0;
+            padding: 20px;
+            border-radius: 10px;
+            white-space: pre;
+            overflow-x: auto;
+            direction: ltr;
+            text-align: left;
+            border: 1px solid var(--accent-green);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .badge-web { background: #3498db; color: #fff; }
+        .badge-desktop { background: #9b59b6; color: #fff; }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px;
+            font-size: 0.9rem;
+            opacity: 0.6;
+        }
+
+        ul { list-style-type: none; padding-right: 0; }
+        ul li::before { content: "•"; color: var(--accent-green); display: inline-block; width: 1em; margin-right: -1em; padding-right: 1.5em; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <p style="margin-bottom: 10px; opacity: 0.8;">AliDev Studio Presenting</p>
+        <h1>مشروع Bazzarna</h1>
+        <p>مستند الهندسة التقنية وتصميم المنتج للشركات الناشئة</p>
+    </header>
+
+    <section id="overview">
+        <h2>1. نظرة عامة والقيمة المقترحة</h2>
+        <div class="card">
+            <p>مشروع <strong>Bazzarna</strong> هو منظومة تجارة إلكترونية هجينة تجمع بين مرونة الويب وسلطة تطبيقات سطح المكتب. تم تصميم النظام ليعمل بكفاءة عالية في معالجة الطلبات الكبيرة وإدارة المتاجر المتعددة عبر قاعدة بيانات سحابية موحدة.</p>
+            <p><strong>الرؤية التقنية:</strong> نعتمد على بنية تحتية موزعة تضمن استمرارية الخدمة وتوفر أسرع تجربة تصفح للمستخدم في الجزائر.</p>
+        </div>
+    </section>
+
+    <section id="features">
+        <h2>2. مصفوفة المميزات</h2>
+        <div class="feature-grid">
+            <div class="card">
+                <span class="badge badge-web">منصة الويب (Vercel)</span>
+                <h3>للمستهلك والتجار</h3>
+                <ul>
+                    <li>واجهات متاجر ذكية (Custom Storefronts).</li>
+                    <li>نظام بحث متقدم وفلاتر تصنيف.</li>
+                    <li>تتبع مباشر للطلبات (Real-time Tracking).</li>
+                    <li>تصميم متجاوب بالكامل (Mobile-First).</li>
+                </ul>
+            </div>
+            <div class="card">
+                <span class="badge badge-desktop">برنامج الإدارة (PyQt5)</span>
+                <h3>للتحكم السيادي</h3>
+                <ul>
+                    <li>إدارة شاملة للمخزون والبيانات الضخمة.</li>
+                    <li>محرك العروض وأكواد الخصم التلقائية.</li>
+                    <li>لوحات تحكم تحليلية (Advanced Analytics).</li>
+                    <li>إدارة صلاحيات المستخدمين والمتاجر.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section id="architecture">
+        <h2>3. مخطط هندسة النظام</h2>
+        <div class="card">
+            <div class="architecture-box">
++-----------------------+        +-----------------------+
+|   Web Platform        |        |  Desktop Control App  |
+|   (Next.js / React)   |        |   (Python / PyQt5)    |
+|   Deployed on Vercel  |        |   Admin Dashboard     |
++-----------+-----------+        +-----------+-----------+
+            |                                |
+            |        HTTPS / Real-time       |
+            |        PostgreSQL Access       |
+            |                                |
+      +-----v--------------------------------v-----+
+      |                                            |
+      |          SUPABASE CLOUD PLATFORM           |
+      |    (PostgreSQL - Auth - Storage - Edge)    |
+      |                                            |
+      +--------------------------------------------+</div>
+        </div>
+    </section>
+
+    <section id="data-flow">
+        <h2>4. تدفق البيانات</h2>
+        <div class="card">
+            <p>تعتمد المنظومة على تدفق بيانات أحادي المصدر (Single Source of Truth) عبر <strong>Supabase</strong>. يضمن هذا التدفق أن أي إجراء يتم على الويب يظهر فوراً في برنامج الإدارة والعكس صحيح، مما يقلل من أخطاء المزامنة اليدوية بنسبة 100%.</p>
+        </div>
+    </section>
+
+    <section id="user-flow">
+        <h2>5. مخطط تدفق المستخدم</h2>
+        <div class="card" style="border-right: 4px solid var(--accent-green);">
+            <h3>رحلة العميل (Client Journey)</h3>
+            <p>تصفح المنتج &larr; إضافة للسلة &larr; تطبيق كود الخصم &larr; تأكيد الطلب &larr; تتبع الحالة.</p>
+        </div>
+        <div class="card" style="border-right: 4px solid #9b59b6;">
+            <h3>رحلة المسؤول (Admin Journey)</h3>
+            <p>فتح البرنامج &larr; مراجعة المبيعات &larr; المصادقة على المتاجر &larr; إنشاء حملات ترويجية.</p>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 AliDev Studio | Senior Software Architect Office</p>
+        <p style="color: var(--accent-green);">تم التصميم وفق معايير TikTech UI الاحترافية</p>
+    </footer>
+</div>
+
+</body>
+</html>

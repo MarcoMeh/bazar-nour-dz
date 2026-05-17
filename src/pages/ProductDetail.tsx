@@ -130,11 +130,13 @@ const ProductDetail = () => {
     if (product && !product.is_sold_out) {
       if (product.colors && product.colors.length > 0 && !selectedColor) {
         toast.error('الرجاء اختيار اللون');
+        document.getElementById('colors-section-container')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
       }
 
       if (product.sizes && product.sizes.length > 0 && !selectedSize) {
         toast.error('الرجاء اختيار المقاس');
+        document.getElementById('sizes-section-container')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
       }
 
@@ -337,7 +339,7 @@ const ProductDetail = () => {
             </div>
 
             {product.colors && product.colors.length > 0 && (
-              <div className="mb-6">
+              <div className="mb-6" id="colors-section-container">
                 <h3 className="font-semibold mb-3">اللون:</h3>
                 <div className="flex flex-wrap gap-3">
                   {product.colors.map((color) => (
@@ -359,7 +361,7 @@ const ProductDetail = () => {
             )}
 
             {product.sizes && product.sizes.length > 0 && (
-              <div className="mb-6">
+              <div className="mb-6" id="sizes-section-container">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold">المقاس:</h3>
                   <Button
@@ -485,6 +487,30 @@ const ProductDetail = () => {
         onOpenChange={setSizeGuideOpen}
         category="mens"
       />
+
+      {/* Sticky Bottom Add to Cart Bar for Mobile (iPhone optimized) */}
+      {!product.is_sold_out && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-2xl border-t border-slate-200 px-4 py-3 md:hidden flex items-center justify-between gap-4 pb-[calc(0.75rem+env(safe-area-inset-bottom,16px))] shadow-[0_-8px_30px_rgb(0,0,0,0.08)] animate-slide-up">
+          <div className="flex items-center gap-3">
+            <img
+              src={product.image_url || '/placeholder.svg'}
+              alt={product.name_ar}
+              className="w-12 h-12 object-cover rounded-lg border bg-slate-50"
+            />
+            <div>
+              <p className="text-sm font-black line-clamp-1 text-slate-800 text-right">{product.name_ar}</p>
+              <p className="text-base font-black text-primary text-right">{Math.round(product.price)} دج</p>
+            </div>
+          </div>
+          <Button
+            onClick={handleAddToCart}
+            className="flex-1 shadow-lg font-bold text-sm h-12 rounded-xl bg-gradient-to-b from-primary to-primary-dark text-white"
+          >
+            <ShoppingCart className="ml-2 h-4 w-4" />
+            {(!selectedColor && product.colors?.length) || (!selectedSize && product.sizes?.length) ? "اختر الخيارات" : "إضافة للسلة"}
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
