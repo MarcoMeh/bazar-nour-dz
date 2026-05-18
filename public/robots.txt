@@ -7,4 +7,4 @@ Disallow: /checkout/
 Disallow: /login/
 Disallow: /seller-register/
 
-Sitemap: https://bazzarna-dz.com/sitemap.xml
+Sitemap: https://bazzarna.online/sitemap.xml

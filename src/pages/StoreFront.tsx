@@ -311,6 +311,19 @@ const StoreFront = () => {
     return 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 px-0';
   };
 
+  const storeSchema = {
+    "@context": "https://schema.org",
+    "@type": "Store",
+    "name": store.name,
+    "image": store.image_url,
+    "description": store.description,
+    "telephone": store.phone,
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": store.address || "الجزائر"
+    }
+  };
+
   return (
     <StoreThemeWrapper
       themeId={themeId}
@@ -321,7 +334,12 @@ const StoreFront = () => {
         text: store.text_color
       } : undefined}
     >
-      <SEO title={store.name} description={store.description || ""} image={store.image_url} />
+      <SEO 
+        title={store.name} 
+        description={store.description || ""} 
+        image={store.image_url} 
+        schema={storeSchema}
+      />
 
       {renderHeader()}
 

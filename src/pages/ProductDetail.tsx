@@ -234,6 +234,25 @@ const ProductDetail = () => {
 
   if (!product) return null;
 
+  const productSchema = {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": product.name_ar || product.name,
+    "image": allImages,
+    "description": product.description_ar || product.description || `تسوق ${product.name_ar || product.name} الآن بسعر ${Math.round(product.price)} دج.`,
+    "offers": {
+      "@type": "Offer",
+      "url": window.location.href,
+      "priceCurrency": "DZD",
+      "price": product.price,
+      "availability": product.is_sold_out ? "https://schema.org/OutOfStock" : "https://schema.org/InStock",
+      "seller": {
+        "@type": "Organization",
+        "name": product.stores?.name
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <SEO
@@ -241,6 +260,7 @@ const ProductDetail = () => {
         description={product.description_ar || product.description || `تسوق ${product.name_ar || product.name} الآن بسعر ${Math.round(product.price)} دج. أفضل جودة وتوصيل سريع.`}
         image={product.image_url}
         type="product"
+        schema={productSchema}
       />
 
       <main className="flex-1 container mx-auto px-4 py-8">

@@ -6,13 +6,14 @@ interface SEOProps {
     url?: string;
     image?: string;
     type?: string;
+    schema?: object;
 }
 
-export default function SEO({ title, description, url, image, type = 'website' }: SEOProps) {
+export default function SEO({ title, description, url, image, type = 'website', schema }: SEOProps) {
     const siteName = 'Bazzarna';
     const fullTitle = `${title} | ${siteName}`;
-    const defaultImage = 'https://bazzarna.dz/assets/og-image.webp';
-    const siteUrl = 'https://bazzarna.dz';
+    const defaultImage = 'https://bazzarna.online/assets/og-image.webp';
+    const siteUrl = 'https://bazzarna.online';
     const currentUrl = url || siteUrl;
     const currentImage = image || defaultImage;
 
@@ -36,6 +37,13 @@ export default function SEO({ title, description, url, image, type = 'website' }
             <meta name="twitter:title" content={fullTitle} />
             <meta name="twitter:description" content={description} />
             <meta name="twitter:image" content={currentImage} />
+
+            {/* Schema.org Structured Data */}
+            {schema && (
+                <script type="application/ld+json">
+                    {JSON.stringify(schema)}
+                </script>
+            )}
         </Helmet>
     );
 }
