@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Heart, ShoppingCart, Star, Truck, Package } from "lucide-react";
@@ -74,11 +74,11 @@ export function QuickViewModal({
     };
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto animate-scale-in">
-                <DialogHeader>
-                    <DialogTitle className="text-2xl font-bold">{product.name}</DialogTitle>
-                </DialogHeader>
+        <Drawer open={open} onOpenChange={onOpenChange}>
+            <DrawerContent className="max-w-4xl mx-auto max-h-[90vh] overflow-y-auto px-4 pb-8" dir="rtl">
+                <DrawerHeader>
+                    <DrawerTitle className="text-2xl font-bold">{product.name}</DrawerTitle>
+                </DrawerHeader>
 
                 <div className="grid md:grid-cols-2 gap-8">
                     {/* Product Image */}
@@ -222,7 +222,7 @@ export function QuickViewModal({
                         )}
                     </div>
                 </div>
-            </DialogContent>
-        </Dialog>
+            </DrawerContent>
+        </Drawer>
     );
 }

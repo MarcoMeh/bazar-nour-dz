@@ -15,7 +15,7 @@ import {
   Search, MapPin, Phone, Grid3x3, List, Filter, ArrowRight,
   Instagram, Facebook, CheckCircle2, Star, MessageCircle, ShoppingBag, Store, Clock, FileText
 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import SEO from "@/components/SEO";
 import { StoreThemeWrapper } from "@/components/store/StoreThemeWrapper";
 import { STORE_THEMES } from "@/config/themes";
@@ -181,33 +181,33 @@ const StoreFront = () => {
                     {/* Social Media Icons */}
                     <div className="flex items-center gap-3">
                       {store.phone && (
-                        <Dialog>
-                          <DialogTrigger asChild>
+                        <Drawer>
+                          <DrawerTrigger asChild>
                             <button className="bg-white/10 hover:bg-[var(--store-primary)] hover:text-white p-2 rounded-full transition-all">
                               <Phone className="w-4 h-4" />
                             </button>
-                          </DialogTrigger>
-                          <DialogContent className="sm:max-w-md" dir="rtl">
-                            <DialogHeader>
-                              <DialogTitle className="flex items-center gap-2">
-                                <Store className="w-5 h-5 text-primary" />
+                          </DrawerTrigger>
+                          <DrawerContent className="sm:max-w-md bg-white/90 backdrop-blur-3xl" dir="rtl">
+                            <DrawerHeader>
+                              <DrawerTitle className="flex items-center gap-2">
+                                <Store className="w-5 h-5 text-[var(--store-primary)]" />
                                 معلومات {store.name}
-                              </DialogTitle>
-                            </DialogHeader>
-                            <div className="space-y-4 py-4">
+                              </DrawerTitle>
+                            </DrawerHeader>
+                            <div className="space-y-4 py-4 px-4 overflow-y-auto max-h-[70vh]">
                               {store.opening_hours && (
                                 <div className="space-y-2">
                                   <h4 className="font-semibold flex items-center gap-2 text-sm text-gray-900">
-                                    <Clock className="w-4 h-4 text-primary" />
+                                    <Clock className="w-4 h-4 text-[var(--store-primary)]" />
                                     ساعات العمل
                                   </h4>
-                                  <p className="text-sm text-gray-600 leading-relaxed bg-gray-50 p-3 rounded-md whitespace-pre-wrap">
+                                  <p className="text-sm text-gray-600 leading-relaxed bg-gray-50/50 p-3 rounded-xl whitespace-pre-wrap">
                                     {store.opening_hours}
                                   </p>
                                 </div>
                               )}
                               <div className="space-y-4 pt-4">
-                                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div className="flex items-center justify-between p-3 bg-gray-50/50 rounded-xl border border-gray-100">
                                   <div className="flex items-center gap-3">
                                     <Phone className="w-5 h-5 text-gray-500" />
                                     <div>
@@ -221,7 +221,7 @@ const StoreFront = () => {
                                   <div className="space-y-2">
                                     <p className="text-sm font-medium text-muted-foreground mr-1">أرقام إضافية:</p>
                                     {store.phone_numbers.map((phone, idx) => (
-                                      <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                      <div key={idx} className="flex items-center justify-between p-3 bg-gray-50/50 rounded-xl border border-gray-100">
                                         <div className="flex items-center gap-3">
                                           <Phone className="w-5 h-5 text-gray-400" />
                                           <p className="text-lg font-bold" dir="ltr">{phone}</p>
@@ -234,14 +234,14 @@ const StoreFront = () => {
                               {store.location_url && (
                                 <div className="space-y-2">
                                   <h4 className="font-semibold flex items-center gap-2 text-sm text-gray-900">
-                                    <MapPin className="w-4 h-4 text-primary" />
+                                    <MapPin className="w-4 h-4 text-[var(--store-primary)]" />
                                     الموقع
                                   </h4>
                                   <a
                                     href={store.location_url}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="flex items-center gap-2 text-sm text-blue-600 hover:underline bg-blue-50 p-3 rounded-md"
+                                    className="flex items-center gap-2 text-sm text-blue-600 hover:underline bg-blue-50/50 p-3 rounded-xl"
                                   >
                                     <MapPin className="w-4 h-4" />
                                     عرض على خرائط جوجل
@@ -251,17 +251,17 @@ const StoreFront = () => {
                               {store.return_policy && (
                                 <div className="space-y-2">
                                   <h4 className="font-semibold flex items-center gap-2 text-sm text-gray-900">
-                                    <FileText className="w-4 h-4 text-primary" />
+                                    <FileText className="w-4 h-4 text-[var(--store-primary)]" />
                                     سياسة الاستبدال والاسترجاع
                                   </h4>
-                                  <p className="text-sm text-gray-600 leading-relaxed bg-gray-50 p-3 rounded-md whitespace-pre-wrap">
+                                  <p className="text-sm text-gray-600 leading-relaxed bg-gray-50/50 p-3 rounded-xl whitespace-pre-wrap">
                                     {store.return_policy}
                                   </p>
                                 </div>
                               )}
                             </div>
-                          </DialogContent>
-                        </Dialog>
+                          </DrawerContent>
+                        </Drawer>
                       )}
                       {store.whatsapp && (
                         <a href={`https://wa.me/${store.whatsapp}`} target="_blank" rel="noopener noreferrer" className="bg-white/10 hover:bg-[var(--store-primary)] hover:text-white p-2 rounded-full transition-all">

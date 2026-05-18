@@ -44,7 +44,7 @@ export const Header = () => {
   return (
     <>
       {/* HEADER */}
-      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-green-500/40 shadow-sm">
+      <header className="sticky top-0 z-50 bg-white/70 backdrop-blur-[20px] border-b border-gray-200/50 shadow-[0_4px_30px_rgb(0,0,0,0.03)] supports-[backdrop-filter]:bg-white/60">
         <div className="container mx-auto px-3">
           <div className="flex items-center justify-between h-16 gap-2">
 

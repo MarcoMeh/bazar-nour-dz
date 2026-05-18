@@ -454,7 +454,7 @@ const Home = () => {
                                         <Button
                                             type="submit"
                                             size="lg"
-                                            className="rounded-full w-12 h-12 md:w-14 md:h-14 bg-[#4154F1] hover:bg-[#3245d1] text-white transition-all shadow-lg p-0 flex-shrink-0"
+                                            className="rounded-full w-12 h-12 md:w-14 md:h-14 bg-[#4154F1] hover:bg-[#3245d1] text-white transition-all shadow-[0_8px_30px_rgb(65,84,241,0.3)] p-0 flex-shrink-0 active:scale-95"
                                         >
                                             <Search className="h-6 w-6" />
                                         </Button>
@@ -465,11 +465,11 @@ const Home = () => {
                             {/* Buttons Group */}
                             <motion.div variants={itemVariants} className="pt-6 flex flex-wrap gap-4 items-center">
                                 {/* Download Button */}
-                                <button className="group relative flex items-center gap-4 px-8 py-4 bg-gradient-to-b from-[#3B82F6] via-[#1D4ED8] to-[#1E3A8A] text-white rounded-full font-black text-lg shadow-[0_15px_30px_-5px_rgba(37,99,235,0.4),inset_0_2px_4px_rgba(255,255,255,0.3)] transition-all duration-300 hover:-translate-y-1 hover:scale-105 active:scale-95 overflow-hidden border border-white/20">
-                                    <Download className="w-6 h-6 filter drop-shadow-md" />
-                                    <span className="drop-shadow-md text-sm md:text-xl">حمل التطبيق</span>
-                                    <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none"></div>
-                                    <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-shimmer transition-transform duration-1000"></div>
+                                <button className="group relative flex items-center gap-4 px-8 py-4 bg-white/10 backdrop-blur-3xl text-white rounded-[2rem] font-black text-lg shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300 hover:bg-white/20 active:scale-95 overflow-hidden border border-white/30">
+                                    <Download className="w-6 h-6 filter drop-shadow-sm" />
+                                    <span className="drop-shadow-sm text-sm md:text-xl">حمل التطبيق</span>
+                                    <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent pointer-events-none"></div>
+                                    <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:animate-shimmer transition-transform duration-1000"></div>
                                 </button>
 
                                 {/* Mobile Store CTA - Integrated & Creative */}
@@ -592,11 +592,12 @@ const Home = () => {
                                     .filter(store => selectedStoreCategory === "all" || (store as any).category_ids?.includes(selectedStoreCategory))
                                     .slice(0, 8)
                                     .map((store, index) => (
-                                        <div
+                                        <motion.div
                                             key={store.id}
+                                            whileTap={{ scale: 0.96 }}
                                             className="group relative flex flex-col items-center"
                                         >
-                                            <div className="relative w-full aspect-[4/5] rounded-[2.5rem] overflow-hidden bg-white shadow-2xl transition-all duration-500 group-hover:shadow-[0_20px_50px_rgba(0,0,0,0.15)] group-hover:-translate-y-2 border border-gray-100">
+                                            <div className="relative w-full aspect-[4/5] rounded-[32px] overflow-hidden bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-500 group-hover:shadow-[0_20px_50px_rgb(0,0,0,0.12)] group-hover:-translate-y-2 border border-gray-100/50">
 
                                                 {/* ✅ 1. Background Link - Makes the whole card clickable */}
                                                 <Link
@@ -661,7 +662,7 @@ const Home = () => {
                                                     <ArrowLeft className="h-5 w-5 text-white transform rotate-45" />
                                                 </div>
                                             </div>
-                                        </div>
+                                        </motion.div>
                                     ))
                             )}
                         </div>

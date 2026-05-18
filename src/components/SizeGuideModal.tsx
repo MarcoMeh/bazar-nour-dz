@@ -1,9 +1,9 @@
 import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
+    Drawer,
+    DrawerContent,
+    DrawerHeader,
+    DrawerTitle,
+} from "@/components/ui/drawer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Ruler } from "lucide-react";
@@ -16,14 +16,14 @@ interface SizeGuideModalProps {
 
 export const SizeGuideModal = ({ open, onOpenChange, category = 'mens' }: SizeGuideModalProps) => {
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2 text-2xl">
-                        <Ruler className="h-6 w-6" />
+        <Drawer open={open} onOpenChange={onOpenChange}>
+            <DrawerContent className="max-w-4xl max-h-[90vh] mx-auto overflow-y-auto px-4 pb-8" dir="rtl">
+                <DrawerHeader>
+                    <DrawerTitle className="flex items-center gap-2 text-2xl">
+                        <Ruler className="h-6 w-6 text-primary" />
                         دليل المقاسات
-                    </DialogTitle>
-                </DialogHeader>
+                    </DrawerTitle>
+                </DrawerHeader>
 
                 <Tabs defaultValue={category} className="w-full">
                     <TabsList className="grid w-full grid-cols-4">
@@ -229,7 +229,7 @@ export const SizeGuideModal = ({ open, onOpenChange, category = 'mens' }: SizeGu
                         تحقق دائماً من تفاصيل المنتج أو اتصل بالبائع للتأكد.
                     </p>
                 </div>
-            </DialogContent>
-        </Dialog>
+            </DrawerContent>
+        </Drawer>
     );
 };
