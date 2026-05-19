@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ShoppingCart, Plus, Minus, Trash2, ArrowLeft, Store, Sparkles } from "lucide-react";
+import { ShoppingCart, Plus, Minus, Trash2, ArrowLeft, Store, Sparkles, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Sheet,
@@ -16,6 +16,9 @@ interface CartDrawerProps {
 
 export function CartDrawer({ useDarkText }: CartDrawerProps) {
     const { items, totalItems, totalPrice, updateQuantity, removeItem } = useCart();
+
+    const uniqueStoreCount = new Set(items.map(item => item.ownerId || item.storeName).filter(Boolean)).size;
+    const hasMultipleStores = uniqueStoreCount > 1;
 
     return (
         <Sheet>
@@ -51,7 +54,16 @@ export function CartDrawer({ useDarkText }: CartDrawerProps) {
                             <p className="text-lg font-bold">السلة فارغة حالياً</p>
                         </div>
                     ) : (
-                        items.map((item) => (
+                        <>
+                            {hasMultipleStores && (
+                                <div className="bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-xl text-sm flex gap-3 items-start mb-2">
+                                    <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-amber-600" />
+                                    <p className="leading-relaxed">
+                                        <strong>تنبيه:</strong> لقد اخترت منتجات من <strong>{uniqueStoreCount}</strong> متاجر مختلفة. سيتم شحن منتجات كل متجر وتوصيلها بشكل منفصل.
+                                    </p>
+                                </div>
+                            )}
+                            {items.map((item) => (
                             <div key={item.cartItemId} className="flex gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100 relative group transition-all hover:shadow-md">
                                 {/* Image */}
                                 <div className="h-24 w-24 rounded-xl overflow-hidden bg-slate-50 shrink-0">
@@ -104,7 +116,8 @@ export function CartDrawer({ useDarkText }: CartDrawerProps) {
                                     </div>
                                 </div>
                             </div>
-                        ))
+                        ))}
+                        </>
                     )}
                 </div>
 

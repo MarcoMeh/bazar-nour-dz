@@ -315,12 +315,26 @@ export default function Cart() {
       ) : (
         <form onSubmit={handleSubmit} className="grid lg:grid-cols-12 gap-8">
           <div className="lg:col-span-7 space-y-6">
-            <h2 className="text-xl font-bold flex items-center gap-2 mb-2">
+            <h2 className="text-xl font-bold flex items-center gap-2 mb-4">
               <ShoppingBag className="h-5 w-5 text-primary" />
               المنتجات المختارة ({items.length})
             </h2>
-            <div className="space-y-4">
-              {items.map((item) => (
+            <div className="space-y-6">
+              {Object.entries(
+                items.reduce((acc, item) => {
+                  const store = item.storeName || "متجر غير معروف";
+                  if (!acc[store]) acc[store] = [];
+                  acc[store].push(item);
+                  return acc;
+                }, {} as Record<string, typeof items>)
+              ).map(([storeName, storeItems]) => (
+                <div key={storeName} className="bg-slate-50/50 rounded-2xl p-4 shadow-sm border border-slate-100 space-y-4">
+                  <h3 className="font-bold text-lg flex items-center gap-2 text-slate-800 px-2 pt-2">
+                    <Store className="h-5 w-5 text-primary" />
+                    منتجات من: {storeName}
+                  </h3>
+                  <div className="space-y-4">
+                    {storeItems.map((item) => (
                 <Card key={item.cartItemId} className="overflow-hidden border-none shadow-sm hover:shadow-md transition-shadow">
                   <CardContent className="p-4 sm:p-6">
                     <div className="flex gap-4 sm:gap-6">
@@ -335,13 +349,7 @@ export default function Cart() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-bold text-base sm:text-lg mb-1 truncate">{item.name_ar}</h3>
-                        {item.storeName && (
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
-                            <Store className="h-3 w-3" />
-                            <span>{item.storeName}</span>
-                          </div>
-                        )}
-                        <p className="text-primary font-black text-lg mb-3">{item.price} دج</p>
+                        <p className="text-primary font-black text-lg mb-3">{item.price.toLocaleString()} دج</p>
 
                         <div className="flex flex-wrap gap-2 mb-4">
                           {item.color && (
@@ -392,6 +400,9 @@ export default function Cart() {
                     </div>
                   </CardContent>
                 </Card>
+              ))}
+                  </div>
+                </div>
               ))}
             </div>
 
