@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Search, ShoppingCart, Menu, User, LogOut, Package, Settings, LayoutDashboard, Store, Heart, Home, ShoppingBag, Info, Flame, PhoneCall, Grid } from "lucide-react";
+import { Search, ShoppingCart, Menu, User, LogOut, Package, Settings, LayoutDashboard, Store, Heart, Home, ShoppingBag, Info, Flame, PhoneCall, Grid, Download, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -21,6 +21,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { CartDrawer } from "@/components/CartDrawer";
+import { PWAInstallDialog } from "./PWAInstallDialog";
 
 export const Navbar = () => {
     const { data: settings } = useSiteSettings();
@@ -32,6 +33,17 @@ export const Navbar = () => {
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [userRole, setUserRole] = useState<string | null>(null);
     const [isScrolled, setIsScrolled] = useState(false);
+    const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+    const [isInstallDialogOpen, setIsInstallDialogOpen] = useState(false);
+
+    useEffect(() => {
+        const handleBeforeInstallPrompt = (e: Event) => {
+            e.preventDefault();
+            setDeferredPrompt(e);
+        };
+        window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+        return () => window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    }, []);
 
     const isHomePage = location.pathname === "/";
     // Use dark text if scrolled OR if not on home page
@@ -236,6 +248,26 @@ export const Navbar = () => {
                                             <Flame className="h-5 w-5 animate-pulse text-red-500" />
                                             تخفيضات وعروض 🔥
                                         </Link>
+
+                                        <Link 
+                                            to="/seller-register" 
+                                            className="flex items-center gap-3 px-3 py-3 rounded-xl bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-400 hover:from-emerald-500/30 hover:to-teal-500/30 border border-emerald-500/20 transition-all text-sm font-bold mt-2"
+                                            onClick={() => setIsSheetOpen(false)}
+                                        >
+                                            <Store className="h-5 w-5 text-emerald-400 animate-pulse" />
+                                            سجل الآن كتاجر
+                                        </Link>
+
+                                        <button 
+                                            onClick={() => {
+                                                setIsInstallDialogOpen(true);
+                                                setIsSheetOpen(false);
+                                            }}
+                                            className="flex items-center gap-3 px-3 py-3 rounded-xl bg-gradient-to-r from-primary/20 to-indigo-500/20 text-primary border border-primary/20 hover:from-primary/30 hover:to-indigo-500/30 transition-all text-sm font-bold mt-1 w-full text-right"
+                                        >
+                                            <Smartphone className="h-5 w-5 text-primary" />
+                                            تحميل تطبيق بازارنا
+                                        </button>
                                     </nav>
 
                                     <div className="h-px bg-white/10" />
@@ -407,6 +439,13 @@ export const Navbar = () => {
                     </div>
                 </div>
             </div>
+            
+            <PWAInstallDialog 
+                isOpen={isInstallDialogOpen}
+                onClose={() => setIsInstallDialogOpen(false)}
+                deferredPrompt={deferredPrompt}
+                onInstallSuccess={() => setDeferredPrompt(null)}
+            />
         </nav>
     );
 };

@@ -407,11 +407,11 @@ const Home = () => {
                         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay z-20"></div>
                     </div>
 
-                    <div className="container mx-auto px-4 relative z-10 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center pt-36 pb-12 md:pt-48 md:pb-20 pointer-events-none">
+                    <div className="container mx-auto px-4 relative z-10 flex flex-col items-center justify-center text-center pt-36 pb-12 md:pt-48 md:pb-20 pointer-events-none">
                         {/* Text Content - Enable pointer events for text/buttons */}
-                        <div className="text-white space-y-8 md:space-y-10 text-right order-2 lg:order-1 pointer-events-auto">
+                        <div className="text-white flex flex-col items-center space-y-8 md:space-y-10 text-center pointer-events-auto max-w-4xl mx-auto">
                             {/* New Repositioned Badge - Floating on the Left */}
-                            <motion.div variants={itemVariants} className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full bg-gradient-to-r from-blue-600/20 to-indigo-600/20 backdrop-blur-3xl border border-white/30 shadow-[0_0_30px_rgba(0,0,0,0.1)] mb-6 md:mb-10 hover:scale-105 transition-transform cursor-default">
+                            <motion.div variants={itemVariants} className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full bg-gradient-to-r from-blue-600/20 to-indigo-600/20 backdrop-blur-3xl border border-white/30 shadow-[0_0_30px_rgba(0,0,0,0.1)] hover:scale-105 transition-transform cursor-default">
                                 <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-yellow-400 fill-yellow-400 animate-pulse" />
                                 <span className="text-white font-black text-xs md:text-sm tracking-widest uppercase">الأناقة تبدأ من هنا</span>
                             </motion.div>
@@ -427,8 +427,8 @@ const Home = () => {
                                 اكتشف تشكيلة حصرية من أرقى الماركات الجزائرية.
                             </motion.p>
 
-                            {/* Trust Badges - Single Line Style */}
-                            <motion.div variants={itemVariants} className="flex flex-wrap items-center gap-6">
+                            {/* Trust Badges - Single Line Centered */}
+                            <motion.div variants={itemVariants} className="flex flex-wrap items-center justify-center gap-6">
                                 <div className="flex items-center gap-3 text-white font-bold">
                                     <Truck className="h-6 w-6 text-yellow-400" />
                                     <span>توصيل لكل الولايات</span>
@@ -440,8 +440,8 @@ const Home = () => {
                                 </div>
                             </motion.div>
 
-                            {/* Search Bar - New Layout (Button on Left Visually) */}
-                            <motion.form variants={itemVariants} onSubmit={handleSearch} className="relative max-w-2xl">
+                            {/* Search Bar - Centered Layout */}
+                            <motion.form variants={itemVariants} onSubmit={handleSearch} className="relative w-full max-w-2xl mx-auto">
                                 <div className="relative group">
                                     <div className="relative flex bg-white rounded-full p-2 pl-2 shadow-2xl items-center border border-white/40 overflow-hidden">
                                         <Input
@@ -462,53 +462,6 @@ const Home = () => {
                                     </div>
                                 </div>
                             </motion.form>
-
-                            {/* Buttons Group */}
-                            <motion.div variants={itemVariants} className="pt-6 flex flex-wrap gap-4 items-center">
-                                {/* Download Button */}
-                                <button className="group relative flex items-center gap-4 px-8 py-4 bg-white/10 backdrop-blur-3xl text-white rounded-[2rem] font-black text-lg shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300 hover:bg-white/20 active:scale-95 overflow-hidden border border-white/30">
-                                    <Download className="w-6 h-6 filter drop-shadow-sm" />
-                                    <span className="drop-shadow-sm text-sm md:text-xl">حمل التطبيق</span>
-                                    <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent pointer-events-none"></div>
-                                    <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:animate-shimmer transition-transform duration-1000"></div>
-                                </button>
-
-                                {/* Mobile Store CTA - Integrated & Creative */}
-                                <Link to="/seller-register" className="lg:hidden w-full sm:w-auto">
-                                    <motion.button
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        className="w-full group relative flex items-center justify-center gap-4 px-8 py-4 bg-gradient-to-br from-amber-400 via-orange-500 to-orange-600 text-white rounded-full font-black text-lg shadow-[0_15px_30px_-5px_rgba(245,158,11,0.4),inset_0_2px_4px_rgba(255,255,255,0.3)] transition-all duration-300 overflow-hidden border border-white/20"
-                                    >
-                                        <StoreIcon className="w-6 h-6 text-yellow-200 group-hover:scale-110 transition-transform" />
-                                        <span>أنشئ متجرك الآن</span>
-                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:animate-shimmer transition-transform duration-1000"></div>
-                                    </motion.button>
-                                </Link>
-                            </motion.div>
-                        </div>
-
-                        {/* Store Creation Call to Action - Left Side (Column 2) - Large Screens Only */}
-                        <div className="hidden lg:flex flex-col items-center lg:items-start order-1 lg:order-2 pointer-events-auto">
-                            <motion.div variants={itemVariants} className="relative">
-                                <Link to="/seller-register">
-                                    <motion.button
-                                        whileHover={{ scale: 1.05, y: -5 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        className="group relative overflow-hidden px-10 py-8 md:px-16 md:py-10 bg-gradient-to-br from-primary via-indigo-600 to-indigo-800 text-white rounded-[2rem] font-black text-2xl md:text-4xl shadow-[0_20px_50px_-10px_rgba(65,84,241,0.6),inset_0_2px_4px_rgba(255,255,255,0.3)] hover:shadow-[0_40px_80px_-10px_rgba(65,84,241,0.8)] transition-all duration-500 flex flex-col items-center gap-4"
-                                    >
-                                        <StoreIcon className="w-12 h-12 md:w-16 md:h-16 mb-2 group-hover:rotate-12 transition-transform duration-300 text-yellow-400" />
-                                        <span>أنشئ متجرك الآن</span>
-
-                                        {/* Shimmer Effect */}
-                                        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer transition-transform duration-1000"></div>
-                                    </motion.button>
-                                </Link>
-
-                                {/* Decorative orbit elements */}
-                                <div className="absolute -top-10 -right-10 w-20 h-20 bg-primary/30 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700 animate-pulse"></div>
-                                <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-indigo-600/30 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700 animate-pulse"></div>
-                            </motion.div>
                         </div>
                     </div>
 
