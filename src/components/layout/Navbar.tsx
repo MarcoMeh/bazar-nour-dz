@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Search, ShoppingCart, Menu, User, LogOut, Package, Settings, LayoutDashboard, Store, Heart } from "lucide-react";
+import { Search, ShoppingCart, Menu, User, LogOut, Package, Settings, LayoutDashboard, Store, Heart, Home, ShoppingBag, Info, Flame, PhoneCall, Grid } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -20,6 +20,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { CartDrawer } from "@/components/CartDrawer";
 
 export const Navbar = () => {
     const { data: settings } = useSiteSettings();
@@ -43,6 +44,36 @@ export const Navbar = () => {
         window.addEventListener("scroll", handleScroll);
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
+
+    // Sync URL search param with the input field
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const query = params.get("search");
+        if (query !== null) {
+            setSearchQuery(query);
+        } else if (location.pathname !== "/products") {
+            setSearchQuery("");
+        }
+    }, [location.search, location.pathname]);
+
+    // Auto-search when typing (debounce)
+    useEffect(() => {
+        // Skip if it's just the initial load or URL sync setting the state
+        const params = new URLSearchParams(location.search);
+        const currentQuery = params.get("search") || "";
+        
+        if (searchQuery === currentQuery) return;
+
+        const timeoutId = setTimeout(() => {
+            if (searchQuery.trim()) {
+                navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+            } else if (location.pathname === "/products") {
+                navigate(`/products`);
+            }
+        }, 500); // 500ms debounce
+
+        return () => clearTimeout(timeoutId);
+    }, [searchQuery, navigate, location.pathname, location.search]);
 
     useEffect(() => {
         const fetchUserRole = async () => {
@@ -83,9 +114,11 @@ export const Navbar = () => {
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         if (searchQuery.trim()) {
-            navigate(`/products?search=${encodeURIComponent(searchQuery)}`);
-            setIsSheetOpen(false);
+            navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+        } else {
+            navigate(`/products`);
         }
+        setIsSheetOpen(false);
     };
 
     const handleLogout = async () => {
@@ -127,22 +160,179 @@ export const Navbar = () => {
                         : "bg-black/10 lg:bg-white/5 backdrop-blur-sm border-white/10 ring-1 ring-black/5 shadow-none"
                     }
                 `}>
-                    {/* RIGHT: Logo (Appears first in DOM for RTL right-alignment) */}
-                    <div className="flex items-center gap-3 shrink-0">
-                        <Link to="/" className="flex items-center gap-2 group">
-                            {settings?.logo_url ? (
-                                <div className={`
-                                    relative rounded-full bg-white p-2 shadow-[0_8px_30px_rgb(0,0,0,0.2)] border-2 border-white/50 overflow-hidden flex items-center justify-center transition-all duration-500 group-hover:scale-110
-                                    ${isScrolled ? "h-12 w-12" : "h-14 w-14 group-hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]"}
-                                `}>
-                                    <img src={settings.logo_url} alt={settings.site_name} className="h-full w-full object-contain" />
+                    {/* ACTION ICONS */}
+                    <div className="flex items-center gap-1 md:gap-3 shrink-0">
+                        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+                            <SheetTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className={`flex transition-all rounded-xl h-10 w-10 ${useDarkText ? "text-gray-900 hover:bg-black/5" : "text-white hover:bg-white/20"}`}
+                                >
+                                    <Menu className="h-6 w-6" />
+                                    <span className="sr-only">القائمة</span>
+                                </Button>
+                            </SheetTrigger>
+                            <SheetContent side="right" className="w-[300px] sm:w-[350px] bg-black/80 backdrop-blur-2xl border-l border-white/10 text-white p-6 flex flex-col justify-between">
+                                <div className="space-y-8 mt-8">
+                                    {/* Brand Logo/Header inside drawer */}
+                                    <div className="flex items-center gap-3 pb-6 border-b border-white/10">
+                                        {settings?.logo_url ? (
+                                            <div className="h-10 w-10 rounded-full bg-white p-1.5 overflow-hidden flex items-center justify-center shadow-lg">
+                                                <img src={settings.logo_url} alt={settings.site_name} className="h-full w-full object-contain" />
+                                            </div>
+                                        ) : null}
+                                        <div>
+                                            <h3 className="font-black text-lg bg-clip-text text-transparent bg-gradient-to-r from-primary to-indigo-400">
+                                                {settings?.site_name || "بازارنا"}
+                                            </h3>
+                                            <p className="text-[10px] text-white/50">أكبر مول ملابس في الجزائر</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Navigation Links */}
+                                    <nav className="flex flex-col gap-1">
+                                        <Link 
+                                            to="/" 
+                                            className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/10 transition-all text-sm font-semibold"
+                                            onClick={() => setIsSheetOpen(false)}
+                                        >
+                                            <Home className="h-5 w-5 text-white/70" />
+                                            الرئيسية
+                                        </Link>
+                                        
+                                        <Link 
+                                            to="/products" 
+                                            className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/10 transition-all text-sm font-semibold"
+                                            onClick={() => setIsSheetOpen(false)}
+                                        >
+                                            <ShoppingBag className="h-5 w-5 text-white/70" />
+                                            المنتجات
+                                        </Link>
+
+                                        <Link 
+                                            to="/stores" 
+                                            className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/10 transition-all text-sm font-semibold"
+                                            onClick={() => setIsSheetOpen(false)}
+                                        >
+                                            <Store className="h-5 w-5 text-white/70" />
+                                            المحلات
+                                        </Link>
+
+                                        <Link 
+                                            to="/wishlist" 
+                                            className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/10 transition-all text-sm font-semibold"
+                                            onClick={() => setIsSheetOpen(false)}
+                                        >
+                                            <Heart className="h-5 w-5 text-white/70" />
+                                            المفضلة
+                                        </Link>
+
+                                        <Link 
+                                            to="/products?flash_sale=true" 
+                                            className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-red-500/10 text-red-400 transition-all text-sm font-semibold"
+                                            onClick={() => setIsSheetOpen(false)}
+                                        >
+                                            <Flame className="h-5 w-5 animate-pulse text-red-500" />
+                                            تخفيضات وعروض 🔥
+                                        </Link>
+                                    </nav>
+
+                                    <div className="h-px bg-white/10" />
+
+                                    {/* Account Section in Mobile Menu */}
+                                    <div className="space-y-2">
+                                        <span className="text-xs font-bold text-white/40 px-3 uppercase tracking-wider block">الحساب</span>
+                                        {user ? (
+                                            <div className="flex flex-col gap-1">
+                                                {!userRole && (
+                                                    <div className="flex items-center gap-2 text-white/40 text-xs py-2 px-3 animate-pulse bg-white/5 rounded-xl">
+                                                        <span className="h-2 w-2 rounded-full bg-blue-400 animate-ping"></span>
+                                                        <span>جاري تحميل البيانات...</span>
+                                                    </div>
+                                                )}
+
+                                                {userRole === 'customer' && (
+                                                    <Link 
+                                                        to="/my-orders" 
+                                                        className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/10 transition-all text-sm font-semibold"
+                                                        onClick={() => setIsSheetOpen(false)}
+                                                    >
+                                                        <Package className="h-5 w-5 text-white/70" />
+                                                        طلباتي
+                                                    </Link>
+                                                )}
+
+                                                {(userRole === 'admin' || userRole === 'store_owner') && (
+                                                    <>
+                                                        <Link 
+                                                            to={userRole === 'admin' ? '/admin' : '/store-dashboard'} 
+                                                            className="flex items-center gap-3 px-3 py-3 rounded-xl bg-primary/20 hover:bg-primary/30 transition-all text-sm font-bold text-primary" 
+                                                            onClick={() => setIsSheetOpen(false)}
+                                                        >
+                                                            <LayoutDashboard className="h-5 w-5" />
+                                                            {userRole === 'admin' ? 'لوحة التحكم' : 'لوحة المتجر'}
+                                                        </Link>
+                                                        {userRole === 'store_owner' && (
+                                                            <Link 
+                                                                to="/store-dashboard/profile" 
+                                                                className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/10 transition-all text-sm font-semibold"
+                                                                onClick={() => setIsSheetOpen(false)}
+                                                            >
+                                                                <User className="h-5 w-5 text-white/70" />
+                                                                الملف الشخصي
+                                                            </Link>
+                                                        )}
+                                                    </>
+                                                )}
+
+                                                <button 
+                                                    onClick={() => { handleLogout(); setIsSheetOpen(false); }} 
+                                                    className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-red-500/10 transition-all text-sm font-bold text-red-500 w-full text-right"
+                                                >
+                                                    <LogOut className="h-5 w-5" />
+                                                    تسجيل الخروج
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <Link 
+                                                to="/login" 
+                                                className="flex items-center gap-3 px-3 py-3 rounded-xl bg-white/10 hover:bg-white/20 transition-all text-sm font-semibold"
+                                                onClick={() => setIsSheetOpen(false)}
+                                            >
+                                                <User className="h-5 w-5 text-white/70" />
+                                                تسجيل الدخول
+                                            </Link>
+                                        )}
+                                    </div>
                                 </div>
-                            ) : (
-                                <span className={`text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-primary to-indigo-600 ${isScrolled ? "text-xl" : "text-2xl"}`}>
-                                    {settings?.site_name || "بازارنا"}
-                                </span>
-                            )}
-                        </Link>
+
+                                {/* Drawer Footer */}
+                                <div className="pt-6 border-t border-white/10 space-y-4">
+                                    <div className="flex flex-col gap-1 px-3">
+                                        <Link 
+                                            to="/about" 
+                                            className="flex items-center gap-2 text-xs text-white/60 hover:text-white transition-colors"
+                                            onClick={() => setIsSheetOpen(false)}
+                                        >
+                                            <Info className="h-4 w-4" />
+                                            من نحن؟
+                                        </Link>
+                                        <Link 
+                                            to="/contact" 
+                                            className="flex items-center gap-2 text-xs text-white/60 hover:text-white transition-colors"
+                                            onClick={() => setIsSheetOpen(false)}
+                                        >
+                                            <PhoneCall className="h-4 w-4" />
+                                            اتصل بنا / الدعم الفني
+                                        </Link>
+                                    </div>
+                                    <p className="text-[10px] text-white/30 text-center">© بازارنا 2026. كل الحقوق محفوظة.</p>
+                                </div>
+                            </SheetContent>
+                        </Sheet>
+
+                        <CartDrawer useDarkText={useDarkText} />
                     </div>
 
                     {/* CENTER: Search Bar */}
@@ -176,86 +366,22 @@ export const Navbar = () => {
                         </form>
                     </div>
 
-                    {/* LEFT: Action Icons */}
-                    <div className="flex items-center gap-1 md:gap-3">
-
-
-                        <Link to="/cart" className="block">
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className={`relative transition-all rounded-xl h-10 w-10 ${useDarkText ? "text-gray-900 hover:bg-black/5" : "text-white hover:bg-white/20"}`}
-                            >
-                                <ShoppingCart className="h-6 w-6" strokeWidth={2.5} />
-                                {totalItems > 0 && (
-                                    <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center animate-bounce">
-                                        {totalItems}
-                                    </span>
-                                )}
-                                <span className="sr-only">السلة</span>
-                            </Button>
+                    {/* RIGHT: Logo (Now Last in DOM -> Renders on physical LEFT in RTL) */}
+                    <div className="flex items-center gap-3 shrink-0">
+                        <Link to="/" className="flex items-center gap-2 group">
+                            {settings?.logo_url ? (
+                                <div className={`
+                                    relative rounded-full bg-white p-2 shadow-[0_8px_30px_rgb(0,0,0,0.2)] border-2 border-white/50 overflow-hidden flex items-center justify-center transition-all duration-500 group-hover:scale-110
+                                    ${isScrolled ? "h-12 w-12" : "h-14 w-14 group-hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]"}
+                                `}>
+                                    <img src={settings.logo_url} alt={settings.site_name} className="h-full w-full object-contain" />
+                                </div>
+                            ) : (
+                                <span className={`text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-primary to-indigo-600 ${isScrolled ? "text-xl" : "text-2xl"}`}>
+                                    {settings?.site_name || "بازارنا"}
+                                </span>
+                            )}
                         </Link>
-
-                        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-                            <SheetTrigger asChild>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className={`flex transition-all rounded-xl h-10 w-10 ${useDarkText ? "text-gray-900 hover:bg-black/5" : "text-white hover:bg-white/20"}`}
-                                >
-                                    <Menu className="h-6 w-6" />
-                                    <span className="sr-only">القائمة</span>
-                                </Button>
-                            </SheetTrigger>
-                            <SheetContent side="right" className="w-[300px] sm:w-[400px] bg-black/40 backdrop-blur-2xl border-none text-white">
-                                <nav className="flex flex-col gap-6 mt-12">
-                                    <Link to="/" className="text-xl font-bold hover:text-blue-400" onClick={() => setIsSheetOpen(false)}>الرئيسية</Link>
-                                    <Link to="/products" className="text-xl font-bold hover:text-blue-400" onClick={() => setIsSheetOpen(false)}>المنتجات</Link>
-                                    <Link to="/stores" className="text-xl font-bold hover:text-blue-400" onClick={() => setIsSheetOpen(false)}>المحلات</Link>
-
-                                    <div className="h-px bg-white/10 my-2" />
-
-                                    {/* Account Section in Mobile Menu */}
-                                    {user ? (
-                                        <>
-                                            <div className="text-sm text-white/50 mb-2">حسابي</div>
-
-                                            {!userRole && (
-                                                <div className="flex items-center gap-2 text-white/40 text-sm py-2 animate-pulse bg-white/5 rounded-lg px-3 backdrop-blur-sm border border-white/5">
-                                                    <span className="h-2.5 w-2.5 rounded-full bg-blue-400 animate-ping"></span>
-                                                    <span>جاري تحميل بيانات حسابك...</span>
-                                                </div>
-                                            )}
-
-                                            {userRole === 'customer' && (
-                                                <Link to="/my-orders" className="text-xl font-bold hover:text-blue-400 flex items-center gap-2" onClick={() => setIsSheetOpen(false)}>
-                                                    طلباتي <Package className="h-5 w-5" />
-                                                </Link>
-                                            )}
-
-                                            {(userRole === 'admin' || userRole === 'store_owner') && (
-                                                <>
-                                                    <Link to={userRole === 'admin' ? '/admin' : '/store-dashboard'} className="text-xl font-bold hover:text-blue-400 flex items-center gap-3" onClick={() => setIsSheetOpen(false)}>
-                                                        {userRole === 'admin' ? 'لوحة التحكم' : 'لوحة المتجر'} <LayoutDashboard className="h-5 w-5" />
-                                                    </Link>
-                                                    {userRole === 'store_owner' && (
-                                                        <Link to="/store-dashboard/profile" className="text-xl font-bold hover:text-blue-400 flex items-center gap-3" onClick={() => setIsSheetOpen(false)}>
-                                                            الملف الشخصي <User className="h-5 w-5" />
-                                                        </Link>
-                                                    )}
-                                                </>
-                                            )}
-
-                                            <button onClick={() => { handleLogout(); setIsSheetOpen(false); }} className="text-xl font-bold text-red-500 flex items-center gap-3 mt-4">
-                                                تسجيل الخروج <LogOut className="h-6 w-6" />
-                                            </button>
-                                        </>
-                                    ) : (
-                                        <Link to="/login" className="text-xl font-bold hover:text-blue-400" onClick={() => setIsSheetOpen(false)}>تسجيل الدخول</Link>
-                                    )}
-                                </nav>
-                            </SheetContent>
-                        </Sheet>
                     </div>
                 </div>
 

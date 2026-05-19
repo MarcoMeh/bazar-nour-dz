@@ -17,7 +17,7 @@ import { useProducts } from "@/hooks/useProducts";
 import { useCategories } from "@/hooks/useCategories";
 import { useStore } from "@/hooks/useStores";
 import { Pagination } from "@/components/Pagination";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { ProductSkeleton } from "@/components/ProductSkeleton";
 import {
   Sheet,
   SheetContent,
@@ -130,15 +130,9 @@ const Products = () => {
     const searchParam = searchParams.get("search");
     const storeParam = searchParams.get("store");
 
-    if (categoryParam) {
-      setSelectedMainCategory(categoryParam);
-    }
-    if (searchParam) {
-      setSearchTerm(searchParam);
-    }
-    if (storeParam) {
-      setSelectedStore(storeParam);
-    }
+    setSelectedMainCategory(categoryParam || null);
+    setSearchTerm(searchParam || "");
+    setSelectedStore(storeParam || null);
   }, [searchParams]);
 
   const activeFiltersCount = [
@@ -682,7 +676,21 @@ const Products = () => {
             {/* Products Grid */}
             <main className="flex-1">
               {productsLoading ? (
-                <LoadingSpinner fullScreen={false} message="جاري تحميل المنتجات..." />
+                <div
+                    className={`grid gap-4 sm:gap-6 animate-fade-in ${viewMode === "grid"
+                      ? `grid-cols-2 ${gridCols === 4
+                        ? "lg:grid-cols-4"
+                        : gridCols === 3
+                          ? "lg:grid-cols-3"
+                          : "lg:grid-cols-2"
+                      }`
+                      : "grid-cols-1"
+                      }`}
+                  >
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                      <ProductSkeleton key={i} />
+                    ))}
+                  </div>
               ) : !productsData?.products?.length ? (
                 <Card className="p-12 text-center animate-fade-in border-dashed">
                   <div className="max-w-md mx-auto">

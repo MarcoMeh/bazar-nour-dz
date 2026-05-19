@@ -85,7 +85,7 @@ export const ProductCard = ({
     >
       <Link to={`/product/${id}`} className="block relative">
         <div
-          className="relative w-full overflow-hidden shadow-inner bg-gray-50/10 product-image-container"
+          className="relative w-full aspect-[4/5] overflow-hidden shadow-inner bg-gray-50/10 product-image-container"
           style={{ borderRadius: 'calc(var(--store-radius) * 0.8)' }}
         >
           {image_url ? (

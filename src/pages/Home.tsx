@@ -13,6 +13,7 @@ import {
     CarouselPrevious,
 } from "@/components/ui/carousel";
 import { ProductCard } from "@/components/ProductCard";
+import { ProductSkeleton } from "@/components/ProductSkeleton";
 import { QuickViewModal } from "@/components/QuickViewModal";
 import {
     Zap,
@@ -863,7 +864,7 @@ const Home = () => {
                                     {loading ? (
                                         [1, 2, 3, 4].map((i) => (
                                             <CarouselItem key={i} className="pl-4 md:basis-1/2 lg:basis-1/4">
-                                                <Skeleton className="h-[400px] w-full rounded-2xl" />
+                                                <ProductSkeleton />
                                             </CarouselItem>
                                         ))
                                     ) : (
@@ -963,7 +964,7 @@ const Home = () => {
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                             {loading
                                 ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
-                                    <Skeleton key={i} className="h-[400px] rounded-2xl" />
+                                    <ProductSkeleton key={i} />
                                 ))
                                 : bestSellers.map((product) => (
                                     <motion.div variants={itemVariants} key={product.id} className="h-full">
@@ -1010,7 +1011,7 @@ const Home = () => {
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                             {loading
                                 ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
-                                    <Skeleton key={i} className="h-[400px] rounded-2xl" />
+                                    <ProductSkeleton key={i} />
                                 ))
                                 : newestProducts.map((product) => (
                                     <motion.div variants={itemVariants} key={product.id} className="h-full">

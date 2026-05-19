@@ -48,18 +48,9 @@ export const Header = () => {
         <div className="container mx-auto px-3">
           <div className="flex items-center justify-between h-16 gap-2">
 
-            {/* LEFT: MENU + LOGO */}
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setMobileOpen(true)}
-                className="md:hidden text-green-700 hover:bg-green-100"
-              >
-                <Menu className="h-5 w-5" />
-              </Button>
-
-              <Link to="/" className="flex items-center gap-2 shrink-0">
+            {/* LOGO (Right side in RTL) */}
+            <div className="flex items-center gap-2 shrink-0">
+              <Link to="/" className="flex items-center gap-2">
                 <img
                   src={logo}
                   alt="Bazzarna"
@@ -108,7 +99,7 @@ export const Header = () => {
               </Link>
             </nav>
 
-            {/* RIGHT: SEARCH + CART */}
+            {/* ICONS & MENU (Left side in RTL) */}
             <div className="flex items-center gap-2 shrink-0">
               <Link to="/search">
                 <Button
@@ -135,7 +126,7 @@ export const Header = () => {
                 </Button>
               </Link>
 
-              <Link to="/wishlist" className="relative">
+              <Link to="/wishlist" className="relative hidden md:flex">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -149,6 +140,16 @@ export const Header = () => {
                   )}
                 </Button>
               </Link>
+
+              {/* Mobile Menu Toggle */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setMobileOpen(true)}
+                className="md:hidden text-green-700 hover:bg-green-100"
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
             </div>
           </div>
         </div>
