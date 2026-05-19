@@ -512,46 +512,46 @@ const SellerRegister = () => {
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {/* BaridiMob */}
-                                        <div className="bg-white/5 p-4 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors group/card text-right">
-                                            <div className="flex items-center justify-end gap-3 mb-2">
-                                                <span className="font-bold">بريدي موب (BaridiMob)</span>
-                                                <Smartphone className="w-5 h-5 text-blue-400" />
+                                        <div className="bg-white/5 p-4 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors group/card">
+                                            <div className="flex items-center justify-between gap-3 mb-2">
+                                                <Smartphone className="w-5 h-5 text-blue-400 shrink-0" />
+                                                <span className="font-bold text-sm">بريدي موب (BaridiMob)</span>
                                             </div>
-                                            <code className="text-lg font-mono text-yellow-400 block tracking-tighter select-all p-2 bg-white/5 rounded-lg border border-white/5 group-hover/card:border-yellow-400/30 transition-all text-center">00799999002081894910</code>
+                                            <code className="text-base sm:text-lg font-mono text-yellow-400 block tracking-wider break-all select-all p-2 bg-white/5 rounded-lg border border-white/5 group-hover/card:border-yellow-400/30 transition-all text-center" dir="ltr">00799999002081894910</code>
                                         </div>
 
                                         {/* CCP */}
-                                        <div className="bg-white/5 p-4 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors text-right">
-                                            <div className="flex items-center justify-end gap-3 mb-2">
-                                                <span className="font-bold">حساب البريد (CCP)</span>
-                                                <Building2 className="w-5 h-5 text-red-400" />
+                                        <div className="bg-white/5 p-4 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors">
+                                            <div className="flex items-center justify-between gap-3 mb-2">
+                                                <Building2 className="w-5 h-5 text-red-400 shrink-0" />
+                                                <span className="font-bold text-sm">حساب البريد (CCP)</span>
                                             </div>
                                             <div className="space-y-2 mt-2">
-                                                <div className="flex items-center justify-between gap-4 border-b border-white/5 pb-1">
-                                                    <span className="text-yellow-400 font-mono select-all text-lg">0020818949</span>
-                                                    <span className="text-gray-400 text-[10px]">رقم الحساب (Compte)</span>
+                                                <div className="flex items-center justify-between gap-2 border-b border-white/5 pb-1">
+                                                    <span className="text-yellow-400 font-mono select-all text-base sm:text-lg" dir="ltr">0020818949</span>
+                                                    <span className="text-gray-400 text-[10px] text-right">رقم الحساب (Compte)</span>
                                                 </div>
-                                                <div className="flex items-center justify-between gap-4 border-b border-white/5 pb-1">
-                                                    <span className="text-yellow-400 font-mono select-all text-lg">10</span>
-                                                    <span className="text-gray-400 text-[10px]">المفتاح (Clé)</span>
+                                                <div className="flex items-center justify-between gap-2 border-b border-white/5 pb-1">
+                                                    <span className="text-yellow-400 font-mono select-all text-base sm:text-lg" dir="ltr">10</span>
+                                                    <span className="text-gray-400 text-[10px] text-right">المفتاح (Clé)</span>
                                                 </div>
-                                                <div className="flex items-center justify-between gap-4 border-b border-white/5 pb-1">
-                                                    <span className="text-white font-bold text-xs">Ali Mehemmai</span>
-                                                    <span className="text-gray-400 text-[10px]">الاسم (Nom)</span>
+                                                <div className="flex items-center justify-between gap-2 border-b border-white/5 pb-1">
+                                                    <span className="text-white font-bold text-xs" dir="ltr">Ali Mehemmai</span>
+                                                    <span className="text-gray-400 text-[10px] text-right">الاسم (Nom)</span>
                                                 </div>
-                                                <div className="flex items-center justify-between gap-4">
-                                                    <span className="text-white font-bold text-xs">Batna</span>
-                                                    <span className="text-gray-400 text-[10px]">الولاية (Wilaya)</span>
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <span className="text-white font-bold text-xs" dir="ltr">Batna</span>
+                                                    <span className="text-gray-400 text-[10px] text-right">الولاية (Wilaya)</span>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="bg-yellow-400/10 p-4 rounded-2xl border border-yellow-400/20 flex flex-row-reverse items-start gap-4">
-                                        <div className="bg-yellow-400 p-2 rounded-xl flex-shrink-0 animate-bounce">
+                                    <div className="bg-yellow-400/10 p-4 rounded-2xl border border-yellow-400/20 flex flex-col sm:flex-row items-start gap-4">
+                                        <div className="bg-yellow-400 p-2 rounded-xl shrink-0 animate-bounce">
                                             <Camera className="w-5 h-5 text-slate-950" />
                                         </div>
-                                        <div className="text-right">
+                                        <div>
                                             <p className="text-sm font-bold leading-relaxed">
                                                 <span className="text-yellow-400 underline block mb-1">ملاحظة هامة:</span>
                                                 يرجى إرسال صورة وصل الدفع لتأكيد الطلب وتفعيل متجركم ومنحكم صلاحية الدخول عبر واتساب:
@@ -560,7 +560,7 @@ const SellerRegister = () => {
                                                 href="https://wa.me/213791004144"
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="inline-flex flex-row-reverse items-center gap-3 px-6 py-2 bg-green-600/20 hover:bg-green-600/40 text-green-400 rounded-full transition-all mt-3 border border-green-500/30 font-black text-lg"
+                                                className="inline-flex items-center justify-center w-full sm:w-auto gap-3 px-6 py-2 bg-green-600/20 hover:bg-green-600/40 text-green-400 rounded-full transition-all mt-3 border border-green-500/30 font-black text-lg"
                                             >
                                                 <Phone className="w-5 h-5" />
                                                 <span dir="ltr">0791004144</span>
