@@ -240,43 +240,9 @@ export const Navbar = () => {
                                             المفضلة
                                         </Link>
 
-                                        <Link 
-                                            to="/products?flash_sale=true" 
-                                            className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-red-500/10 text-red-400 transition-all text-sm font-semibold"
-                                            onClick={() => setIsSheetOpen(false)}
-                                        >
-                                            <Flame className="h-5 w-5 animate-pulse text-red-500" />
-                                            تخفيضات وعروض 🔥
-                                        </Link>
-
-                                        <Link 
-                                            to="/seller-register" 
-                                            className="flex items-center gap-3 px-3 py-3 rounded-xl bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-400 hover:from-emerald-500/30 hover:to-teal-500/30 border border-emerald-500/20 transition-all text-sm font-bold mt-2"
-                                            onClick={() => setIsSheetOpen(false)}
-                                        >
-                                            <Store className="h-5 w-5 text-emerald-400 animate-pulse" />
-                                            سجل الآن كتاجر
-                                        </Link>
-
-                                        <button 
-                                            onClick={() => {
-                                                setIsInstallDialogOpen(true);
-                                                setIsSheetOpen(false);
-                                            }}
-                                            className="flex items-center gap-3 px-3 py-3 rounded-xl bg-gradient-to-r from-primary/20 to-indigo-500/20 text-primary border border-primary/20 hover:from-primary/30 hover:to-indigo-500/30 transition-all text-sm font-bold mt-1 w-full text-right"
-                                        >
-                                            <Smartphone className="h-5 w-5 text-primary" />
-                                            تحميل تطبيق بازارنا
-                                        </button>
-                                    </nav>
-
-                                    <div className="h-px bg-white/10" />
-
-                                    {/* Account Section in Mobile Menu */}
-                                    <div className="space-y-2">
-                                        <span className="text-xs font-bold text-white/40 px-3 uppercase tracking-wider block">الحساب</span>
+                                        {/* User Account / Login Section directly under Wishlist */}
                                         {user ? (
-                                            <div className="flex flex-col gap-1">
+                                            <div className="flex flex-col gap-1 mt-1 pt-1 border-t border-white/5">
                                                 {!userRole && (
                                                     <div className="flex items-center gap-2 text-white/40 text-xs py-2 px-3 animate-pulse bg-white/5 rounded-xl">
                                                         <span className="h-2 w-2 rounded-full bg-blue-400 animate-ping"></span>
@@ -329,18 +295,41 @@ export const Navbar = () => {
                                         ) : (
                                             <Link 
                                                 to="/login" 
-                                                className="flex items-center gap-3 px-3 py-3 rounded-xl bg-white/10 hover:bg-white/20 transition-all text-sm font-semibold"
+                                                className="flex items-center gap-3 px-3 py-3 rounded-xl bg-white/10 hover:bg-white/20 transition-all text-sm font-semibold mt-1"
                                                 onClick={() => setIsSheetOpen(false)}
                                             >
                                                 <User className="h-5 w-5 text-white/70" />
                                                 تسجيل الدخول
                                             </Link>
                                         )}
-                                    </div>
+                                    </nav>
                                 </div>
 
                                 {/* Drawer Footer */}
                                 <div className="pt-6 border-t border-white/10 space-y-4">
+                                    {/* Primary CTAs at the bottom with high contrast */}
+                                    <div className="flex flex-col gap-2 px-1 pb-2">
+                                        <Link 
+                                            to="/seller-register" 
+                                            className="flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-400 hover:from-emerald-500/30 hover:to-teal-500/30 border border-emerald-500/20 transition-all text-sm font-bold w-full"
+                                            onClick={() => setIsSheetOpen(false)}
+                                        >
+                                            <Store className="h-5 w-5 text-emerald-400 animate-pulse" />
+                                            سجل الآن كتاجر
+                                        </Link>
+
+                                        <button 
+                                            onClick={() => {
+                                                setIsInstallDialogOpen(true);
+                                                setIsSheetOpen(false);
+                                            }}
+                                            className="flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-600/90 text-white font-bold transition-all shadow-[0_4px_20px_rgba(124,58,237,0.3)] w-full text-center"
+                                        >
+                                            <Smartphone className="h-5 w-5 text-white" />
+                                            تحميل تطبيق بازارنا
+                                        </button>
+                                    </div>
+
                                     <div className="flex flex-col gap-1 px-3">
                                         <Link 
                                             to="/about" 
