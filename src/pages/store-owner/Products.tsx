@@ -62,6 +62,34 @@ export default function StoreOwnerProducts() {
         variants: [] as any[],
     });
 
+    const fetchStoreId = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const { data: store } = await supabase.from("stores").select("id").eq("owner_id", user.id).single();
+        setStoreId(store?.id || null);
+    };
+
+    const fetchCategories = async () => {
+        const { data: cats } = await supabase.from("categories").select("*").order("name");
+        const { data: subcats } = await supabase.from("subcategories").select("*").order("name");
+        setCategories(cats || []);
+        setSubcategories(subcats || []);
+    };
+
+    const fetchProducts = useCallback(async () => {
+        if (!storeId) return;
+        setLoading(true);
+        const { data, error } = await supabase
+            .from("products")
+            .select("*, categories(name), subcategories(name)")
+            .eq("store_id", storeId)
+            .order("created_at", { ascending: false });
+
+        if (error) toast.error(getErrorMessage(error));
+        else setProducts(data || []);
+        setLoading(false);
+    }, [storeId]);
+
     useEffect(() => {
         fetchStoreId();
         fetchCategories();
@@ -107,34 +135,6 @@ export default function StoreOwnerProducts() {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [formData.colors, formData.sizes]);
-
-    const fetchStoreId = async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-        const { data: store } = await supabase.from("stores").select("id").eq("owner_id", user.id).single();
-        setStoreId(store?.id || null);
-    };
-
-    const fetchCategories = async () => {
-        const { data: cats } = await supabase.from("categories").select("*").order("name");
-        const { data: subcats } = await supabase.from("subcategories").select("*").order("name");
-        setCategories(cats || []);
-        setSubcategories(subcats || []);
-    };
-
-    const fetchProducts = useCallback(async () => {
-        if (!storeId) return;
-        setLoading(true);
-        const { data, error } = await supabase
-            .from("products")
-            .select("*, categories(name), subcategories(name)")
-            .eq("store_id", storeId)
-            .order("created_at", { ascending: false });
-
-        if (error) toast.error(getErrorMessage(error));
-        else setProducts(data || []);
-        setLoading(false);
-    }, [storeId]);
 
     const fetchVariants = async (productId: string) => {
         const { data, error } = await supabase

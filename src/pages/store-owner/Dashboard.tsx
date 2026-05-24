@@ -19,16 +19,6 @@ export default function StoreOwnerDashboard() {
     const [loading, setLoading] = useState(true);
     const [storeId, setStoreId] = useState<string | null>(null);
 
-    useEffect(() => {
-        fetchStoreId();
-    }, []);
-
-    useEffect(() => {
-        if (storeId) {
-            fetchDashboardData();
-        }
-    }, [storeId, fetchDashboardData]);
-
     const fetchStoreId = async () => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
@@ -134,6 +124,16 @@ export default function StoreOwnerDashboard() {
             setLoading(false);
         }
     }, [storeId]);
+
+    useEffect(() => {
+        fetchStoreId();
+    }, []);
+
+    useEffect(() => {
+        if (storeId) {
+            fetchDashboardData();
+        }
+    }, [storeId, fetchDashboardData]);
 
     if (loading) {
         return (

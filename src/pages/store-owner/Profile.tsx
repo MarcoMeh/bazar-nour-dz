@@ -70,12 +70,6 @@ export default function StoreOwnerProfile() {
     const [styleFilter, setStyleFilter] = useState('all');
     const [showAdvancedColors, setShowAdvancedColors] = useState(false);
 
-    useEffect(() => {
-        if (user) {
-            fetchData();
-        }
-    }, [user, fetchData]);
-
     const handleAddPhone = () => {
         setStoreData({
             ...storeData,
@@ -171,6 +165,12 @@ export default function StoreOwnerProfile() {
             setLoading(false);
         }
     }, [user]);
+
+    useEffect(() => {
+        if (user) {
+            fetchData();
+        }
+    }, [user, fetchData]);
 
     const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         try {
