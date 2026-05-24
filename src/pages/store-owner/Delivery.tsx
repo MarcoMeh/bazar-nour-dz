@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdmin } from "@/contexts/AdminContext";
 import { Button } from "@/components/ui/button";
@@ -48,15 +48,15 @@ export default function StoreOwnerDelivery() {
         if (storeId) {
             fetchInitialData();
         }
-    }, [storeId]);
+    }, [storeId, fetchInitialData]);
 
     useEffect(() => {
         if (selectedCompanyId && storeId) {
             fetchCompanyDetailsAndOverrides();
         }
-    }, [selectedCompanyId]);
+    }, [selectedCompanyId, storeId, fetchCompanyDetailsAndOverrides]);
 
-    const fetchInitialData = async () => {
+    const fetchInitialData = useCallback(async () => {
         setLoading(true);
         try {
             const { data: companiesData } = await supabase.from("delivery_companies").select("*");
@@ -76,9 +76,9 @@ export default function StoreOwnerDelivery() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [storeId]);
 
-    const fetchCompanyDetailsAndOverrides = async () => {
+    const fetchCompanyDetailsAndOverrides = useCallback(async () => {
         setLoading(true);
         try {
             const { data: zones } = await supabase
@@ -139,7 +139,7 @@ export default function StoreOwnerDelivery() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [selectedCompanyId, storeId]);
 
     const handleSave = async () => {
         if (!selectedCompanyId) return;

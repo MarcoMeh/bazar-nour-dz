@@ -26,7 +26,7 @@ export const SimilarProducts = ({
     const fetchSimilarProducts = async () => {
         setLoading(true);
         try {
-            let query = supabase
+            const query = supabase
                 .from('products')
                 .select('*')
                 .neq('id', currentProductId)

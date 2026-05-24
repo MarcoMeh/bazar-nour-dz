@@ -135,7 +135,7 @@ export default function AdminOrders() {
         setIsDialogOpen(true);
         setLoadingItems(true);
 
-        let query = supabase
+        const query = supabase
             .from("order_items")
             .select("*, products(name, image_url, store_id)")
             .eq("order_id", order.id);

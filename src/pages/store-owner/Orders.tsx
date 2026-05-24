@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
     Table,
@@ -154,7 +154,7 @@ export default function StoreOwnerOrders() {
         if (storeId) {
             fetchOrders();
         }
-    }, [storeId]);
+    }, [storeId, fetchOrders]);
 
     const fetchStoreId = async () => {
         const { data: { user } } = await supabase.auth.getUser();
@@ -174,7 +174,7 @@ export default function StoreOwnerOrders() {
         }
     };
 
-    const fetchOrders = async () => {
+    const fetchOrders = useCallback(async () => {
         if (!storeId) return;
         setLoading(true);
         try {
@@ -210,7 +210,7 @@ export default function StoreOwnerOrders() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [storeId]);
 
     const handleViewOrder = async (order: any) => {
         setSelectedOrder(order);

@@ -185,8 +185,8 @@ export default function AdminCategories() {
         const isSubcategory = formData.category_id !== "none";
 
         // Determine target table and payload
-        let table = (isSubcategory ? 'subcategories' : 'categories') as "categories" | "subcategories";
-        let payload: any = {
+        const table = (isSubcategory ? 'subcategories' : 'categories') as "categories" | "subcategories";
+        const payload: any = {
             name: formData.name,
             slug: formData.slug || formData.name.toLowerCase().replace(/\s+/g, '-'), // Auto-generate slug if empty
             image_url: formData.image_url

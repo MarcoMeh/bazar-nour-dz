@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Package, ShoppingCart, DollarSign, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,7 +27,7 @@ export default function StoreOwnerDashboard() {
         if (storeId) {
             fetchDashboardData();
         }
-    }, [storeId]);
+    }, [storeId, fetchDashboardData]);
 
     const fetchStoreId = async () => {
         const { data: { user } } = await supabase.auth.getUser();
@@ -42,7 +42,7 @@ export default function StoreOwnerDashboard() {
         setStoreId(store?.id || null);
     };
 
-    const fetchDashboardData = async () => {
+    const fetchDashboardData = useCallback(async () => {
         if (!storeId) return;
 
         setLoading(true);
@@ -133,7 +133,7 @@ export default function StoreOwnerDashboard() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [storeId]);
 
     if (loading) {
         return (

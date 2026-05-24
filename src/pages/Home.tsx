@@ -155,7 +155,7 @@ const Home = () => {
                 fetchStores(),
                 fetchProducts(),
                 fetchFlashSaleProducts(),
-                fetchHeroBackground(), // Add this
+                fetchHeroBackground(),
             ]);
             setLoading(false);
         };
@@ -372,7 +372,7 @@ const Home = () => {
                     0% { transform: translateX(-100%); }
                     100% { transform: translateX(100%); }
                 }
-                .group-hover\:animate-shimmer:hover {
+                .group-hover\\:animate-shimmer:hover {
                     animation: shimmer 1.5s infinite;
                 }
                 `}

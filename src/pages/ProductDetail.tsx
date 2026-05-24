@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/ui/button';
@@ -71,7 +71,7 @@ const ProductDetail = () => {
     if (id) {
       fetchProduct();
     }
-  }, [id]);
+  }, [id, fetchProduct]);
 
   useEffect(() => {
     if (!api) {
@@ -90,7 +90,7 @@ const ProductDetail = () => {
     api.scrollTo(selectedImage);
   }, [selectedImage, api]);
 
-  const fetchProduct = async () => {
+  const fetchProduct = useCallback(async () => {
     setLoading(true);
     const { data, error } = (await supabase
       .from('products')
@@ -124,7 +124,7 @@ const ProductDetail = () => {
     }
 
     setLoading(false);
-  };
+  }, [id, navigate]);
 
   const handleAddToCart = () => {
     if (product && !product.is_sold_out) {
