@@ -92,7 +92,7 @@ export const Footer = () => {
                         <ul className="space-y-2 text-sm text-slate-400">
                             {categories.map((cat) => (
                                 <li key={cat.id}>
-                                    <Link to={`/products?categoryId=${cat.id}`} className="hover:text-primary transition-colors">{cat.name}</Link>
+                                    <Link to={`/products?category=${cat.id}`} className="hover:text-primary transition-colors">{cat.name}</Link>
                                 </li>
                             ))}
                         </ul>

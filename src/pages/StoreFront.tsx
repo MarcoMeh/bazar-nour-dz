@@ -405,7 +405,8 @@ const StoreFront = () => {
                 <div key={product.id} className={theme.styles.layoutType === 'masonry' ? (product.id.length % 5 === 0 ? 'row-span-2' : '') : ''}>
                   <ProductCard
                     {...product}
-                    name_ar={product.name}
+                    name_ar={product.name_ar || product.name}
+                    description_ar={product.description_ar || product.description}
                     onQuickView={(p) => { setQuickViewProduct(p); setQuickViewOpen(true); }}
                   />
                 </div>

@@ -127,10 +127,12 @@ const Products = () => {
   // URL params
   useEffect(() => {
     const categoryParam = searchParams.get("category");
+    const subcategoryParam = searchParams.get("subcategory");
     const searchParam = searchParams.get("search");
     const storeParam = searchParams.get("store");
 
     setSelectedMainCategory(categoryParam || null);
+    setSelectedSubCategory(subcategoryParam || null);
     setSearchTerm(searchParam || "");
     setSelectedStore(storeParam || null);
   }, [searchParams]);
@@ -728,8 +730,8 @@ const Products = () => {
                       >
                         <ProductCard
                           {...product}
-                          name_ar={product.name}
-                          description_ar={product.description}
+                          name_ar={product.name_ar || product.name}
+                          description_ar={product.description_ar || product.description}
                           is_delivery_home_available={product.is_delivery_home_available}
                           is_delivery_desktop_available={product.is_delivery_desktop_available}
                           is_sold_out={product.is_sold_out}

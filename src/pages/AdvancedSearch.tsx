@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { ProductCard } from '@/components/ProductCard';
@@ -25,26 +25,16 @@ const AdvancedSearch = () => {
     const [priceRange, setPriceRange] = useState([0, 50000]);
     const [sortBy, setSortBy] = useState('relevance');
 
-    useEffect(() => {
-        fetchCategories();
-    }, []);
-
-    useEffect(() => {
-        if (query || selectedCategory || selectedBrand) {
-            performSearch();
-        }
-    }, [query, selectedCategory, selectedBrand, priceRange, sortBy]);
-
-    const fetchCategories = async () => {
+    const fetchCategories = useCallback(async () => {
         const { data } = await supabase
             .from('categories')
             .select('*')
             .is('parent_id', null)
             .order('name');
         setCategories(data || []);
-    };
+    }, []);
 
-    const performSearch = async () => {
+    const performSearch = useCallback(async () => {
         setLoading(true);
         try {
             let queryBuilder = supabase.from('products').select('*, stores(name)');
@@ -107,7 +97,17 @@ const AdvancedSearch = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [query, selectedCategory, selectedBrand, priceRange, sortBy, setSearchParams]);
+
+    useEffect(() => {
+        fetchCategories();
+    }, [fetchCategories]);
+
+    useEffect(() => {
+        if (query || selectedCategory || selectedBrand) {
+            performSearch();
+        }
+    }, [query, selectedCategory, selectedBrand, performSearch]);
 
     const clearFilters = () => {
         setQuery('');

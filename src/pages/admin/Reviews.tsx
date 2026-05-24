@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow
@@ -30,11 +30,7 @@ export default function AdminReviews() {
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState<"pending" | "approved">("pending");
 
-    useEffect(() => {
-        fetchReviews();
-    }, [statusFilter]);
-
-    const fetchReviews = async () => {
+    const fetchReviews = useCallback(async () => {
         setLoading(true);
         const { data, error } = await supabase
             .from("reviews" as any)
@@ -55,7 +51,11 @@ export default function AdminReviews() {
             setReviews((data as any) || []);
         }
         setLoading(false);
-    };
+    }, [statusFilter]);
+
+    useEffect(() => {
+        fetchReviews();
+    }, [fetchReviews]);
 
     const handleApprove = async (id: string) => {
         const { error } = await supabase

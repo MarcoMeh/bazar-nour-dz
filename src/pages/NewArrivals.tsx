@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { ProductCard } from '@/components/ProductCard';
@@ -16,11 +16,7 @@ const NewArrivals = () => {
     const [sortBy, setSortBy] = useState('newest');
     const [daysFilter, setDaysFilter] = useState('30');
 
-    useEffect(() => {
-        fetchNewProducts();
-    }, [sortBy, daysFilter]);
-
-    const fetchNewProducts = async () => {
+    const fetchNewProducts = useCallback(async () => {
         setLoading(true);
         try {
             // Calculate date threshold
@@ -62,7 +58,11 @@ const NewArrivals = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [sortBy, daysFilter]);
+
+    useEffect(() => {
+        fetchNewProducts();
+    }, [fetchNewProducts]);
 
     const getDaysAgo = (dateString: string) => {
         const created = new Date(dateString);

@@ -220,7 +220,7 @@ export default function StoreOwnerOrders() {
         try {
             const { data, error } = await supabase
                 .from("order_items")
-                .select("*, products(name, image_url)")
+                .select("*, products(name, name_ar, image_url)")
                 .eq("order_id", order.id);
 
             if (error) throw error;
@@ -425,7 +425,7 @@ export default function StoreOwnerOrders() {
 
                                                 {/* تفاصيل المنتج */}
                                                 <div className="flex-1 min-w-0">
-                                                    <h4 className="font-bold text-gray-900 truncate">{item.products?.name || "منتج محذوف"}</h4>
+                                                    <h4 className="font-bold text-gray-900 truncate">{item.products?.name_ar || item.products?.name || "منتج محذوف"}</h4>
 
                                                     <div className="flex flex-wrap gap-2 mt-2">
                                                         {/* عرض اللون كنص فقط (التعديل المطلوب) */}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -71,7 +71,7 @@ export default function StoreOwnerProducts() {
         if (storeId) {
             fetchProducts();
         }
-    }, [storeId]);
+    }, [storeId, fetchProducts]);
 
     // Auto-generate variants when colors or sizes change to avoid manual click
     useEffect(() => {
@@ -105,6 +105,7 @@ export default function StoreOwnerProducts() {
         if (currentCombos !== newCombos) {
             setFormData(prev => ({ ...prev, variants: mergedVariants }));
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [formData.colors, formData.sizes]);
 
     const fetchStoreId = async () => {
@@ -121,7 +122,7 @@ export default function StoreOwnerProducts() {
         setSubcategories(subcats || []);
     };
 
-    const fetchProducts = async () => {
+    const fetchProducts = useCallback(async () => {
         if (!storeId) return;
         setLoading(true);
         const { data, error } = await supabase
@@ -133,7 +134,7 @@ export default function StoreOwnerProducts() {
         if (error) toast.error(getErrorMessage(error));
         else setProducts(data || []);
         setLoading(false);
-    };
+    }, [storeId]);
 
     const fetchVariants = async (productId: string) => {
         const { data, error } = await supabase
@@ -729,7 +730,7 @@ export default function StoreOwnerProducts() {
                                                 <img src={product.image_url} className="w-10 h-10 rounded-md object-cover border" />
                                             ) : <div className="w-10 h-10 bg-gray-100 rounded-md flex items-center justify-center"><ImageIcon className="w-4 h-4 text-gray-400" /></div>}
                                         </TableCell>
-                                        <TableCell className="font-medium text-sm line-clamp-1 max-w-[150px]">{product.name}</TableCell>
+                                        <TableCell className="font-medium text-sm line-clamp-1 max-w-[150px]">{product.name_ar || product.name}</TableCell>
                                         <TableCell className="font-bold text-sm">{product.price}</TableCell>
                                         <TableCell className="text-center">
                                             {product.is_sold_out ? <Badge variant="destructive" className="text-[10px]">نفد</Badge> : <Badge variant="outline" className="text-[10px] bg-green-50 text-green-700 border-green-200">نشط</Badge>}

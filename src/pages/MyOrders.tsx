@@ -16,6 +16,7 @@ interface OrderItem {
     selected_size?: string;
     products?: {
         name: string;
+        name_ar?: string;
         image_url?: string;
     };
 }
@@ -57,6 +58,7 @@ export default function MyOrders() {
                         selected_size,
                         products (
                             name,
+                            name_ar,
                             image_url
                         )
                     )
@@ -158,7 +160,7 @@ export default function MyOrders() {
                                                     />
                                                 )}
                                                 <div>
-                                                    <p className="font-medium">{item.products?.name || "منتج غير متوفر"}</p>
+                                                    <p className="font-medium">{item.products?.name_ar || item.products?.name || "منتج غير متوفر"}</p>
                                                     <div className="text-sm text-muted-foreground flex gap-2">
                                                         {item.selected_color && (
                                                             <span className="flex items-center gap-1">

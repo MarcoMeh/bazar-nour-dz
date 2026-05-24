@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Star, Send, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -32,11 +32,7 @@ export const ReviewsSection = ({ productId }: ReviewsSectionProps) => {
     const [comment, setComment] = useState("");
     const [submitting, setSubmitting] = useState(false);
 
-    useEffect(() => {
-        fetchReviews();
-    }, [productId]);
-
-    const fetchReviews = async () => {
+    const fetchReviews = useCallback(async () => {
         const { data, error } = await supabase
             .from("reviews" as any)
             .select("id, user_name, rating, comment, created_at")
@@ -50,7 +46,11 @@ export const ReviewsSection = ({ productId }: ReviewsSectionProps) => {
             setReviews((data as Review[]) || []);
         }
         setLoading(false);
-    };
+    }, [productId]);
+
+    useEffect(() => {
+        fetchReviews();
+    }, [fetchReviews]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

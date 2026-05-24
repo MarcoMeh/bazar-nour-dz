@@ -204,7 +204,7 @@ function CompanyEditor({ company, wilayas, onUpdate }: { company: Company, wilay
       name: company.name,
       website_url: company.website_url || "",
     });
-  }, [company.id]);
+  }, [company.id, company.name, company.website_url]);
 
   const handleUpdateInfo = async () => {
     setIsUpdating(true);

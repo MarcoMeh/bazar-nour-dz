@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { ProductCard } from '@/components/ProductCard';
@@ -15,11 +15,7 @@ const Sale = () => {
     const [loading, setLoading] = useState(true);
     const [sortBy, setSortBy] = useState('discount-desc');
 
-    useEffect(() => {
-        fetchSaleProducts();
-    }, [sortBy]);
-
-    const fetchSaleProducts = async () => {
+    const fetchSaleProducts = useCallback(async () => {
         setLoading(true);
         try {
             let query = supabase
@@ -57,7 +53,11 @@ const Sale = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [sortBy]);
+
+    useEffect(() => {
+        fetchSaleProducts();
+    }, [fetchSaleProducts]);
 
     const calculateDiscountedPrice = (price: number, discount?: number) => {
         if (!discount) return price;

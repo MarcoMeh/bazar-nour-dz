@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
     Table,
     TableBody,
@@ -39,6 +39,7 @@ interface OrderItem {
     selected_size?: string;
     products?: {
         name: string;
+        name_ar?: string;
         image_url?: string;
     };
 }
@@ -91,7 +92,7 @@ export default function AdminOrders() {
     const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
     const [deleting, setDeleting] = useState(false);
 
-    const fetchOrders = async () => {
+    const fetchOrders = useCallback(async () => {
         setLoading(true);
         try {
             let orderIds: string[] | null = null;
@@ -124,11 +125,11 @@ export default function AdminOrders() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [isStoreOwner, storeId]);
 
     useEffect(() => {
         fetchOrders();
-    }, [isStoreOwner, storeId]);
+    }, [fetchOrders]);
 
     const handleViewOrder = async (order: Order) => {
         setSelectedOrder(order);
@@ -137,7 +138,7 @@ export default function AdminOrders() {
 
         const query = supabase
             .from("order_items")
-            .select("*, products(name, image_url, store_id)")
+            .select("*, products(name, name_ar, image_url, store_id)")
             .eq("order_id", order.id);
 
         const { data, error } = await query;
@@ -389,7 +390,7 @@ export default function AdminOrders() {
                                                                     className="w-10 h-10 object-cover rounded"
                                                                 />
                                                             )}
-                                                            <span className="font-medium">{item.products?.name || "منتج محذوف"}</span>
+                                                            <span className="font-medium">{item.products?.name_ar || item.products?.name || "منتج محذوف"}</span>
                                                         </div>
                                                     </TableCell>
                                                     <TableCell>

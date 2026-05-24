@@ -32,7 +32,16 @@ export const Header = () => {
 
   useEffect(() => {
     const loadCategories = async () => {
-      // Placeholder for category loading logic if needed
+      try {
+        const { data, error } = await supabase
+          .from("categories")
+          .select("id, name, slug, parent_id")
+          .order("name");
+        if (error) throw error;
+        setCategories(data || []);
+      } catch (err) {
+        console.error("Error loading categories in header:", err);
+      }
     };
     loadCategories();
   }, []);
@@ -216,7 +225,7 @@ export const Header = () => {
                         {subCategories(main.id).map((sub) => (
                           <Link
                             key={sub.id}
-                            to={`/products?category=${sub.slug}`}
+                            to={`/products?category=${main.id}&subcategory=${sub.id}`}
                             className="block text-right text-gray-600 pr-2"
                           >
                             {sub.name}

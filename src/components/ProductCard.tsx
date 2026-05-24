@@ -70,7 +70,7 @@ export const ProductCard = ({
     e.preventDefault();
     e.stopPropagation();
     if (onQuickView) {
-      onQuickView({ id, name: name_ar, price, image_url, is_sold_out, store_id });
+      onQuickView({ id, name: name_ar, description: description_ar, price, image_url, is_sold_out, store_id });
     }
   };
 

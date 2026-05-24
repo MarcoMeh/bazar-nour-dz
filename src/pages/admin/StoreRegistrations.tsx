@@ -165,7 +165,7 @@ const StoreRegistrations = () => {
                     throw new Error("فشل في إنشاء سجل المحل في قاعدة البيانات");
                 }
 
-                toast.success('تم إنشاء حساب التاجر وتجهيز المحل بنجاح');
+                toast.success(`تم إنشاء حساب التاجر وتجهيز المحل بنجاح. كلمة المرور الافتراضية: ${autoPassword}`);
             }
 
             // 2. Update the request status

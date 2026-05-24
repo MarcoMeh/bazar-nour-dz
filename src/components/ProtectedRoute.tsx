@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
@@ -13,11 +13,7 @@ export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) 
     const [authorized, setAuthorized] = useState(false);
     const location = useLocation();
 
-    useEffect(() => {
-        checkAuth();
-    }, [requiredRole]);
-
-    const checkAuth = async () => {
+    const checkAuth = useCallback(async () => {
         try {
             // Check if user is logged in
             const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -57,7 +53,11 @@ export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) 
         } finally {
             setLoading(false);
         }
-    };
+    }, [requiredRole]);
+
+    useEffect(() => {
+        checkAuth();
+    }, [checkAuth]);
 
     if (loading) {
         return (

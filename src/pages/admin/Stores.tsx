@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { generateSlug } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -124,11 +124,7 @@ export default function AdminStores() {
     const [renewData, setRenewData] = useState({ months: "custom", days: "30", amount: "3000", notes: "" });
     const [renewLoading, setRenewLoading] = useState(false);
 
-    useEffect(() => {
-        fetchStores();
-    }, [isAdmin, isStoreOwner, storeId]);
-
-    const fetchStores = async () => {
+    const fetchStores = useCallback(async () => {
         setLoading(true);
         // Correct query for separate categories and joined data
         const { data: cats } = await supabase.from("categories").select("*").order("name");
@@ -170,7 +166,11 @@ export default function AdminStores() {
             setStores(processedStores);
         }
         setLoading(false);
-    };
+    }, [isStoreOwner, storeId]);
+
+    useEffect(() => {
+        fetchStores();
+    }, [fetchStores]);
 
     const handleDelete = async () => {
         if (!deleteId) return;

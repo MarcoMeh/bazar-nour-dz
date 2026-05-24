@@ -707,7 +707,7 @@ const Home = () => {
                                     return (
                                         <Link
                                             key={cat.id}
-                                            to={`/products?categoryId=${cat.id}`}
+                                            to={`/products?category=${cat.id}`}
                                             className="group relative flex flex-col items-center transition-all duration-500 hover:-translate-y-2"
                                         >
                                             {/* Circular Image with Gradient Border & Glow */}

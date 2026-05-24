@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -112,19 +112,7 @@ export default function AdminProducts() {
         is_sold_out: false,
     });
 
-    useEffect(() => {
-        // Redirect if not authorized
-        if (!isAdmin && !isStoreOwner) {
-            // Wait for auth check to complete? 
-            // Ideally AdminLayout handles this, but good to have here.
-            // For now, we assume AdminLayout protects the route, 
-            // but we need to wait for context to populate.
-        }
-
-        fetchData();
-    }, [isAdmin, isStoreOwner, storeId]);
-
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         setLoading(true);
 
         let query = supabase
@@ -159,7 +147,19 @@ export default function AdminProducts() {
             setStores((strs || []) as any);
         }
         setLoading(false);
-    };
+    }, [isAdmin, isStoreOwner, storeId]);
+
+    useEffect(() => {
+        // Redirect if not authorized
+        if (!isAdmin && !isStoreOwner) {
+            // Wait for auth check to complete? 
+            // Ideally AdminLayout handles this, but good to have here.
+            // For now, we assume AdminLayout protects the route, 
+            // but we need to wait for context to populate.
+        }
+
+        fetchData();
+    }, [isAdmin, isStoreOwner, storeId, fetchData]);
 
     const handleAddColor = () => {
         if (inputColor.trim() && !formData.colors.includes(inputColor.trim())) {
@@ -644,7 +644,7 @@ export default function AdminProducts() {
                                                 <div className="w-10 h-10 bg-muted rounded flex items-center justify-center text-xs">لا صورة</div>
                                             )}
                                         </TableCell>
-                                        <TableCell className="font-medium">{product.name}</TableCell>
+                                        <TableCell className="font-medium">{product.name_ar || product.name}</TableCell>
                                         <TableCell>{product.price} د.ج</TableCell>
                                         <TableCell>
                                             {product.categories?.name}

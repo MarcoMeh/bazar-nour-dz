@@ -154,7 +154,7 @@ const ProductDetail = () => {
 
       addItem({
         id: product.id,
-        name_ar: product.name_ar,
+        name_ar: product.name_ar || product.name,
         price: product.price,
         image_url: product.image_url,
         ownerId: product.store_id,

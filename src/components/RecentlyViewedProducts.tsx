@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard from '@/components/ProductCard';
 import { useRecentlyViewed } from '@/contexts/RecentlyViewedContext';
@@ -9,15 +9,7 @@ export const RecentlyViewedProducts = () => {
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        if (recentlyViewed.length > 0) {
-            fetchProducts();
-        } else {
-            setProducts([]);
-        }
-    }, [recentlyViewed]);
-
-    const fetchProducts = async () => {
+    const fetchProducts = useCallback(async () => {
         setLoading(true);
         try {
             const { data, error } = await supabase
@@ -39,7 +31,15 @@ export const RecentlyViewedProducts = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [recentlyViewed]);
+
+    useEffect(() => {
+        if (recentlyViewed.length > 0) {
+            fetchProducts();
+        } else {
+            setProducts([]);
+        }
+    }, [recentlyViewed, fetchProducts]);
 
     if (loading) {
         return (

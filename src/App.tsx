@@ -28,6 +28,7 @@ const Brands = lazy(() => import("./pages/Brands"));
 const BrandProducts = lazy(() => import("./pages/BrandProducts"));
 const Sale = lazy(() => import("./pages/Sale"));
 const NewArrivals = lazy(() => import("./pages/NewArrivals"));
+const AdvancedSearch = lazy(() => import("./pages/AdvancedSearch"));
 
 // Admin Pages
 const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
@@ -149,6 +150,7 @@ const App = () => {
                           <Route path="/about" element={<About />} />
                           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                           <Route path="/terms-conditions" element={<Terms />} />
+                          <Route path="/search" element={<AdvancedSearch />} />
                         </Route>
 
                         <Route path="/seller-register" element={<SellerRegister />} />

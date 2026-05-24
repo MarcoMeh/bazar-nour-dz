@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard from '@/components/ProductCard';
 import { Loader2 } from 'lucide-react';
@@ -19,11 +19,7 @@ export const SimilarProducts = ({
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        fetchSimilarProducts();
-    }, [currentProductId, categoryId, brand]);
-
-    const fetchSimilarProducts = async () => {
+    const fetchSimilarProducts = useCallback(async () => {
         setLoading(true);
         try {
             const query = supabase
@@ -80,7 +76,11 @@ export const SimilarProducts = ({
         } finally {
             setLoading(false);
         }
-    };
+    }, [currentProductId, categoryId, brand, limit]);
+
+    useEffect(() => {
+        fetchSimilarProducts();
+    }, [fetchSimilarProducts]);
 
     if (loading) {
         return (

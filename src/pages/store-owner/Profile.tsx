@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -74,7 +74,7 @@ export default function StoreOwnerProfile() {
         if (user) {
             fetchData();
         }
-    }, [user]);
+    }, [user, fetchData]);
 
     const handleAddPhone = () => {
         setStoreData({
@@ -94,7 +94,7 @@ export default function StoreOwnerProfile() {
         setStoreData({ ...storeData, phone_numbers: newPhones });
     };
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         try {
             setLoading(true);
 
@@ -170,7 +170,7 @@ export default function StoreOwnerProfile() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [user]);
 
     const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         try {

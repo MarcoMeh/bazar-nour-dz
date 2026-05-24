@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { ProductCard } from '@/components/ProductCard';
@@ -16,13 +16,7 @@ const BrandProducts = () => {
     const [brandName, setBrandName] = useState('');
     const [sortBy, setSortBy] = useState('newest');
 
-    useEffect(() => {
-        if (slug) {
-            fetchBrandProducts();
-        }
-    }, [slug, sortBy]);
-
-    const fetchBrandProducts = async () => {
+    const fetchBrandProducts = useCallback(async () => {
         setLoading(true);
         try {
             // Convert slug back to brand name (basic conversion)
@@ -71,7 +65,13 @@ const BrandProducts = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [slug, sortBy]);
+
+    useEffect(() => {
+        if (slug) {
+            fetchBrandProducts();
+        }
+    }, [slug, fetchBrandProducts]);
 
     return (
         <div className="min-h-screen bg-[#FAFAFA]">

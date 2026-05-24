@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Bell, Check, Trash2, Package } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,7 +32,7 @@ export const NotificationCenter = () => {
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
 
-    const fetchNotifications = async () => {
+    const fetchNotifications = useCallback(async () => {
         if (!storeId) return;
         const { data, error } = await supabase
             .from("notifications")
@@ -48,7 +48,7 @@ export const NotificationCenter = () => {
 
         setNotifications(data || []);
         setUnreadCount(data?.filter(n => !n.is_read).length || 0);
-    };
+    }, [storeId]);
 
     useEffect(() => {
         fetchNotifications();
@@ -95,7 +95,7 @@ export const NotificationCenter = () => {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [storeId]);
+    }, [storeId, fetchNotifications, navigate]);
 
     const markAsRead = async (id: string) => {
         const { error } = await supabase

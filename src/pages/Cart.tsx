@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -90,17 +90,7 @@ export default function Cart() {
     desk: { enabled: true, price: 0 }
   });
 
-  useEffect(() => {
-    loadWilayas();
-  }, []);
-
-  useEffect(() => {
-    if (formData.wilayaId && items.length > 0) {
-      calculateDeliveryFees();
-    }
-  }, [formData.wilayaId, items]);
-
-  const loadWilayas = async () => {
+  const loadWilayas = useCallback(async () => {
     const { data, error } = await supabase
       .from("wilayas")
       .select("*")
@@ -111,12 +101,16 @@ export default function Cart() {
       return;
     }
     setWilayas((data as any) || []);
-  };
+  }, []);
+
+  useEffect(() => {
+    loadWilayas();
+  }, [loadWilayas]);
 
   const selectedWilaya = wilayas.find((w) => String(w.id) === formData.wilayaId);
   const hasFreeDelivery = items.length > 0 && items.every(item => item.is_free_delivery);
 
-  const calculateDeliveryFees = async () => {
+  const calculateDeliveryFees = useCallback(async () => {
     if (!selectedWilaya) return;
     const storeId = items[0]?.ownerId;
     if (!storeId) return;
@@ -176,7 +170,13 @@ export default function Cart() {
     } finally {
       setCalculatingDelivery(false);
     }
-  };
+  }, [selectedWilaya, items]);
+
+  useEffect(() => {
+    if (formData.wilayaId && items.length > 0) {
+      calculateDeliveryFees();
+    }
+  }, [formData.wilayaId, items, calculateDeliveryFees]);
 
   const currentMethod = formData.deliveryType === "home" ? deliveryMethods.home : deliveryMethods.desk;
   const deliveryPriceAmount = hasFreeDelivery ? 0 : currentMethod.price;
@@ -261,6 +261,13 @@ export default function Cart() {
   };
 
   const handleOrderViaWhatsApp = async () => {
+    // 1. Check multi-store
+    const owners = new Set(items.map(item => item.ownerId).filter(Boolean));
+    if (owners.size > 1) {
+      setIsErrorOpen(true);
+      return;
+    }
+
     if (!formData.phone || !formData.name) {
       toast.error("يرجى إدخال الرقام والاسم أولاً");
       return;

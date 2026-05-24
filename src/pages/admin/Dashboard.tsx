@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Package, ShoppingCart, Store, DollarSign, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,11 +21,7 @@ export default function AdminDashboard() {
   const [orderStatusData, setOrderStatusData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, [isAdmin, isStoreOwner, storeId]);
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     setLoading(true);
     try {
       // 1. Fetch Basic Counts
@@ -171,7 +167,11 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAdmin, isStoreOwner, storeId]);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
 
   if (loading) {
     return (
