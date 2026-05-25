@@ -1,0 +1,1508 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مخطط بنية بازارنا التقنية | Bazzarna Architecture Blueprint</title>
+    <!-- Premium Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Theme transitions */
+            --transition-speed: 0.3s;
+            --transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Dark Theme Variables (Default) */
+        body.theme-dark {
+            --bg-dark: #121212;
+            --bg-wrapper: #1a1a1a;
+            --card-bg: #242424;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-main: #F5F5F5; /* Inverse of background */
+            --text-sub: #a1a1aa;
+            --primary: #10b981; /* Success Green */
+            --primary-glow: rgba(16, 185, 129, 0.15);
+            --accent: #6366f1; /* Indigo */
+            --accent-glow: rgba(99, 102, 241, 0.15);
+            --accent-purple: #a855f7;
+            --danger: #ef4444; /* Error Red */
+            --bg-gradient: radial-gradient(circle at 10% 20%, #1e1b4b 0%, #121212 70%);
+        }
+
+        /* Light Theme Variables */
+        body.theme-light {
+            --bg-dark: #F5F5F5;
+            --bg-wrapper: #FFFFFF;
+            --card-bg: #EAEAEA;
+            --border-color: rgba(0, 0, 0, 0.08);
+            --text-main: #121212; /* Absolute inverse of background */
+            --text-sub: #52525b;
+            --primary: #059669; /* Success Green */
+            --primary-glow: rgba(5, 150, 105, 0.1);
+            --accent: #4f46e5; /* Indigo */
+            --accent-glow: rgba(79, 70, 229, 0.1);
+            --accent-purple: #9333ea;
+            --danger: #dc2626; /* Error Red */
+            --bg-gradient: radial-gradient(circle at 10% 20%, #e0e7ff 0%, #F5F5F5 80%);
+        }
+
+        /* Glassmorphism Theme Variables */
+        body.theme-glassmorphism {
+            --bg-dark: transparent;
+            --bg-wrapper: rgba(15, 23, 42, 0.4);
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-main: #FFFFFF; /* High contrast text */
+            --text-sub: #cbd5e1;
+            --primary: #34d399; /* Success Green */
+            --primary-glow: rgba(52, 211, 153, 0.2);
+            --accent: #818cf8; /* Indigo */
+            --accent-glow: rgba(129, 140, 248, 0.2);
+            --accent-purple: #c084fc;
+            --danger: #f87171; /* Error Red */
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
+        }
+
+        * {
+            box-sizing: border-box;
+            scroll-behavior: smooth;
+        }
+
+        html {
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            transition: background var(--transition-speed) var(--transition-timing);
+        }
+
+        body {
+            font-family: 'Cairo', 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            line-height: 1.7;
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background-color var(--transition-speed) var(--transition-timing),
+                        color var(--transition-speed) var(--transition-timing);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+        }
+        body.theme-light ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.15);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+
+        /* Sidebar Styling */
+        aside {
+            width: 290px;
+            background-color: var(--bg-wrapper);
+            border-left: 1px solid var(--border-color);
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 35px 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform var(--transition-speed) var(--transition-timing),
+                        background-color var(--transition-speed) var(--transition-timing),
+                        border var(--transition-speed) var(--transition-timing);
+        }
+
+        body.theme-glassmorphism aside {
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        main {
+            margin-right: 290px;
+            width: calc(100% - 290px);
+            padding: 40px 5%;
+            position: relative;
+            min-height: 100vh;
+            transition: margin var(--transition-speed) var(--transition-timing),
+                        width var(--transition-speed) var(--transition-timing);
+        }
+
+        /* Sidebar Logo */
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 40px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 25px;
+        }
+
+        .logo-box {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            color: #ffffff;
+            font-size: 1.3rem;
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        .logo-text {
+            font-weight: 900;
+            font-size: 1.3rem;
+            letter-spacing: 0.5px;
+            background: linear-gradient(to left, var(--text-main), var(--text-sub));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Sidebar Nav Links */
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            text-decoration: none;
+            color: var(--text-sub);
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .nav-item svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            transition: stroke 0.3s ease;
+        }
+
+        .nav-item:hover {
+            color: var(--primary);
+            background-color: var(--primary-glow);
+            transform: translateX(-5px);
+        }
+
+        .nav-item.active {
+            color: #ffffff;
+            background: linear-gradient(to left, var(--primary), var(--primary-glow));
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        body.theme-light .nav-item.active {
+            color: #ffffff;
+        }
+
+        .sidebar-footer {
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+            font-size: 0.78rem;
+            color: var(--text-sub);
+            text-align: center;
+        }
+
+        .sidebar-footer p {
+            margin: 4px 0;
+        }
+
+        /* Floating Top Controls Header */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--bg-wrapper);
+            border: 1px solid var(--border-color);
+            padding: 14px 28px;
+            border-radius: 16px;
+            margin-bottom: 45px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 20px;
+            z-index: 900;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: background-color var(--transition-speed) var(--transition-timing),
+                        border var(--transition-speed) var(--transition-timing);
+        }
+
+        .section-indicator {
+            font-weight: 800;
+            font-size: 1.15rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .controls-group {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* Toggle Button Groups */
+        .control-toggle {
+            display: flex;
+            background-color: rgba(0, 0, 0, 0.15);
+            padding: 4px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        body.theme-light .control-toggle {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .control-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-sub);
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.25s ease;
+        }
+
+        .control-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .control-btn:hover {
+            color: var(--text-main);
+        }
+
+        .control-btn.active {
+            background-color: var(--bg-wrapper);
+            color: var(--primary);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        body.theme-light .control-btn.active {
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Header Style */
+        header {
+            margin-bottom: 50px;
+            position: relative;
+        }
+
+        header::after {
+            content: '';
+            position: absolute;
+            top: -120px;
+            left: -120px;
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .header-badge {
+            background: rgba(99, 102, 241, 0.08);
+            color: var(--accent);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 800;
+            display: inline-block;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        h1 {
+            font-size: 2.7rem;
+            font-weight: 900;
+            margin: 0;
+            line-height: 1.3;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, var(--text-main) 40%, var(--text-sub) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: var(--text-sub);
+            font-size: 1.15rem;
+            margin-top: 12px;
+            font-weight: 500;
+        }
+
+        /* H2 & Card Styling */
+        h2 {
+            font-size: 1.7rem;
+            font-weight: 800;
+            margin-top: 70px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            color: var(--text-main);
+            position: relative;
+        }
+
+        h2::before {
+            content: '';
+            display: inline-block;
+            width: 6px;
+            height: 26px;
+            background: linear-gradient(to bottom, var(--primary), var(--accent));
+            border-radius: 4px;
+        }
+
+        h3 {
+            font-size: 1.2rem;
+            font-weight: 800;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 35px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s var(--transition-timing);
+            position: relative;
+            overflow: hidden;
+        }
+
+        body.theme-glassmorphism .card {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .card:hover {
+            border-color: rgba(16, 185, 129, 0.35);
+            box-shadow: 0 16px 45px rgba(16, 185, 129, 0.08);
+            transform: translateY(-3px);
+        }
+
+        p {
+            color: var(--text-sub);
+            font-size: 1.05rem;
+            margin-top: 0;
+            margin-bottom: 20px;
+            text-align: justify;
+        }
+
+        strong {
+            color: var(--text-main);
+            font-weight: 700;
+        }
+
+        /* Bullet lists */
+        ul {
+            padding-inline-start: 22px;
+            margin-bottom: 0;
+        }
+
+        li {
+            color: var(--text-sub);
+            margin-bottom: 12px;
+            position: relative;
+            list-style: none;
+            padding-inline-start: 10px;
+        }
+
+        li::before {
+            content: "✦";
+            color: var(--primary);
+            position: absolute;
+            font-size: 0.8rem;
+        }
+
+        [dir="rtl"] li::before {
+            right: -15px;
+        }
+        [dir="ltr"] li::before {
+            left: -15px;
+        }
+
+        /* Mermaid Graph Container */
+        .mermaid-container {
+            background-color: rgba(0, 0, 0, 0.15);
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin: 25px 0;
+            display: flex;
+            justify-content: center;
+            overflow-x: auto;
+            transition: background var(--transition-speed) var(--transition-timing);
+        }
+
+        body.theme-light .mermaid-container {
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+
+        .mermaid {
+            width: 100%;
+            min-height: 200px;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Grid layouts */
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .role-card {
+            border-top: 4px solid var(--primary);
+        }
+        .role-card.role-admin { border-top-color: var(--accent); }
+        .role-card.role-owner { border-top-color: var(--accent-purple); }
+
+        .role-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+
+        .role-badge.visitor { background: rgba(16, 185, 129, 0.1); color: var(--primary); border: 1px solid rgba(16, 185, 129, 0.2); }
+        .role-badge.owner { background: rgba(168, 85, 247, 0.1); color: var(--accent-purple); border: 1px solid rgba(168, 85, 247, 0.2); }
+        .role-badge.admin { background: rgba(99, 102, 241, 0.1); color: var(--accent); border: 1px solid rgba(99, 102, 241, 0.2); }
+
+        /* Dynamic layout toggling for RTL / LTR */
+        [dir="rtl"] aside {
+            right: 0;
+            left: auto;
+            border-left: 1px solid var(--border-color);
+            border-right: none;
+        }
+
+        [dir="rtl"] main {
+            margin-right: 290px;
+            margin-left: 0;
+        }
+
+        [dir="ltr"] aside {
+            left: 0;
+            right: auto;
+            border-right: 1px solid var(--border-color);
+            border-left: none;
+        }
+
+        [dir="ltr"] main {
+            margin-left: 290px;
+            margin-right: 0;
+        }
+
+        /* Mobile Responsive adjustments */
+        .mobile-hamburger {
+            display: none;
+            background: var(--bg-wrapper);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1100;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mobile-hamburger svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        @media (max-width: 1024px) {
+            .mobile-hamburger {
+                display: flex;
+            }
+
+            aside {
+                position: fixed;
+                top: 0;
+                bottom: 0;
+                height: 100vh;
+                box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+                transition: transform 0.35s ease;
+            }
+
+            [dir="rtl"] aside {
+                transform: translateX(100%);
+            }
+            [dir="rtl"].sidebar-open aside {
+                transform: translateX(0);
+            }
+
+            [dir="ltr"] aside {
+                transform: translateX(-100%);
+            }
+            [dir="ltr"].sidebar-open aside {
+                transform: translateX(0);
+            }
+
+            main {
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+                width: 100% !important;
+                padding: 24px 16px;
+            }
+
+            .top-nav {
+                padding: 12px 16px;
+                margin-bottom: 30px;
+            }
+
+            .section-indicator {
+                font-size: 1rem;
+            }
+
+            .controls-group {
+                gap: 10px;
+            }
+
+            .control-btn {
+                padding: 6px 10px;
+                font-size: 0.75rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+    <!-- Include Mermaid.js for drawing dynamic diagrams in browser -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body class="theme-dark">
+
+    <!-- Mobile Navigation Toggle Button -->
+    <button class="mobile-hamburger" id="hamburger-toggle" aria-label="Toggle Navigation">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+        </svg>
+    </button>
+
+    <!-- Sidebar Navigation -->
+    <aside id="sidebar">
+        <div>
+            <div class="sidebar-logo">
+                <div class="logo-box">B</div>
+                <div class="logo-text" id="sidebar-logo-text">بازارنا التقني</div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#overview" class="nav-item active" data-section="overview">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                    </svg>
+                    <span data-i18n="nav.overview">نظرة عامة</span>
+                </a>
+                <a href="#tech-stack" class="nav-item" data-section="tech-stack">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 9.75 16.5 12l-2.25 2.25m-4.5 0L7.5 12l2.25-2.25M6 20.25h12A2.25 2.25 0 0 0 20.25 18V6A2.25 2.25 0 0 0 18 3.75H6A2.25 2.25 0 0 0 3.75 6v12A2.25 2.25 0 0 0 6 20.25Z" />
+                    </svg>
+                    <span data-i18n="nav.tech">البنية التقنية</span>
+                </a>
+                <a href="#roles" class="nav-item" data-section="roles">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                    </svg>
+                    <span data-i18n="nav.roles">الصلاحيات والأدوار</span>
+                </a>
+                <a href="#database" class="nav-item" data-section="database">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0v3.75" />
+                    </svg>
+                    <span data-i18n="nav.db">قاعدة البيانات</span>
+                </a>
+                <a href="#flows" class="nav-item" data-section="flows">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
+                    </svg>
+                    <span data-i18n="nav.flows">سير العمليات</span>
+                </a>
+                <a href="#localization" class="nav-item" data-section="localization">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-.778.099-1.533.284-2.253m0 0A17.919 17.919 0 0 0 12 10.5a17.97 17.97 0 0 0 8.716-2.253" />
+                    </svg>
+                    <span data-i18n="nav.localization">التوطين والسمات</span>
+                </a>
+            </nav>
+        </div>
+        <div class="sidebar-footer">
+            <p>&copy; 2026 AliDev Studio</p>
+            <p style="color: var(--primary); font-weight: 800;" data-i18n="footer.lead">Lead Architect Office</p>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main id="main-content">
+        <!-- Floating Interactive Navigation Bar -->
+        <div class="top-nav">
+            <div class="section-indicator" id="current-section-indicator">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                <span id="indicator-text" data-i18n="nav.overview">نظرة عامة</span>
+            </div>
+            <div class="controls-group">
+                <!-- Theme Selectors -->
+                <div class="control-toggle" id="theme-selectors">
+                    <button class="control-btn active" data-theme="dark" title="Dark Mode">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+                        </svg>
+                    </button>
+                    <button class="control-btn" data-theme="light" title="Light Mode">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m0 13.5V22M4.929 4.929l1.414 1.414m11.314 11.314l1.414 1.414M3 12h2.25m13.5 0H22M5.636 18.364l1.414-1.414m11.314-11.314l1.414 1.414M12 7.5a4.5 4.5 0 110 9 4.5 4.5 0 010-9z" />
+                        </svg>
+                    </button>
+                    <button class="control-btn" data-theme="glassmorphism" title="Glassmorphism">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 21m0 0l-.813-5.096L3.6 13.5M9 21l5.4-7.5L14.25 9m0 0l-.813 5.096L18.6 13.5M14.25 9L9 16.5M9 7.5a3 3 0 116 0 3 3 0 01-6 0z" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Language Selectors -->
+                <div class="control-toggle" id="lang-selectors">
+                    <button class="control-btn active" data-lang="ar">العربية</button>
+                    <button class="control-btn" data-lang="en">EN</button>
+                    <button class="control-btn" data-lang="fr">FR</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Blueprint Main Header -->
+        <header>
+            <span class="header-badge" data-i18n="badge">المخطط الهيكلي والتقني الشامل</span>
+            <h1 id="page-title" data-i18n="heading">هندسة نظام بازارنا (Bazzarna)</h1>
+            <p class="subtitle" id="page-subtitle" data-i18n="subheading">المخطط الفني وهيكل العلاقات والبيانات لأصحاب المشاريع والمطورين</p>
+        </header>
+
+        <!-- 1. Overview -->
+        <section id="overview">
+            <h2 data-i18n="sections.overview.title">1. نظرة عامة على المنصة</h2>
+            <div class="card">
+                <div id="overview-content">
+                    <!-- Dynamic content gets injected here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. Tech Stack -->
+        <section id="tech-stack">
+            <h2 data-i18n="sections.tech.title">2. البنية التكنولوجية</h2>
+            <div class="card">
+                <p id="tech-intro-text"></p>
+                <ul id="tech-list">
+                    <!-- Dynamic bullets loaded here -->
+                </ul>
+                
+                <h3 data-i18n="nav.tech">مخطط بنية النظام التقنية</h3>
+                <div class="mermaid-container" id="tech-diagram-container">
+                    <!-- Rendered dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Roles -->
+        <section id="roles">
+            <h2 data-i18n="sections.roles.title">3. الصلاحيات وأدوار المستخدمين</h2>
+            <div class="grid-3" id="roles-grid">
+                <!-- Role cards injected dynamically -->
+            </div>
+        </section>
+
+        <!-- 4. Database -->
+        <section id="database">
+            <h2 data-i18n="sections.db.title">4. هيكل قاعدة البيانات</h2>
+            <div class="card">
+                <p id="db-intro-text"></p>
+                
+                <h3 data-i18n="nav.db">مخطط الكيانات والعلاقات (ERD)</h3>
+                <div class="mermaid-container" id="erd-diagram-container">
+                    <!-- Rendered dynamically -->
+                </div>
+
+                <h3 id="db-subtables-title"></h3>
+                <ul id="db-subtables-list">
+                    <!-- Dynamic list here -->
+                </ul>
+            </div>
+        </section>
+
+        <!-- 5. Flows -->
+        <section id="flows">
+            <h2 data-i18n="sections.flows.title">5. العمليات وسير العمليات الحيوية</h2>
+            <div class="card" id="flows-content">
+                <!-- Flows content injected here -->
+            </div>
+        </section>
+
+        <!-- 6. Localization -->
+        <section id="localization">
+            <h2 data-i18n="sections.localization.title">6. دعم اللغات والتخصيص</h2>
+            <div class="card">
+                <p id="localization-intro-text"></p>
+                <ul id="localization-list">
+                    <!-- Dynamic bullets here -->
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Language Database
+        const translations = {
+            ar: {
+                title: "مخطط بنية بازارنا التقنية | Bazzarna Architecture Blueprint",
+                badge: "المخطط الهيكلي والتقني الشامل",
+                heading: "هندسة نظام بازارنا (Bazzarna)",
+                subheading: "المخطط الفني وهيكل العلاقات والبيانات لأصحاب المشاريع والمطورين",
+                logoText: "بازارنا التقني",
+                nav: {
+                    overview: "نظرة عامة",
+                    tech: "البنية التكنولوجية",
+                    roles: "الأدوار والصلاحيات",
+                    db: "قاعدة البيانات والـ ERD",
+                    flows: "سير العمليات الحيوية",
+                    localization: "التوطين والسمات"
+                },
+                footer: {
+                    lead: "مكتب المهندس المعماري الرئيسي"
+                },
+                sections: {
+                    overview: {
+                        title: "1. نظرة عامة على المنصة (Platform Overview)",
+                        html: `<p>منصة <strong>بازارنا</strong> هي نظام تجارة إلكترونية متعدد المتاجر (Multi-Tenant SaaS E-commerce) موجه خصيصاً للسوق الجزائري. تتيح للملاك إنشاء متاجرهم الخاصة، إدارة منتجاتهم ومخزونهم، استقبال الطلبات، وتجهيز عمليات التوصيل، بينما تتيح للعملاء تصفح المتاجر، مقارنة المنتجات، وإتمام الطلبات عبر السلة أو الواتساب مباشرة بالدينار الجزائري.</p>
+                               <p>تم تصميم هذا النظام ليكون خفيف الوزن وسريع التحميل على شبكات الهواتف المحمولة في الجزائر، ويوفر بيئة تجارة متكاملة تجمع بين سهولة تصفح الزوار وقوة لوحة التحكم الخاصة بالتجار والمسؤولين.</p>`
+                    },
+                    tech: {
+                        title: "2. البنية التكنولوجية (Technology Stack)",
+                        intro: "يعتمد النظام على بنية تحتية سحابية موزعة وخفيفة لتقليل زمن الاستجابة للمستخدمين في الجزائر:",
+                        bullets: [
+                            "<strong>الواجهة الأمامية (Front-End):</strong> مكتبة React.js مع لغة TypeScript وتجميع Vite لسرعة البناء والتطوير، مستخدمين Tailwind CSS للتصاميم المتجاوبة ونظام Shadcn UI.",
+                            "<strong>قاعدة البيانات والـ Back-End:</strong> خوادم Supabase المعتمدة على PostgreSQL لضمان موثوقية العلاقات والبيانات الضخمة وسرعتها.",
+                            "<strong>إدارة الصلاحيات والولوج (Auth):</strong> Supabase Auth لحماية وتشفير حسابات التجار والزبائن والتحكم بالأدوار الأمنية.",
+                            "<strong>تخزين الصور (Storage):</strong> Supabase Storage مع مستودعات مخصصة لصور المنتجات وشعارات المحلات.",
+                            "<strong>الإجراءات المخزنة (RPC):</strong> تنفيذ العمليات المعقدة والحساسة مباشرة في قاعدة البيانات لضمان السرعة الفائقة وتجاوز حواجز الصلاحيات."
+                        ]
+                    },
+                    roles: {
+                        title: "3. الصلاحيات وأدوار المستخدمين (User Roles & Access Control)",
+                        cards: [
+                            {
+                                badge: "الزبون / الزائر",
+                                badgeClass: "visitor",
+                                title: "تصفح السلع والشراء",
+                                desc: "له الصلاحية الكاملة لتصفح المنتجات النشطة للمحلات غير المجمدة والبحث المتقدم بالولايات، وإدارة سلته ومفضلته، وإتمام الطلبات عبر السلة أو الواتساب.",
+                                borderClass: ""
+                            },
+                            {
+                                badge: "التاجر / صاحب المتجر",
+                                badgeClass: "owner",
+                                title: "إدارة المتجر الخاص",
+                                desc: "له الصلاحية للتحكم وتحديث بيانات محله بالكامل، رفع المنتجات، وإعداد السمات والألوان لمتجره، وتتبع وتجهيز الطلبات وتعديل حالات الشحن والأسعار.",
+                                borderClass: "role-owner"
+                            },
+                            {
+                                badge: "المسؤول العام / الأدمن",
+                                badgeClass: "admin",
+                                title: "التحكم السيادي بالنظام",
+                                desc: "له صلاحية تفعيل المتاجر أو تجميدها يدويًا، مراجعة إحصائيات المبيعات والأرباح، إعداد الفئات العامة وشركات التوصيل وتوزيع الولايات الجغرافي.",
+                                borderClass: "role-admin"
+                            }
+                        ]
+                    },
+                    db: {
+                        title: "4. هيكل قاعدة البيانات (Database Schema & Relations)",
+                        intro: "يحتوي النظام على هيكل علاقات قوي يضمن سلامة البيانات وسرعة الاستعلامات تحت الضغط العالي مع حماية البيانات الحساسة عبر سياسات أمان صفوف الجداول (RLS):",
+                        subtablesTitle: "تفاصيل الجداول الإضافية والدعم (Supporting Tables):",
+                        bullets: [
+                            "<strong>wilayas (الولايات):</strong> تحتوي على قائمة الولايات الـ 58 في الجزائر، كود الولاية، والأسعار الافتراضية للتوصيل لكل ولاية.",
+                            "<strong>store_categories & store_category_relations:</strong> لإدارة تصنيفات المحلات نفسها (مثال: ملابس، إلكترونيات، مطاعم) وربطها بالمحلات.",
+                            "<strong>delivery_companies & delivery_zones & zone_wilayas:</strong> لإدارة خيارات شركات الشحن وتوزيع الولايات الجغرافي والأسعار.",
+                            "<strong>store_delivery_settings & store_delivery_overrides:</strong> لتخصيص التاجر لأسعار شحنه وتجاوز الأسعار الافتراضية لبلده.",
+                            "<strong>notifications:</strong> لإرسال التنبيهات الداخلية للتجار والمسؤولين عند استلام طلبات جديدة.",
+                            "<strong>promo_codes:</strong> لإدارة الكوبونات وأكواد الخصم الخاصة بالمحلات."
+                        ]
+                    },
+                    flows: {
+                        title: "5. العمليات وسير العمليات الحيوية (Key System Flows)",
+                        html: `
+                            <div class="flow-item">
+                                <h3>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                                    أ. تسجيل وقبول المتجر الجديد (Registration Flow)
+                                </h3>
+                                <p>يقدم التاجر طلب التسجيل، وبمجرد قبول الأدمن في لوحة التحكم: يتم إنشاء حساب للتاجر تلقائياً في <code>auth.users</code>، واستدعاء RPC <code>create_profile_for_user</code> لتهيئة ملفه الشخصي كتاجر، وإنشاء سجل متجر جديد في <code>stores</code> مرتبط بـ <code>owner_id</code>، وتعيين كلمة مرور مؤقتة مشتقة من رقم هاتفه.</p>
+                            </div>
+                            <div class="flow-item" style="margin-top:25px;">
+                                <h3>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                                    ب. عملية الشراء وإدخال الطلب (Checkout Flow via RPC)
+                                </h3>
+                                <p>لتفادي أي مشاكل في الصلاحيات RLS أو تعارض في البيانات، تتم عملية الشراء عبر إجراء مخزن مخصص (RPC) باسم <code>create_order</code> كالتالي: يقوم العميل بإرسال الطلب وسلته، ويقوم الـ RPC بالتحقق من توفر المنتجات في المخزون، وإدخال السجل الرئيسي في <code>orders</code>، وإدخال السلع في <code>order_items</code> بشكل ذري مترابط (Atomic Transaction) لمنع البيانات اليتيمة، وإرسال إشعار تلقائي للتاجر.</p>
+                            </div>
+                            <div class="flow-item" style="margin-top:25px;">
+                                <h3>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    ج. فحص حالة اشتراك المتجر وصلاحية العرض (Subscription & Visibility Rules)
+                                </h3>
+                                <p>تحتوي المنصة على حماية برمجية صارمة لعرض منتجات المحلات النشطة فقط. يتم التحقق من شروط ظهور المتجر والمنتجات عبر السياسات التالية: المتجر يجب أن يكون نشطاً (<code>is_active = true</code>) وغير مجمد (<code>is_manually_suspended = false</code>) وتاريخ اشتراكه صالحاً (<code>subscription_end_date > NOW()</code>). قاعدة البيانات تفلتر تلقائياً المنتجات وتخفيها إذا لم تستوفِ الشروط.</p>
+                            </div>
+                        `
+                    },
+                    localization: {
+                        title: "6. دعم اللغات والتخصيص (Localization & UX Themes)",
+                        intro: "تم تكييف المنصة لتعمل كلياً بما يتناسب مع السوق المحترفة للجزائر:",
+                        bullets: [
+                            "<strong>الأولوية للغة العربية:</strong> استعراض الاسم والوصف العربي للمنتجات والجداول (<code>name_ar</code> / <code>description_ar</code>) مع وضع الترجمات الأخرى كخيار احتياطي لضمان وصول أكبر للزبائن.",
+                            "<strong>دعم 3 سمات تفاعلية للمتجر:</strong> يختار التاجر سمة متجره واللون الرئيسي وتنعكس فوراً للزبائن: السمة الفاتحة (Light Theme) الكلاسيكية، السمة الداكنة (Dark Theme) المريحة للعين، والسمة الزجاجية (Glassmorphism) الشفافة الرائعة."
+                        ]
+                    }
+                }
+            },
+            en: {
+                title: "Bazzarna Architecture Blueprint | Technical Overview",
+                badge: "Comprehensive Architecture & Technical Blueprint",
+                heading: "Bazzarna System Architecture",
+                subheading: "Complete technical blueprint, relationship diagrams, and data structure for developers and stakeholders",
+                logoText: "Bazzarna Tech",
+                nav: {
+                    overview: "Overview",
+                    tech: "Tech Stack",
+                    roles: "Roles & Access",
+                    db: "Database & ERD",
+                    flows: "Key System Flows",
+                    localization: "Localization & Themes"
+                },
+                footer: {
+                    lead: "Lead Architect Office"
+                },
+                sections: {
+                    overview: {
+                        title: "1. Platform Overview",
+                        html: `<p><strong>Bazzarna</strong> is a Multi-Tenant SaaS E-commerce platform custom-tailored for the Algerian market. It enables store owners to create their own digital storefronts, manage products and inventory, track orders, and customize delivery options. Customers can browse stores, compare products, and complete checkout via shopping cart or directly through WhatsApp in Algerian Dinars (DZD).</p>
+                               <p>The system is designed to be lightweight, high-performing, and fast-loading on mobile networks, balancing smooth client interactions with a robust, feature-rich control dashboard for merchants and system administrators.</p>`
+                    },
+                    tech: {
+                        title: "2. Technology Stack",
+                        intro: "The system utilizes a distributed cloud backend and a modern frontend codebase optimized for speed and reliability:",
+                        bullets: [
+                            "<strong>Front-End:</strong> React.js with TypeScript and Vite bundler for rapid development, styled using Tailwind CSS and components from Shadcn UI.",
+                            "<strong>Back-End & Database:</strong> Supabase (PostgreSQL Cloud Database) ensuring relational integrity and quick query executions.",
+                            "<strong>Authentication & Access Control:</strong> Supabase Auth for encrypting and managing accounts of merchants, customers, and admins.",
+                            "<strong>Storage & Assets:</strong> Supabase Storage buckets hosting store logos, banner graphics, and product pictures.",
+                            "<strong>Stored Procedures (RPCs):</strong> Heavy or security-sensitive write operations are offloaded to database functions for transactional speed and consistency."
+                        ]
+                    },
+                    roles: {
+                        title: "3. User Roles & Access Control",
+                        cards: [
+                            {
+                                badge: "Visitor / Customer",
+                                badgeClass: "visitor",
+                                title: "Browse & Purchase",
+                                desc: "Full access to browse active products from active, unsuspended stores. Can manage cart, wishlist, and place orders via WhatsApp or internal forms.",
+                                borderClass: ""
+                            },
+                            {
+                                badge: "Store Owner / Merchant",
+                                badgeClass: "owner",
+                                title: "Store Management",
+                                desc: "Full administrative rights to their own store. Can manage products, variants, configurations, themes, shipping rules, and process incoming orders.",
+                                borderClass: "role-owner"
+                            },
+                            {
+                                badge: "Super Admin",
+                                badgeClass: "admin",
+                                title: "System Governance",
+                                desc: "Ultimate authority. Approves or suspends merchant stores, manages global product categories, configure delivery companies, and inspects platform analytics.",
+                                borderClass: "role-admin"
+                            }
+                        ]
+                    },
+                    db: {
+                        title: "4. Database Schema & Relations (ERD)",
+                        intro: "The relational database structure ensures high data normalization and low query latencies under concurrent workloads while securing tables via Row Level Security (RLS) policies:",
+                        subtablesTitle: "Supporting Tables Detail:",
+                        bullets: [
+                            "<strong>wilayas:</strong> Contains all 58 Algerian provinces, their region codes, and default shipping fees.",
+                            "<strong>store_categories & store_category_relations:</strong> Classifies merchants into categories (e.g., Fashion, Electronics).",
+                            "<strong>delivery_companies & delivery_zones:</strong> Handles delivery provider data, regional grouping, and pricing rules.",
+                            "<strong>store_delivery_settings & store_delivery_overrides:</strong> Allows store owners to set custom rates, overriding global defaults.",
+                            "<strong>notifications:</strong> Internal notification dispatch system for orders, alerts, and system updates.",
+                            "<strong>promo_codes:</strong> Merchant-specific coupons, discount limits, and validation criteria."
+                        ]
+                    },
+                    flows: {
+                        title: "5. Key System Flows",
+                        html: `
+                            <div class="flow-item">
+                                <h3>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                                    A. Merchant Registration & Onboarding
+                                </h3>
+                                <p>A merchant submits a registration request. Upon approval by a Super Admin: an account is automatically created in <code>auth.users</code>, the profile is initialized via the <code>create_profile_for_user</code> database RPC, a store record is created in the stores table linked to <code>owner_id</code>, and a temporary phone-based password is set.</p>
+                            </div>
+                            <div class="flow-item" style="margin-top:25px;">
+                                <h3>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                                    B. Checkout Process & Atomic Order Insertion
+                                </h3>
+                                <p>To bypass RLS restrictions and ensure absolute data consistency, checkout runs through the custom database RPC <code>create_order</code>: it checks product stock, inserts into <code>orders</code> and <code>order_items</code> inside a single atomic database transaction to prevent orphaned items, and fires merchant notifications.</p>
+                            </div>
+                            <div class="flow-item" style="margin-top:25px;">
+                                <h3>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    C. Store Subscription and Product Visibility
+                                </h3>
+                                <p>Strict automated safety policies control product listing visibility. Listings are only visible to visitors if the store has <code>is_active = true</code>, <code>is_manually_suspended = false</code>, and <code>subscription_end_date > NOW()</code> (or NULL). The database engine filters these dynamically.</p>
+                            </div>
+                        `
+                    },
+                    localization: {
+                        title: "6. Localization & UX Themes",
+                        intro: "Deeply tailored for the Algerian cultural and business ecosystem:",
+                        bullets: [
+                            "<strong>Arabic-First Translation:</strong> Products and details prioritize Arabic fields (<code>name_ar</code> / <code>description_ar</code>) with seamless English fallbacks.",
+                            "<strong>Multi-Theme Support:</strong> Merchants can style their public store in one of three premium designs: Default (Light) for clean light aesthetics, Dark Theme for modern sleek dark colors, and Glassmorphism for stunning frosted-glass layouts."
+                        ]
+                    }
+                }
+            },
+            fr: {
+                title: "Plan d'Architecture Bazzarna | Aperçu Technique",
+                badge: "Plan Architectural & Technique Complet",
+                heading: "Architecture du Système Bazzarna",
+                subheading: "Plan technique complet, diagrammes de relations et structure de données pour développeurs et parties prenantes",
+                logoText: "Bazzarna Tech",
+                nav: {
+                    overview: "Aperçu",
+                    tech: "Stack Technique",
+                    roles: "Rôles & Accès",
+                    db: "Base de Données & ERD",
+                    flows: "Flux de Travail",
+                    localization: "Localisation & Thèmes"
+                },
+                footer: {
+                    lead: "Architecte Logiciel Principal"
+                },
+                sections: {
+                    overview: {
+                        title: "1. Présentation de la Plateforme",
+                        html: `<p><strong>Bazzarna</strong> est une plateforme e-commerce SaaS multi-boutiques (Multi-Tenant) spécialement conçue pour le marché algérien. Elle permet aux commerçants de créer leurs boutiques en ligne, de gérer leurs produits et stocks, et de suivre les commandes. Les clients peuvent explorer les boutiques, comparer les articles et commander via leur panier ou WhatsApp en Dinars Algériens (DZD).</p>
+                               <p>Conçu pour être léger et rapide sur les réseaux mobiles algériens, le système équilibre des interactions fluides côté client avec un tableau de bord complet et robuste pour les commerçants et les administrateurs.</p>`
+                    },
+                    tech: {
+                        title: "2. Architecture Technique",
+                        intro: "Le système utilise une infrastructure cloud distribuée et un code moderne optimisé pour la vitesse et la fiabilité :",
+                        bullets: [
+                            "<strong>Front-End :</strong> React.js avec TypeScript et Vite pour un développement rapide, stylisé avec Tailwind CSS et des composants Shadcn UI.",
+                            "<strong>Back-End & Base de Données :</strong> Supabase (PostgreSQL Cloud) garantissant l'intégrité relationnelle et des requêtes ultra-rapides.",
+                            "<strong>Authentification :</strong> Supabase Auth pour chiffrer et gérer les comptes des commerçants, clients et administrateurs.",
+                            "<strong>Stockage :</strong> Buckets Supabase Storage pour héberger les logos des boutiques, les bannières et les images des produits.",
+                            "<strong>Procédures Stockées (RPC) :</strong> Les opérations d'écriture critiques et sécurisées sont exécutées via des fonctions de base de données (RPC) pour garantir l'atomicité."
+                        ]
+                    },
+                    roles: {
+                        title: "3. Rôles et Contrôle d'Accès",
+                        cards: [
+                            {
+                                badge: "Visiteur / Client",
+                                badgeClass: "visitor",
+                                title: "Parcourir & Acheter",
+                                desc: "Accès complet aux produits actifs des boutiques actives et non suspendues. Peut gérer le panier, les favoris et commander via WhatsApp ou formulaire interne.",
+                                borderClass: ""
+                            },
+                            {
+                                badge: "Commerçant",
+                                badgeClass: "owner",
+                                title: "Gestion de Boutique",
+                                desc: "Droits d'administration complets sur sa boutique. Gère les produits, variantes, thèmes, tarifs de livraison par Wilaya et traite les commandes entrantes.",
+                                borderClass: "role-owner"
+                            },
+                            {
+                                badge: "Super Administrateur",
+                                badgeClass: "admin",
+                                title: "Gouvernance Globale",
+                                desc: "Autorité ultime. Approuve ou suspend les boutiques, gère les catégories de produits globales, configure les transporteurs et analyse les statistiques.",
+                                borderClass: "role-admin"
+                            }
+                        ]
+                    },
+                    db: {
+                        title: "4. Base de Données & Relations (ERD)",
+                        intro: "La structure relationnelle de la base de données assure une forte normalisation et des temps de réponse minimaux, tout en protégeant les tables via les politiques de sécurité (RLS) :",
+                        subtablesTitle: "Détails des Tables Secondaires :",
+                        bullets: [
+                            "<strong>wilayas :</strong> Contient les 58 provinces d'Algérie, leurs codes et les tarifs de livraison par défaut.",
+                            "<strong>store_categories & store_category_relations :</strong> Classe les boutiques par catégorie (ex: Mode, Électronique, Alimentation).",
+                            "<strong>delivery_companies & delivery_zones :</strong> Gère les entreprises de livraison et les grilles tarifaires régionales.",
+                            "<strong>store_delivery_settings & store_delivery_overrides :</strong> Permet aux marchands de surcharger les frais de livraison par défaut.",
+                            "<strong>notifications :</strong> Système d'alertes internes pour les nouvelles commandes et alertes système.",
+                            "<strong>promo_codes :</strong> Codes promotionnels spécifiques à chaque boutique avec dates de validité."
+                        ]
+                    },
+                    flows: {
+                        title: "5. Flux Clés du Système",
+                        html: `
+                            <div class="flow-item">
+                                <h3>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                                    A. Inscription et Validation des Commerçants
+                                </h3>
+                                <p>Le commerçant soumet une demande. Dès l'approbation de l'administrateur : un compte est créé dans <code>auth.users</code>, le profil est configuré via le RPC <code>create_profile_for_user</code>, une boutique est ajoutée dans la table <code>stores</code> liée à <code>owner_id</code>, et un mot de passe temporaire basé sur son téléphone est généré.</p>
+                            </div>
+                            <div class="flow-item" style="margin-top:25px;">
+                                <h3>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                                    B. Flux de Commande & Insertion Atomique
+                                </h3>
+                                <p>Pour éviter les erreurs RLS et assurer la cohérence, l'achat s'effectue via le RPC <code>create_order</code> qui vérifie les stocks, insère la commande dans <code>orders</code> et ses articles dans <code>order_items</code> dans une seule transaction atomique pour éviter les données orphelines, puis notifie le vendeur.</p>
+                            </div>
+                            <div class="flow-item" style="margin-top:25px;">
+                                <h3>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    C. Abonnement de Boutique et Règles de Visibilité
+                                </h3>
+                                <p>Des politiques de sécurité automatisées filtrent l'affichage. Les produits ne sont visibles que si la boutique a <code>is_active = true</code>, <code>is_manually_suspended = false</code>, et que l'abonnement est valide (<code>subscription_end_date > NOW()</code>).</p>
+                            </div>
+                        `
+                    },
+                    localization: {
+                        title: "6. Localisation & Thèmes",
+                        intro: "Profondément adapté à l'écosystème commercial et culturel algérien :",
+                        bullets: [
+                            "<strong>Priorité à l'arabe :</strong> Les données produits utilisent en priorité les champs arabes (<code>name_ar</code> / <code>description_ar</code>) avec repli en anglais.",
+                            "<strong>Thèmes de Boutique :</strong> Les commerçants peuvent personnaliser leur boutique avec 3 thèmes : Clair (Default), Sombre (Dark) et le style moderne Glassmorphism (effets de flou et de verre)."
+                        ]
+                    }
+                }
+            }
+        };
+
+        // Mermaid Code Definitions
+        const diagrams = {
+            tech: {
+                ar: `graph TD
+                    Client[واجهة الويب: React + TS + Vite]
+                    Auth[Supabase Auth: التحقق والتأمين]
+                    DB[(Supabase PostgreSQL: قاعدة البيانات)]
+                    Storage[Supabase Storage: الصور والمستندات]
+                    RPC[Database RPC: العمليات المشتركة الحساسة]
+
+                    Client -->|تسجيل الدخول والولوج| Auth
+                    Client -->|قراءة وكتابة البيانات| DB
+                    Client -->|رفع صور المنتجات والغلاف| Storage
+                    Client -->|تنفيذ إجراءات الشراء المعقدة| RPC`,
+                en: `graph TD
+                    Client[Front-End: React + TS + Vite]
+                    Auth[Supabase Auth: Authentication & Safety]
+                    DB[(Supabase PostgreSQL Database)]
+                    Storage[Supabase Storage: Images & Files]
+                    RPC[Database RPC: Atomic Actions]
+
+                    Client -->|Login & Profile Access| Auth
+                    Client -->|Read/Write Operations| DB
+                    Client -->|Upload Logos & Images| Storage
+                    Client -->|Invoke Stored Procedures| RPC`,
+                fr: `graph TD
+                    Client[Front-End: React + TS + Vite]
+                    Auth[Supabase Auth: Authentification & Sécurité]
+                    DB[(Supabase PostgreSQL Base de Données)]
+                    Storage[Supabase Storage: Images & Logos]
+                    RPC[Database RPC: Actions Atomiques]
+
+                    Client -->|Connexion & Profil| Auth
+                    Client -->|Opérations Lecture/Écriture| DB
+                    Client -->|Upload Images & Logos| Storage
+                    Client -->|Appel de Procédures Stockées| RPC`
+            },
+            erd: {
+                ar: `erDiagram
+                    PROFILES ||--o| STORES : "يمتلك"
+                    STORES ||--o{ PRODUCTS : "يحتوي على"
+                    CATEGORIES ||--o{ PRODUCTS : "يصنف"
+                    STORES ||--o{ ORDERS : "يستقبل"
+                    ORDERS ||--o{ ORDER_ITEMS : "يتضمن"
+                    PRODUCTS ||--o{ PRODUCT_VARIANTS : "يحدد له"
+                    PRODUCTS ||--o{ ORDER_ITEMS : "يُشترى في"
+
+                    PROFILES {
+                        uuid id PK
+                        string email
+                        string role
+                        string full_name
+                        string phone
+                    }
+                    STORES {
+                        uuid id PK
+                        uuid owner_id FK
+                        string name
+                        string slug
+                        boolean is_active
+                        timestamp subscription_end_date
+                    }
+                    PRODUCTS {
+                        uuid id PK
+                        uuid store_id FK
+                        uuid category_id FK
+                        string name_ar
+                        numeric price
+                        boolean is_sold_out
+                    }
+                    ORDERS {
+                        uuid id PK
+                        uuid store_id FK
+                        string full_name
+                        string phone
+                        numeric total_price
+                        string status
+                    }`,
+                en: `erDiagram
+                    PROFILES ||--o| STORES : "owns"
+                    STORES ||--o{ PRODUCTS : "contains"
+                    CATEGORIES ||--o{ PRODUCTS : "categorizes"
+                    STORES ||--o{ ORDERS : "receives"
+                    ORDERS ||--o{ ORDER_ITEMS : "contains"
+                    PRODUCTS ||--o{ PRODUCT_VARIANTS : "defines"
+                    PRODUCTS ||--o{ ORDER_ITEMS : "ordered"
+
+                    PROFILES {
+                        uuid id PK
+                        string email
+                        string role
+                        string full_name
+                        string phone
+                    }
+                    STORES {
+                        uuid id PK
+                        uuid owner_id FK
+                        string name
+                        string slug
+                        boolean is_active
+                        timestamp subscription_end_date
+                    }
+                    PRODUCTS {
+                        uuid id PK
+                        uuid store_id FK
+                        uuid category_id FK
+                        string name_ar
+                        numeric price
+                        boolean is_sold_out
+                    }
+                    ORDERS {
+                        uuid id PK
+                        uuid store_id FK
+                        string full_name
+                        string phone
+                        numeric total_price
+                        string status
+                    }`,
+                fr: `erDiagram
+                    PROFILES ||--o| STORES : "possède"
+                    STORES ||--o{ PRODUCTS : "contient"
+                    CATEGORIES ||--o{ PRODUCTS : "catégorise"
+                    STORES ||--o{ ORDERS : "reçoit"
+                    ORDERS ||--o{ ORDER_ITEMS : "contient"
+                    PRODUCTS ||--o{ PRODUCT_VARIANTS : "définit"
+                    PRODUCTS ||--o{ ORDER_ITEMS : "commandé"
+
+                    PROFILES {
+                        uuid id PK
+                        string email
+                        string role
+                        string full_name
+                        string phone
+                    }
+                    STORES {
+                        uuid id PK
+                        uuid owner_id FK
+                        string name
+                        string slug
+                        boolean is_active
+                        timestamp subscription_end_date
+                    }
+                    PRODUCTS {
+                        uuid id PK
+                        uuid store_id FK
+                        uuid category_id FK
+                        string name_ar
+                        numeric price
+                        boolean is_sold_out
+                    }
+                    ORDERS {
+                        uuid id PK
+                        uuid store_id FK
+                        string full_name
+                        string phone
+                        numeric total_price
+                        string status
+                    }`
+            }
+        };
+
+        // State variables
+        let currentLang = 'ar';
+        let currentTheme = 'dark';
+
+        // Initialize Mermaid
+        mermaid.initialize({
+            startOnLoad: false,
+            theme: 'dark',
+            securityLevel: 'loose',
+            themeVariables: {
+                background: 'transparent',
+                primaryColor: '#10b981',
+                primaryTextColor: '#F5F5F5',
+                lineColor: '#6366f1',
+                secondaryColor: '#a855f7'
+            }
+        });
+
+        // Translate the page content
+        function translatePage(lang) {
+            currentLang = lang;
+            const t = translations[lang];
+
+            // Update page titles & layout direction
+            document.title = t.title;
+            document.documentElement.lang = lang;
+            const dir = lang === 'ar' ? 'rtl' : 'ltr';
+            document.documentElement.dir = dir;
+
+            // Sidebar Logo Text
+            document.getElementById('sidebar-logo-text').innerText = t.logoText;
+
+            // Global i18n attributes
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                const keys = key.split('.');
+                let val = t;
+                keys.forEach(k => {
+                    if (val) val = val[k];
+                });
+                if (val && typeof val === 'string') {
+                    el.innerHTML = val;
+                }
+            });
+
+            // 1. Overview Content
+            document.getElementById('overview-content').innerHTML = t.sections.overview.html;
+
+            // 2. Tech Stack Content
+            document.getElementById('tech-intro-text').innerText = t.sections.tech.intro;
+            const techList = document.getElementById('tech-list');
+            techList.innerHTML = '';
+            t.sections.tech.bullets.forEach(b => {
+                const li = document.createElement('li');
+                li.innerHTML = b;
+                techList.appendChild(li);
+            });
+
+            // 3. User Roles Content
+            const rolesGrid = document.getElementById('roles-grid');
+            rolesGrid.innerHTML = '';
+            t.sections.roles.cards.forEach(c => {
+                const card = document.createElement('div');
+                card.className = `card role-card ${c.borderClass}`;
+                card.innerHTML = `
+                    <span class="role-badge ${c.badgeClass}">${c.badge}</span>
+                    <h3>${c.title}</h3>
+                    <p>${c.desc}</p>
+                `;
+                rolesGrid.appendChild(card);
+            });
+
+            // 4. Database Content
+            document.getElementById('db-intro-text').innerText = t.sections.db.intro;
+            document.getElementById('db-subtables-title').innerText = t.sections.db.subtablesTitle;
+            const dbList = document.getElementById('db-subtables-list');
+            dbList.innerHTML = '';
+            t.sections.db.bullets.forEach(b => {
+                const li = document.createElement('li');
+                li.innerHTML = b;
+                dbList.appendChild(li);
+            });
+
+            // 5. Flows Content
+            document.getElementById('flows-content').innerHTML = t.sections.flows.html;
+
+            // 6. Localization Content
+            document.getElementById('localization-intro-text').innerText = t.sections.localization.intro;
+            const locList = document.getElementById('localization-list');
+            locList.innerHTML = '';
+            t.sections.localization.bullets.forEach(b => {
+                const li = document.createElement('li');
+                li.innerHTML = b;
+                locList.appendChild(li);
+            });
+
+            // Reload Mermaid diagrams with the proper translation
+            updateDiagrams(lang, currentTheme);
+        }
+
+        // Re-render Mermaid diagrams
+        function updateDiagrams(lang, themeName) {
+            const isLight = themeName === 'light';
+            
+            // Re-initialize mermaid settings to support dark vs light diagrams
+            mermaid.initialize({
+                startOnLoad: false,
+                theme: isLight ? 'default' : 'dark',
+                securityLevel: 'loose',
+                themeVariables: {
+                    background: 'transparent',
+                    primaryColor: isLight ? '#059669' : '#10b981',
+                    primaryTextColor: isLight ? '#121212' : '#F5F5F5',
+                    lineColor: isLight ? '#4f46e5' : '#6366f1',
+                    secondaryColor: isLight ? '#9333ea' : '#a855f7'
+                }
+            });
+
+            const techContainer = document.getElementById('tech-diagram-container');
+            techContainer.innerHTML = `<div class="mermaid" id="tech-diagram">${diagrams.tech[lang]}</div>`;
+
+            const erdContainer = document.getElementById('erd-diagram-container');
+            erdContainer.innerHTML = `<div class="mermaid" id="erd-diagram">${diagrams.erd[lang]}</div>`;
+
+            mermaid.run();
+        }
+
+        // Setup theme switcher
+        function changeTheme(themeName) {
+            currentTheme = themeName;
+            document.body.className = '';
+            document.body.classList.add(`theme-${themeName}`);
+
+            // Active state in button group
+            document.querySelectorAll('#theme-selectors .control-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-theme') === themeName) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // Refresh diagrams with correct coloring
+            updateDiagrams(currentLang, themeName);
+        }
+
+        // Setup event handlers
+        document.addEventListener('DOMContentLoaded', () => {
+            // Translate initial
+            translatePage('ar');
+
+            // Theme Buttons
+            document.querySelectorAll('#theme-selectors .control-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    changeTheme(btn.getAttribute('data-theme'));
+                });
+            });
+
+            // Lang Buttons
+            document.querySelectorAll('#lang-selectors .control-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Update active button state
+                    document.querySelectorAll('#lang-selectors .control-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    translatePage(btn.getAttribute('data-lang'));
+                });
+            });
+
+            // Mobile Hamburger Menu
+            const hamburger = document.getElementById('hamburger-toggle');
+            hamburger.addEventListener('click', () => {
+                document.body.classList.toggle('sidebar-open');
+            });
+
+            // Close sidebar when clicking links on mobile
+            document.querySelectorAll('.nav-item').forEach(link => {
+                link.addEventListener('click', () => {
+                    document.body.classList.remove('sidebar-open');
+                });
+            });
+
+            // Active section indicator tracking
+            const sections = document.querySelectorAll("section");
+            const navLinks = document.querySelectorAll(".nav-item");
+            const indicatorText = document.getElementById("indicator-text");
+
+            window.addEventListener("scroll", () => {
+                let current = "overview";
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    const sectionHeight = section.clientHeight;
+                    if (pageYOffset >= (sectionTop - 180)) {
+                        current = section.getAttribute("id");
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove("active");
+                    if (link.getAttribute("href") === `#${current}`) {
+                        link.classList.add("active");
+                        // Update floating nav header text
+                        const labelEl = link.querySelector('span');
+                        if (labelEl) {
+                            indicatorText.innerText = labelEl.innerText;
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

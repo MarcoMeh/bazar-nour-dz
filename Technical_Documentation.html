@@ -3,188 +3,565 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bazzarna | Technical Architecture & Design</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700&display=swap" rel="stylesheet">
+    <title>مخطط بنية بازارنا التقنية | Bazzarna Architecture Blueprint</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-dark: #121212;
-            --text-light: #F5F5F5;
-            --accent-green: #2ECC71;
-            --accent-red: #E74C3C;
-            --glass-bg: rgba(255, 255, 255, 0.05);
-            --card-border: rgba(255, 255, 255, 0.1);
+            --bg-dark: #0c0a0f;
+            --bg-wrapper: #121016;
+            --card-bg: rgba(26, 22, 32, 0.65);
+            --glass-bg: rgba(255, 255, 255, 0.02);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-main: #f4f4f6;
+            --text-sub: #a19ea8;
+            --primary: #10b981;
+            --primary-glow: rgba(16, 185, 129, 0.15);
+            --accent: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.15);
+            --accent-purple: #a855f7;
+        }
+
+        * {
+            box-sizing: border-box;
+            scroll-behavior: smooth;
         }
 
         body {
-            font-family: 'Cairo', sans-serif;
+            font-family: 'Cairo', 'Inter', sans-serif;
             background-color: var(--bg-dark);
-            color: var(--text-light);
+            color: var(--text-main);
             margin: 0;
             padding: 0;
-            line-height: 1.6;
+            line-height: 1.7;
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        .container {
-            max-width: 1000px;
-            margin: 40px auto;
-            padding: 20px;
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
         }
-
-        header {
-            text-align: center;
-            margin-bottom: 60px;
-            padding: 40px;
-            background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(18, 18, 18, 1));
-            border-radius: 20px;
-            border: 1px solid var(--card-border);
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
         }
-
-        h1 { font-weight: 700; color: var(--accent-green); margin: 0; font-size: 2.5rem; }
-        h2 { border-right: 4px solid var(--accent-green); padding-right: 15px; margin-top: 50px; color: var(--accent-green); }
-        h3 { color: #fff; margin-top: 30px; }
-
-        .card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--card-border);
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 25px;
-            transition: transform 0.3s ease;
-        }
-
-        .card:hover { transform: translateY(-5px); }
-
-        .architecture-box {
-            font-family: monospace;
-            background: #000;
-            color: #0f0;
-            padding: 20px;
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 10px;
-            white-space: pre;
-            overflow-x: auto;
-            direction: ltr;
-            text-align: left;
-            border: 1px solid var(--accent-green);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
         }
 
-        .badge {
-            display: inline-block;
-            padding: 5px 12px;
+        /* Layout Structure */
+        aside {
+            width: 280px;
+            background-color: var(--bg-wrapper);
+            border-left: 1px solid var(--border-color);
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            right: 0;
+            z-index: 100;
+            padding: 30px 20px;
+            display: flex;
+            flex-col: column;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        main {
+            margin-right: 280px;
+            width: calc(100% - 280px);
+            padding: 40px 5%;
+            position: relative;
+        }
+
+        /* Sidebar Nav Styling */
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 40px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+        }
+
+        .logo-box {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: gradient-to-br;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            color: white;
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        .logo-text {
+            font-weight: 900;
+            font-size: 1.2rem;
+            letter-spacing: 0.5px;
+            background: linear-gradient(to left, var(--text-main), var(--text-sub));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            border-radius: 12px;
+            text-decoration: none;
+            color: var(--text-sub);
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item:hover {
+            color: var(--primary);
+            background-color: rgba(16, 185, 129, 0.05);
+            transform: translateX(-4px);
+        }
+
+        .nav-item.active {
+            color: white;
+            background: linear-gradient(to left, var(--primary), var(--primary-glow));
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.15);
+        }
+
+        .sidebar-footer {
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+            font-size: 0.75rem;
+            color: var(--text-sub);
+            text-align: center;
+            opacity: 0.8;
+        }
+
+        /* Content Headings */
+        header {
+            margin-bottom: 50px;
+            position: relative;
+        }
+
+        header::after {
+            content: '';
+            position: absolute;
+            top: -100px;
+            left: -100px;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .header-badge {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--accent);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            padding: 4px 12px;
             border-radius: 20px;
             font-size: 0.8rem;
-            font-weight: bold;
-            margin-bottom: 10px;
+            font-weight: 800;
+            display: inline-block;
+            margin-bottom: 12px;
         }
-        .badge-web { background: #3498db; color: #fff; }
-        .badge-desktop { background: #9b59b6; color: #fff; }
 
-        .feature-grid {
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin: 0;
+            background: linear-gradient(135deg, #fff 30%, var(--text-sub) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: var(--text-sub);
+            font-size: 1.1rem;
+            margin-top: 8px;
+        }
+
+        h2 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin-top: 60px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+            position: relative;
+        }
+
+        h2::before {
+            content: '';
+            display: inline-block;
+            width: 6px;
+            height: 24px;
+            background: linear-gradient(to bottom, var(--primary), var(--accent));
+            border-radius: 4px;
+        }
+
+        h3 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+
+        /* Cards & Content Elements */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            border-color: rgba(16, 185, 129, 0.3);
+            box-shadow: 0 15px 40px rgba(16, 185, 129, 0.05);
+            transform: translateY(-2px);
+        }
+
+        p {
+            color: var(--text-sub);
+            font-size: 1rem;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        strong {
+            color: white;
+        }
+
+        /* Table & Lists */
+        ul {
+            padding-right: 20px;
+            margin-bottom: 0;
+        }
+
+        li {
+            color: var(--text-sub);
+            margin-bottom: 12px;
+            position: relative;
+            list-style: none;
+        }
+
+        li::before {
+            content: "✦";
+            color: var(--primary);
+            position: absolute;
+            right: -20px;
+            font-size: 0.8rem;
+        }
+
+        /* Mermaid Graph Styling Overrides */
+        .mermaid {
+            background-color: rgba(0, 0, 0, 0.25) !important;
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Grid System */
+        .grid-2 {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
         }
 
-        footer {
-            text-align: center;
-            padding: 40px;
-            font-size: 0.9rem;
-            opacity: 0.6;
+        .role-card {
+            border-top: 4px solid var(--primary);
         }
+        .role-card.admin { border-top-color: var(--accent); }
+        .role-card.owner { border-top-color: var(--accent-purple); }
 
-        ul { list-style-type: none; padding-right: 0; }
-        ul li::before { content: "•"; color: var(--accent-green); display: inline-block; width: 1em; margin-right: -1em; padding-right: 1.5em; }
+        .badge-pill {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .badge-pill.client { background: rgba(16, 185, 129, 0.1); color: var(--primary); border: 1px solid rgba(16, 185, 129, 0.2); }
+        .badge-pill.admin { background: rgba(99, 102, 241, 0.1); color: var(--accent); border: 1px solid rgba(99, 102, 241, 0.2); }
+        .badge-pill.owner { background: rgba(168, 85, 247, 0.1); color: var(--accent-purple); border: 1px solid rgba(168, 85, 247, 0.2); }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 1024px) {
+            aside {
+                width: 100%;
+                height: auto;
+                position: relative;
+                border-left: none;
+                border-bottom: 1px solid var(--border-color);
+                padding: 20px;
+            }
+            .sidebar-logo {
+                margin-bottom: 20px;
+                padding-bottom: 10px;
+            }
+            .sidebar-nav {
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+            .nav-item {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            }
+            main {
+                margin-right: 0;
+                width: 100%;
+                padding: 20px;
+            }
+        }
     </style>
+    <!-- Include Mermaid.js for drawing dynamic diagrams in browser -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            securityLevel: 'loose',
+            themeVariables: {
+                background: '#121016',
+                primaryColor: '#10b981',
+                primaryTextColor: '#f4f4f6',
+                lineColor: '#6366f1',
+                secondaryColor: '#a855f7'
+            }
+        });
+    </script>
 </head>
 <body>
 
-<div class="container">
-    <header>
-        <p style="margin-bottom: 10px; opacity: 0.8;">AliDev Studio Presenting</p>
-        <h1>مشروع Bazzarna</h1>
-        <p>مستند الهندسة التقنية وتصميم المنتج للشركات الناشئة</p>
-    </header>
-
-    <section id="overview">
-        <h2>1. نظرة عامة والقيمة المقترحة</h2>
-        <div class="card">
-            <p>مشروع <strong>Bazzarna</strong> هو منظومة تجارة إلكترونية هجينة تجمع بين مرونة الويب وسلطة تطبيقات سطح المكتب. تم تصميم النظام ليعمل بكفاءة عالية في معالجة الطلبات الكبيرة وإدارة المتاجر المتعددة عبر قاعدة بيانات سحابية موحدة.</p>
-            <p><strong>الرؤية التقنية:</strong> نعتمد على بنية تحتية موزعة تضمن استمرارية الخدمة وتوفر أسرع تجربة تصفح للمستخدم في الجزائر.</p>
+    <!-- Sidebar Navigation -->
+    <aside>
+        <div>
+            <div class="sidebar-logo">
+                <div class="logo-box">B</div>
+                <div class="logo-text">بازارنا التقني</div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#overview" class="nav-item active">نظرة عامة</a>
+                <a href="#tech-stack" class="nav-item">البنية التكنولوجية</a>
+                <a href="#roles" class="nav-item">الأدوار والصلاحيات</a>
+                <a href="#database" class="nav-item">قاعدة البيانات</a>
+                <a href="#flows" class="nav-item">سير العمليات</a>
+                <a href="#localization" class="nav-item">التوطين والسمات</a>
+            </nav>
         </div>
-    </section>
+        <div class="sidebar-footer">
+            <p>&copy; 2026 AliDev Studio</p>
+            <p style="color: var(--primary); font-weight: bold; margin: 0;">Lead Architect Office</p>
+        </div>
+    </aside>
 
-    <section id="features">
-        <h2>2. مصفوفة المميزات</h2>
-        <div class="feature-grid">
+    <!-- Main Content Area -->
+    <main>
+        <header>
+            <span class="header-badge">المخطط الفني الشامل للمنصة</span>
+            <h1>هندسة نظام بازارنا (Bazzarna)</h1>
+            <p class="subtitle">المخطط الفني وهيكل العلاقات والبيانات لأصحاب المشاريع والمطورين</p>
+        </header>
+
+        <!-- 1. Overview -->
+        <section id="overview">
+            <h2>1. نظرة عامة على المنصة</h2>
             <div class="card">
-                <span class="badge badge-web">منصة الويب (Vercel)</span>
-                <h3>للمستهلك والتجار</h3>
+                <p>منصة <strong>بازارنا</strong> هي نظام تجارة إلكترونية متعدد المتاجر (Multi-Tenant SaaS E-commerce) موجه خصيصاً للسوق الجزائري. تتيح للملاك إنشاء متاجرهم الخاصة، إدارة منتجاتهم ومخزونهم، استقبال الطلبات، وتجهيز عمليات التوصيل، بينما تتيح للعملاء تصفح المتاجر، مقارنة المنتجات، وإتمام الطلبات عبر السلة أو الواتساب مباشرة بالدينار الجزائري.</p>
+                <p>تم تصميم هذا النظام ليكون خفيف الوزن وسريع التحميل على شبكات الهواتف المحمولة في الجزائر، ويوفر بيئة تجارة متكاملة تجمع بين سهولة تصفح الزوار وقوة لوحة التحكم الخاصة بالتجار والمسؤولين.</p>
+            </div>
+        </section>
+
+        <!-- 2. Tech Stack -->
+        <section id="tech-stack">
+            <h2>2. البنية التكنولوجية للبرنامج</h2>
+            <div class="card">
+                <p>يعتمد النظام على بنية تحتية سحابية موزعة وخفيفة لتقليل زمن الاستجابة للمستخدمين:</p>
                 <ul>
-                    <li>واجهات متاجر ذكية (Custom Storefronts).</li>
-                    <li>نظام بحث متقدم وفلاتر تصنيف.</li>
-                    <li>تتبع مباشر للطلبات (Real-time Tracking).</li>
-                    <li>تصميم متجاوب بالكامل (Mobile-First).</li>
+                    <li><strong>الواجهة الأمامية (Front-End):</strong> مكتبة React.js مع لغة TypeScript وتجميع Vite لسرعة البناء والتطوير، مستخدمين Tailwind CSS للتصاميم المتجاوبة ونظام Shadcn UI.</li>
+                    <li><strong>قاعدة البيانات والـ Back-End:</strong> خوادم Supabase المعتمدة على PostgreSQL لضمان موثوقية العلاقات والبيانات الضخمة.</li>
+                    <li><strong>إدارة الصلاحيات والولوج (Auth):</strong> Supabase Auth لحماية وتشفير حسابات التجار والزبائن والتحكم بالأدوار.</li>
+                    <li><strong>تخزين الصور (Storage):</strong> Supabase Storage مع مستودعات مخصصة لصور المنتجات وشعارات المحلات.</li>
+                </ul>
+
+                <!-- Mermaid flow diagram -->
+                <div class="mermaid">
+                    graph TD
+                        Client[واجهة الويب: React + TS + Vite]
+                        Auth[Supabase Auth: التحقق والتأمين]
+                        DB[(Supabase PostgreSQL: قاعدة البيانات)]
+                        Storage[Supabase Storage: الصور والمستندات]
+                        RPC[Database RPC: العمليات المشتركة الحساسة]
+
+                        Client -->|تسجيل الدخول والولوج| Auth
+                        Client -->|قراءة وكتابة البيانات| DB
+                        Client -->|رفع صور المنتجات والغلاف| Storage
+                        Client -->|تنفيذ إجراءات الشراء المعقدة| RPC
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Roles -->
+        <section id="roles">
+            <h2>3. الأدوار وصلاحيات الوصول</h2>
+            <div class="grid-2">
+                <div class="card role-card">
+                    <span class="badge-pill client">الزبون / الزائر</span>
+                    <h3>تصفح السلع والشراء</h3>
+                    <p>له الصلاحية الكاملة لتصفح المنتجات النشطة للمحلات غير المجمدة والبحث المتقدم بالولايات، وإدارة سلته ومفضلته، وإتمام الطلبات عبر السلة أو الواتساب.</p>
+                </div>
+                <div class="card role-card owner">
+                    <span class="badge-pill owner">التاجر / الشريك</span>
+                    <h3>إدارة المتجر الخاص</h3>
+                    <p>له الصلاحية للتحكم وتحديث بيانات محله بالكامل، رفع المنتجات، وإعداد السمات والألوان لمتجره، وتتبع وتجهيز الطلبات وتعديل حالات الشحن.</p>
+                </div>
+                <div class="card role-card admin">
+                    <span class="badge-pill admin">الأدمن / المسؤول</span>
+                    <h3>التحكم السيادي بالنظام</h3>
+                    <p>له صلاحية تفعيل المتاجر أو تجميدها يدويًا، مراجعة إحصائيات المبيعات والأرباح، إعداد الفئات العامة وشركات التوصيل وتوزيع الولايات الجغرافي.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Database -->
+        <section id="database">
+            <h2>4. هيكل وعلاقات قاعدة البيانات (ERD)</h2>
+            <div class="card">
+                <p>توزيع الجداول والعلاقات يضمن مرونة عالية عند التعامل مع الطلبيات المتعددة لتفادي بطء الاستعلامات الكبيرة:</p>
+                
+                <!-- Mermaid ERD Diagram -->
+                <div class="mermaid">
+                    erDiagram
+                        PROFILES ||--o| STORES : "يمتلك"
+                        STORES ||--o{ PRODUCTS : "يحتوي على"
+                        CATEGORIES ||--o{ PRODUCTS : "يصنف"
+                        STORES ||--o{ ORDERS : "يستقبل"
+                        ORDERS ||--o{ ORDER_ITEMS : "يتضمن"
+                        PRODUCTS ||--o{ PRODUCT_VARIANTS : "يحدد له"
+                        PRODUCTS ||--o{ ORDER_ITEMS : "يُشترى في"
+
+                        PROFILES {
+                            uuid id PK
+                            string email
+                            string role
+                            string full_name
+                            string phone
+                        }
+                        STORES {
+                            uuid id PK
+                            uuid owner_id FK
+                            string name
+                            string slug
+                            boolean is_active
+                            timestamp subscription_end_date
+                        }
+                        PRODUCTS {
+                            uuid id PK
+                            uuid store_id FK
+                            uuid category_id FK
+                            string name_ar
+                            numeric price
+                            boolean is_sold_out
+                        }
+                        ORDERS {
+                            uuid id PK
+                            uuid store_id FK
+                            string full_name
+                            string phone
+                            numeric total_price
+                            string status
+                        }
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. Flows -->
+        <section id="flows">
+            <h2>5. سير العمليات الحيوية للنظام</h2>
+            <div class="card">
+                <h3>أ. قبول المتاجر الجديدة (Merchant Approval):</h3>
+                <p>يقدم التاجر طلبه، وبمجرد موافقة المسؤول في لوحة التحكم، يتم تلقائياً إنشاء الحساب الأمني للتاجر، وتوليد ملف المستخدم (Profile)، وربطه بسجل المحل التجاري مع تفعيل كلمة مرور افتراضية مشتقة من رقم هاتفه.</p>
+
+                <h3>ب. إتمام الشراء المشترك عبر الـ RPC:</h3>
+                <p>لضمان سرعة وموثوقية المعاملات وتفادي RLS Blockages، تتم كتابة الطلبات وسلعها في عملية ذرية واحدة (Atomic Transaction) في خادم قاعدة البيانات عبر استدعاء الإجراء المخزن <code>create_order</code>، مما يرسل إشعارات فورية للتجار المعنيين.</p>
+
+                <h3>ج. التحقق من صلاحية عرض المنتجات:</h3>
+                <p>تقوم قاعدة البيانات تلقائياً بفلترة المنتجات ومنع ظهورها للزوار في حال انتهاء اشتراك المتجر التابع له المنتج (تاريخ اشتراك قديم) أو في حال تم تجميد المتجر يدوياً من الإدارة لضمان مصداقية المنصة.</p>
+            </div>
+        </section>
+
+        <!-- 6. Localization -->
+        <section id="localization">
+            <h2>6. التوطين للجمهور الجزائري والسمات</h2>
+            <div class="card">
+                <p>تم مراعاة تكييف المنصة لتعمل كلياً بما يتناسب مع السوق المحترفة للجزائر:</p>
+                <ul>
+                    <li><strong>الأولوية للغة العربية:</strong> استعراض الاسم والوصف العربي للمنتجات والجداول مع وضع الترجمات الأخرى كخيار احتياطي لضمان وصول أكبر للزبائن.</li>
+                    <li><strong>دعم 3 سمات تفاعلية للمتجر:</strong> يختار التاجر سمة متجره واللون الرئيسي وتنعكس فوراً للزوار:
+                        <ul>
+                            <li><strong>السمة الفاتحة (Light Theme):</strong> تصميم كلاسيكي أبيض ناصع ونظيف.</li>
+                            <li><strong>السمة الداكنة (Dark Theme):</strong> مريح للعين ليلاً وخلفيات بألوان متناسقة.</li>
+                            <li><strong>السمة الزجاجية (Glassmorphism):</strong> تصميم زجاجي شفاف رائع مع بلورة تصفح جذابة.</li>
+                        </ul>
+                    </li>
                 </ul>
             </div>
-            <div class="card">
-                <span class="badge badge-desktop">برنامج الإدارة (PyQt5)</span>
-                <h3>للتحكم السيادي</h3>
-                <ul>
-                    <li>إدارة شاملة للمخزون والبيانات الضخمة.</li>
-                    <li>محرك العروض وأكواد الخصم التلقائية.</li>
-                    <li>لوحات تحكم تحليلية (Advanced Analytics).</li>
-                    <li>إدارة صلاحيات المستخدمين والمتاجر.</li>
-                </ul>
-            </div>
-        </div>
-    </section>
+        </section>
+    </main>
 
-    <section id="architecture">
-        <h2>3. مخطط هندسة النظام</h2>
-        <div class="card">
-            <div class="architecture-box">
-+-----------------------+        +-----------------------+
-|   Web Platform        |        |  Desktop Control App  |
-|   (Next.js / React)   |        |   (Python / PyQt5)    |
-|   Deployed on Vercel  |        |   Admin Dashboard     |
-+-----------+-----------+        +-----------+-----------+
-            |                                |
-            |        HTTPS / Real-time       |
-            |        PostgreSQL Access       |
-            |                                |
-      +-----v--------------------------------v-----+
-      |                                            |
-      |          SUPABASE CLOUD PLATFORM           |
-      |    (PostgreSQL - Auth - Storage - Edge)    |
-      |                                            |
-      +--------------------------------------------+</div>
-        </div>
-    </section>
+    <!-- Sidebar Active Item Tracking -->
+    <script>
+        const sections = document.querySelectorAll("section");
+        const navLinks = document.querySelectorAll(".nav-item");
 
-    <section id="data-flow">
-        <h2>4. تدفق البيانات</h2>
-        <div class="card">
-            <p>تعتمد المنظومة على تدفق بيانات أحادي المصدر (Single Source of Truth) عبر <strong>Supabase</strong>. يضمن هذا التدفق أن أي إجراء يتم على الويب يظهر فوراً في برنامج الإدارة والعكس صحيح، مما يقلل من أخطاء المزامنة اليدوية بنسبة 100%.</p>
-        </div>
-    </section>
+        window.addEventListener("scroll", () => {
+            let current = "";
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (pageYOffset >= (sectionTop - 200)) {
+                    current = section.getAttribute("id");
+                }
+            });
 
-    <section id="user-flow">
-        <h2>5. مخطط تدفق المستخدم</h2>
-        <div class="card" style="border-right: 4px solid var(--accent-green);">
-            <h3>رحلة العميل (Client Journey)</h3>
-            <p>تصفح المنتج &larr; إضافة للسلة &larr; تطبيق كود الخصم &larr; تأكيد الطلب &larr; تتبع الحالة.</p>
-        </div>
-        <div class="card" style="border-right: 4px solid #9b59b6;">
-            <h3>رحلة المسؤول (Admin Journey)</h3>
-            <p>فتح البرنامج &larr; مراجعة المبيعات &larr; المصادقة على المتاجر &larr; إنشاء حملات ترويجية.</p>
-        </div>
-    </section>
-
-    <footer>
-        <p>&copy; 2026 AliDev Studio | Senior Software Architect Office</p>
-        <p style="color: var(--accent-green);">تم التصميم وفق معايير TikTech UI الاحترافية</p>
-    </footer>
-</div>
-
+            navLinks.forEach(link => {
+                link.classList.remove("active");
+                if (link.getAttribute("href") === `#${current}`) {
+                    link.classList.add("active");
+                }
+            });
+        });
+    </script>
 </body>
 </html>
