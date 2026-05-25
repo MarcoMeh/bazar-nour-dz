@@ -393,7 +393,26 @@ const Products = () => {
           title="تصفح المنتجات"
           description="اكتشف تشكيلة واسعة من المنتجات المميزة في بازارنا. تسوق الآن واحصل على أفضل العروض والأسعار."
         />
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-8 space-y-6">
+          {typeof window !== 'undefined' && localStorage.getItem("simulation_stress_test") === "true" && (
+            <div className="bg-amber-500/10 border-2 border-amber-500/30 text-amber-600 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm font-black shadow-md backdrop-blur-sm">
+                <div className="flex items-center gap-2.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping"></span>
+                    <span>⚠️ تم تفعيل محاكاة اختبار الضغط والأداء (1500 منتج افتراضي محملين).</span>
+                </div>
+                <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-8 text-xs border-amber-500/40 hover:bg-amber-500/20 text-amber-600 font-bold bg-white"
+                    onClick={() => {
+                        localStorage.removeItem("simulation_stress_test");
+                        window.location.href = window.location.pathname;
+                    }}
+                >
+                    إلغاء وضع المحاكاة
+                </Button>
+            </div>
+          )}
           {/* Header */}
           {/* Header */}
           <div className="mb-6 animate-slide-up">

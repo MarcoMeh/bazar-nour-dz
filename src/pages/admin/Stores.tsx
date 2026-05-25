@@ -130,6 +130,37 @@ export default function AdminStores() {
         const { data: cats } = await supabase.from("categories").select("*").order("name");
         setCategories(cats || []);
 
+        // Check if stress test simulation is active (100 stores)
+        const isStressTest = typeof window !== 'undefined' && 
+                             (window.location.search.includes("stress-test=true") || 
+                              localStorage.getItem("simulation_stress_test") === "true");
+
+        if (isStressTest) {
+            localStorage.setItem("simulation_stress_test", "true");
+            try {
+                const stressTestData = await import("@/config/stress_test_data.json");
+                if (stressTestData && stressTestData.default) {
+                    const mockStores = stressTestData.default.stores.map((store: any) => ({
+                        ...store,
+                        categories: store.theme_id === "default" ? [{ id: "cat-uuid-mock-0001", name: "ملابس" }] : [],
+                        profiles: {
+                            id: `profile-${store.id}`,
+                            email: `${store.slug}@bazarna.com`,
+                            role: 'store_owner' as const,
+                            full_name: `التاجر ${store.name.split(' ').pop()}`,
+                            phone: store.phone_numbers[0],
+                            address: "الجزائر العاصمة"
+                        }
+                    })) as Store[];
+                    setStores(mockStores);
+                    setLoading(false);
+                    return;
+                }
+            } catch (err) {
+                console.warn("Stress test mock data file not found. Falling back to real database.", err);
+            }
+        }
+
         let query = supabase
             .from("stores")
             .select(`
@@ -598,7 +629,26 @@ export default function AdminStores() {
     };
 
     return (
-        <div className="p-8">
+        <div className="p-8 space-y-6">
+            {typeof window !== 'undefined' && localStorage.getItem("simulation_stress_test") === "true" && (
+                <div className="bg-amber-500/10 border-2 border-amber-500/30 text-amber-600 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm font-black shadow-md backdrop-blur-sm">
+                    <div className="flex items-center gap-2.5">
+                        <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping"></span>
+                        <span>⚠️ تم تفعيل محاكاة اختبار الضغط والأداء (100 متجر افتراضي معروضين).</span>
+                    </div>
+                    <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="h-8 text-xs border-amber-500/40 hover:bg-amber-500/20 text-amber-600 font-bold bg-white"
+                        onClick={() => {
+                            localStorage.removeItem("simulation_stress_test");
+                            window.location.href = window.location.pathname;
+                        }}
+                    >
+                        إلغاء وضع المحاكاة
+                    </Button>
+                </div>
+            )}
             <div className="flex items-center justify-between mb-8">
                 <h1 className="text-3xl font-bold text-primary">إدارة المحلات</h1>
                 <Dialog open={open} onOpenChange={(val) => {

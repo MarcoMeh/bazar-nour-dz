@@ -76,6 +76,76 @@ async function fetchProducts(filters: ProductFilters = {}): Promise<ProductsResp
         sortOrder = 'desc',
     } = filters;
 
+    // Check if stress test simulation is active (100 stores / 1500 products)
+    const isStressTest = typeof window !== 'undefined' && localStorage.getItem("simulation_stress_test") === "true";
+    if (isStressTest) {
+        try {
+            // Dynamic import to prevent build failure if file is cleaned up
+            const stressTestData = await import("@/config/stress_test_data.json");
+            if (stressTestData && stressTestData.default) {
+                let list = [...stressTestData.default.products];
+                
+                // Apply filters locally
+                if (storeId) {
+                    list = list.filter(p => p.store_id === storeId);
+                }
+                if (categoryId) {
+                    list = list.filter(p => p.category_id === categoryId);
+                }
+                if (subcategoryId) {
+                    list = list.filter(p => p.subcategory_id === subcategoryId);
+                }
+                if (search) {
+                    const lowSearch = search.toLowerCase();
+                    list = list.filter(p => 
+                        (p.name && p.name.toLowerCase().includes(lowSearch)) || 
+                        (p.name_ar && p.name_ar.includes(search))
+                    );
+                }
+                if (minPrice !== undefined) {
+                    list = list.filter(p => p.price >= minPrice);
+                }
+                if (maxPrice !== undefined) {
+                    list = list.filter(p => p.price <= maxPrice);
+                }
+                
+                // Sort locally
+                const ascending = sortOrder === 'asc';
+                list.sort((a: any, b: any) => {
+                    const valA = a[sortBy] ?? '';
+                    const valB = b[sortBy] ?? '';
+                    if (valA < valB) return ascending ? -1 : 1;
+                    if (valA > valB) return ascending ? 1 : -1;
+                    return 0;
+                });
+                
+                const totalCount = list.length;
+                const totalPages = Math.ceil(totalCount / pageSize);
+                
+                // Pagination slice
+                const from = (page - 1) * pageSize;
+                const to = from + pageSize;
+                const slicedProducts = list.slice(from, to).map(p => ({
+                    ...p,
+                    is_delivery_home_available: true,
+                    is_delivery_desktop_available: true,
+                    is_sold_out: false,
+                    is_free_delivery: false,
+                    storeName: `متجر النخبة الافتراضي`
+                })) as Product[];
+                
+                return {
+                    products: slicedProducts,
+                    totalCount,
+                    totalPages,
+                    currentPage: page
+                };
+            }
+        } catch (e) {
+            console.warn("Stress test mock data file not found. Falling back to Supabase.", e);
+        }
+    }
+
     // Base query joining with stores to check for active status
     let query: any = supabase.from('products').select('*, stores!inner(*)', { count: 'exact' });
 
