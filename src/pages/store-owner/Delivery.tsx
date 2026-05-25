@@ -44,18 +44,6 @@ export default function StoreOwnerDelivery() {
 
     const [tableData, setTableData] = useState<{ wilaya: WilayaData, override: OverrideData }[]>([]);
 
-    useEffect(() => {
-        if (storeId) {
-            fetchInitialData();
-        }
-    }, [storeId, fetchInitialData]);
-
-    useEffect(() => {
-        if (selectedCompanyId && storeId) {
-            fetchCompanyDetailsAndOverrides();
-        }
-    }, [selectedCompanyId, storeId, fetchCompanyDetailsAndOverrides]);
-
     const fetchInitialData = useCallback(async () => {
         setLoading(true);
         try {
@@ -140,6 +128,18 @@ export default function StoreOwnerDelivery() {
             setLoading(false);
         }
     }, [selectedCompanyId, storeId]);
+
+    useEffect(() => {
+        if (storeId) {
+            fetchInitialData();
+        }
+    }, [storeId, fetchInitialData]);
+
+    useEffect(() => {
+        if (selectedCompanyId && storeId) {
+            fetchCompanyDetailsAndOverrides();
+        }
+    }, [selectedCompanyId, storeId, fetchCompanyDetailsAndOverrides]);
 
     const handleSave = async () => {
         if (!selectedCompanyId) return;

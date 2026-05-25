@@ -146,16 +146,6 @@ export default function StoreOwnerOrders() {
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
 
-    useEffect(() => {
-        fetchStoreId();
-    }, []);
-
-    useEffect(() => {
-        if (storeId) {
-            fetchOrders();
-        }
-    }, [storeId, fetchOrders]);
-
     const fetchStoreId = async () => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
@@ -211,6 +201,16 @@ export default function StoreOwnerOrders() {
             setLoading(false);
         }
     }, [storeId]);
+
+    useEffect(() => {
+        fetchStoreId();
+    }, []);
+
+    useEffect(() => {
+        if (storeId) {
+            fetchOrders();
+        }
+    }, [storeId, fetchOrders]);
 
     const handleViewOrder = async (order: any) => {
         setSelectedOrder(order);

@@ -67,29 +67,6 @@ const ProductDetail = () => {
   const [api, setApi] = useState<CarouselApi>();
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
 
-  useEffect(() => {
-    if (id) {
-      fetchProduct();
-    }
-  }, [id, fetchProduct]);
-
-  useEffect(() => {
-    if (!api) {
-      return;
-    }
-
-    api.on("select", () => {
-      setSelectedImage(api.selectedScrollSnap());
-    });
-  }, [api]);
-
-  useEffect(() => {
-    if (!api) {
-      return;
-    }
-    api.scrollTo(selectedImage);
-  }, [selectedImage, api]);
-
   const fetchProduct = useCallback(async () => {
     setLoading(true);
     const { data, error } = (await supabase
@@ -125,6 +102,29 @@ const ProductDetail = () => {
 
     setLoading(false);
   }, [id, navigate]);
+
+  useEffect(() => {
+    if (id) {
+      fetchProduct();
+    }
+  }, [id, fetchProduct]);
+
+  useEffect(() => {
+    if (!api) {
+      return;
+    }
+
+    api.on("select", () => {
+      setSelectedImage(api.selectedScrollSnap());
+    });
+  }, [api]);
+
+  useEffect(() => {
+    if (!api) {
+      return;
+    }
+    api.scrollTo(selectedImage);
+  }, [selectedImage, api]);
 
   const handleAddToCart = () => {
     if (product && !product.is_sold_out) {
