@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ShoppingCart, Plus, Minus, Trash2, ArrowLeft, Store, Sparkles, AlertCircle } from "lucide-react";
+import { ShoppingCart, Plus, Minus, Trash2, ArrowLeft, Store, Sparkles, AlertCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Sheet,
@@ -7,6 +8,7 @@ import {
     SheetHeader,
     SheetTitle,
     SheetTrigger,
+    SheetClose,
 } from "@/components/ui/sheet";
 import { useCart } from "@/contexts/CartContext";
 
@@ -16,12 +18,13 @@ interface CartDrawerProps {
 
 export function CartDrawer({ useDarkText }: CartDrawerProps) {
     const { items, totalItems, totalPrice, updateQuantity, removeItem } = useCart();
+    const [open, setOpen] = useState(false);
 
     const uniqueStoreCount = new Set(items.map(item => item.ownerId || item.storeName).filter(Boolean)).size;
     const hasMultipleStores = uniqueStoreCount > 1;
 
     return (
-        <Sheet>
+        <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
                 <Button
                     variant="ghost"
@@ -38,12 +41,17 @@ export function CartDrawer({ useDarkText }: CartDrawerProps) {
                 </Button>
             </SheetTrigger>
             
-            <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col bg-slate-50 border-r-0">
-                <SheetHeader className="p-6 bg-white border-b border-slate-100 shadow-sm z-10">
+            <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col bg-slate-50 border-r-0 [&>button]:hidden">
+                <SheetHeader className="p-6 bg-white border-b border-slate-100 shadow-sm z-10 flex flex-row items-center justify-between space-y-0">
                     <SheetTitle className="flex items-center gap-2 text-2xl font-black text-slate-900">
                         <ShoppingCart className="h-6 w-6 text-primary" />
                         سلة المشتريات ({totalItems})
                     </SheetTitle>
+                    <SheetClose asChild>
+                        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-slate-100 text-slate-500 hover:text-slate-900 shrink-0">
+                            <X className="h-6 w-6" />
+                        </Button>
+                    </SheetClose>
                 </SheetHeader>
 
                 {/* Cart Items */}
@@ -131,9 +139,9 @@ export function CartDrawer({ useDarkText }: CartDrawerProps) {
                             </span>
                         </div>
                         <div className="grid grid-cols-1 gap-3">
-                            <Link to="/cart">
+                            <Link to="/cart" onClick={() => setOpen(false)}>
                                 <Button className="w-full h-12 font-bold rounded-xl bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-200 gap-2 text-lg">
-                                    تأكيد الطلب (الدفع) <ArrowLeft className="w-5 h-5" />
+                                    إتمام الطلب <ArrowLeft className="w-5 h-5" />
                                 </Button>
                             </Link>
                         </div>
