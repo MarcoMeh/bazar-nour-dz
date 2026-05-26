@@ -49,6 +49,7 @@ export default defineConfig(({ mode }) => ({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
         maximumFileSizeToCacheInBytes: 7 * 1024 * 1024, // 7MB limit
         navigateFallbackDenylist: [/^\/supabase/], // Don't intercept Supabase calls
+        importScripts: ['/push-sw.js'], // Include custom background push notifications SW
       }
     })
   ].filter(Boolean),

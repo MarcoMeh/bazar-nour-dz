@@ -12,6 +12,7 @@ import { ar } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell, Pie, PieChart, Legend } from "recharts";
+import { PushNotificationManager } from "@/components/store-owner/PushNotificationManager";
 
 export default function StoreOwnerDashboard() {
     const [stats, setStats] = useState({
@@ -301,6 +302,9 @@ export default function StoreOwnerDashboard() {
                     </button>
                 </div>
             </div>
+
+            {/* Push Notifications Configuration Panel */}
+            <PushNotificationManager theme={dashboardTheme} />
 
             {/* Quick Stats Grid */}
             <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
