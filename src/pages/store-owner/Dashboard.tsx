@@ -24,6 +24,7 @@ export default function StoreOwnerDashboard() {
     const [orderStatusData, setOrderStatusData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [storeId, setStoreId] = useState<string | null>(null);
+    const [storeSlug, setStoreSlug] = useState<string | null>(null);
     const [storeInfo, setStoreInfo] = useState<{ name: string; image_url: string | null } | null>(null);
     
     // Theme support: 'light' | 'dark' | 'glass'
@@ -68,12 +69,13 @@ export default function StoreOwnerDashboard() {
 
         const { data: store } = await supabase
             .from("stores")
-            .select("id, name, image_url")
+            .select("id, name, slug, image_url")
             .eq("owner_id", user.id)
             .single();
 
         if (store) {
             setStoreId(store.id);
+            setStoreSlug(store.slug);
             setStoreInfo({
                 name: store.name,
                 image_url: store.image_url || null
@@ -176,7 +178,7 @@ export default function StoreOwnerDashboard() {
 
     // Handle copying store link
     const handleCopyStoreLink = () => {
-        const storeLink = `${window.location.origin}/store/${storeId}`;
+        const storeLink = `${window.location.origin}/store/${storeSlug || storeId}`;
         navigator.clipboard.writeText(storeLink);
         toast.success("تم نسخ رابط متجرك بنجاح! يمكنك الآن مشاركته.");
     };
@@ -416,7 +418,7 @@ export default function StoreOwnerDashboard() {
                     </div>
                 </div>
                 <a
-                    href={`/store/${storeId}`}
+                    href={`/store/${storeSlug || storeId}`}
                     target="_blank"
                     rel="noreferrer"
                     className="flex items-center gap-1 px-3 py-1.5 rounded-lg border text-xs font-black text-primary bg-white/50 hover:bg-primary hover:text-white transition-all w-fit shrink-0"
