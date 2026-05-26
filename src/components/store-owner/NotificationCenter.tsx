@@ -70,24 +70,7 @@ export const NotificationCenter = () => {
                     const newNotification = payload.new as Notification;
                     setNotifications(prev => [newNotification, ...prev].slice(0, 20));
                     setUnreadCount(prev => prev + 1);
-
-                    // Show toast for new order
-                    if (newNotification.type === 'new_order') {
-                        toast("طلب جديد! 📦", {
-                            description: newNotification.message,
-                            action: {
-                                label: "عرض",
-                                onClick: () => navigate("/store-dashboard/orders"),
-                            },
-                        });
-                        // Play a subtle sound if possible
-                        try {
-                            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
-                            audio.play();
-                        } catch (e) {
-                            console.log("Audio play blocked");
-                        }
-                    }
+                    // Toast alerts and sound plays are handled globally by the useOrderNotifications hook to avoid duplicates
                 }
             )
             .subscribe();
