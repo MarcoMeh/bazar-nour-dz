@@ -158,8 +158,9 @@ export const Navbar = () => {
     const DashboardIcon = () => {
         if (!userRole || userRole === 'customer') return null;
 
-        const link = userRole === 'admin' ? '/admin' : '/store-dashboard';
-        const title = userRole === 'admin' ? 'لوحة التحكم' : 'لوحة المتجر';
+        const isAdminOrSub = userRole === 'admin' || userRole === 'sub_admin';
+        const link = isAdminOrSub ? '/admin' : '/store-dashboard';
+        const title = isAdminOrSub ? 'لوحة التحكم' : 'لوحة المتجر';
 
         return (
             <Link to={link}>
@@ -271,15 +272,15 @@ export const Navbar = () => {
                                                     </Link>
                                                 )}
 
-                                                {(userRole === 'admin' || userRole === 'store_owner') && (
+                                                {(userRole === 'admin' || userRole === 'sub_admin' || userRole === 'store_owner') && (
                                                     <>
                                                         <Link 
-                                                            to={userRole === 'admin' ? '/admin' : '/store-dashboard'} 
+                                                            to={(userRole === 'admin' || userRole === 'sub_admin') ? '/admin' : '/store-dashboard'} 
                                                             className="flex items-center gap-3 px-3 py-3 rounded-xl bg-primary/20 hover:bg-primary/30 transition-all text-sm font-bold text-primary" 
                                                             onClick={() => setIsSheetOpen(false)}
                                                         >
                                                             <LayoutDashboard className="h-5 w-5" />
-                                                            {userRole === 'admin' ? 'لوحة التحكم' : 'لوحة المتجر'}
+                                                            {(userRole === 'admin' || userRole === 'sub_admin') ? 'لوحة التحكم' : 'لوحة المتجر'}
                                                         </Link>
                                                         {userRole === 'store_owner' && (
                                                             <Link 
