@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -1231,7 +1231,7 @@ export type Database = {
         | "shipped"
         | "delivered"
         | "cancelled"
-      user_role: "admin" | "store_owner" | "customer"
+      user_role: "admin" | "sub_admin" | "store_owner" | "customer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1367,7 +1367,7 @@ export const Constants = {
         "delivered",
         "cancelled",
       ],
-      user_role: ["admin", "store_owner", "customer"],
+      user_role: ["admin", "sub_admin", "store_owner", "customer"],
     },
   },
 } as const
