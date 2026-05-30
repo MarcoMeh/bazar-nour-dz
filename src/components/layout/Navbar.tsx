@@ -32,6 +32,7 @@ export const Navbar = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [userRole, setUserRole] = useState<string | null>(null);
+    const [loadingRole, setLoadingRole] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
     const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
     const [isInstallDialogOpen, setIsInstallDialogOpen] = useState(false);
@@ -91,13 +92,16 @@ export const Navbar = () => {
         const fetchUserRole = async () => {
             if (!user) {
                 setUserRole(null);
+                setLoadingRole(false);
                 return;
             }
 
+            setLoadingRole(true);
             // 1. Try to get role from metadata first for instant responsiveness
             const metaRole = user.user_metadata?.role || user.app_metadata?.role;
             if (metaRole) {
                 setUserRole(metaRole);
+                setLoadingRole(false);
             }
 
             // 2. Fetch/Confirm from profiles table
@@ -110,16 +114,22 @@ export const Navbar = () => {
                 
                 if (data && data.role) {
                     setUserRole(data.role);
-                } else if (error) {
-                    console.error("Error fetching user role from profiles:", error);
+                } else {
+                    setUserRole('customer');
                 }
             } catch (err) {
                 console.error("Critical error fetching user role:", err);
+                setUserRole('customer');
+            } finally {
+                setLoadingRole(false);
             }
         };
 
         if (user) {
             fetchUserRole();
+        } else {
+            setUserRole(null);
+            setLoadingRole(false);
         }
     }, [user, isSheetOpen]);
 
@@ -243,7 +253,7 @@ export const Navbar = () => {
                                         {/* User Account / Login Section directly under Wishlist */}
                                         {user ? (
                                             <div className="flex flex-col gap-1 mt-1 pt-1 border-t border-white/5">
-                                                {!userRole && (
+                                                {loadingRole && (
                                                     <div className="flex items-center gap-2 text-white/40 text-xs py-2 px-3 animate-pulse bg-white/5 rounded-xl">
                                                         <span className="h-2 w-2 rounded-full bg-blue-400 animate-ping"></span>
                                                         <span>جاري تحميل البيانات...</span>
