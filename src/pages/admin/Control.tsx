@@ -5,8 +5,9 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
+import { createClient } from "@supabase/supabase-js";
 import { toast } from "sonner";
-import { Loader2, X, Plus, Search, Eye, Zap, Settings, AlertTriangle, Store, ArrowRight } from "lucide-react";
+import { Loader2, X, Plus, Search, Eye, Zap, Settings, AlertTriangle, Store, ArrowRight, UserPlus, ShieldAlert, Trash2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -37,10 +38,140 @@ export default function AdminControl() {
     const [storeProducts, setStoreProducts] = useState<any[]>([]);
     const [loadingProducts, setLoadingProducts] = useState(false);
 
+    // Sub-admins Management State
+    const [subAdmins, setSubAdmins] = useState<any[]>([]);
+    const [loadingSubAdmins, setLoadingSubAdmins] = useState(false);
+    const [addingSubAdmin, setAddingSubAdmin] = useState(false);
+    const [newAdminName, setNewAdminName] = useState("");
+    const [newAdminEmail, setNewAdminEmail] = useState("");
+    const [newAdminPhone, setNewAdminPhone] = useState("");
+    const [newAdminPassword, setNewAdminPassword] = useState("");
+
     useEffect(() => {
         fetchSettings();
         fetchFlashSaleProducts();
+        fetchSubAdmins();
     }, []);
+
+    const fetchSubAdmins = async () => {
+        setLoadingSubAdmins(true);
+        try {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('role', 'sub_admin')
+                .order('created_at', { ascending: false } as any);
+
+            if (error) throw error;
+            setSubAdmins(data || []);
+        } catch (error: any) {
+            console.error('Error fetching sub-admins:', error);
+            toast.error('حدث خطأ أثناء تحميل قائمة المشرفين');
+        } finally {
+            setLoadingSubAdmins(false);
+        }
+    };
+
+    const handleAddSubAdmin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newAdminName.trim() || !newAdminEmail.trim() || !newAdminPhone.trim() || !newAdminPassword.trim()) {
+            toast.error("يرجى ملء جميع الحقول المطلوبة");
+            return;
+        }
+        if (newAdminPassword.length < 6) {
+            toast.error("كلمة المرور يجب أن تكون 6 أحرف على الأقل");
+            return;
+        }
+
+        setAddingSubAdmin(true);
+        try {
+            // Temporary client to create user without signing out current admin
+            const tempClient = createClient(
+                import.meta.env.VITE_SUPABASE_URL,
+                import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+                {
+                    auth: {
+                        persistSession: false,
+                        autoRefreshToken: false,
+                        detectSessionInUrl: false,
+                    },
+                }
+            );
+
+            // 1. Create Auth User
+            const { data: authData, error: authError } = await tempClient.auth.signUp({
+                email: newAdminEmail,
+                password: newAdminPassword,
+                options: {
+                    data: {
+                        full_name: newAdminName,
+                        role: 'sub_admin',
+                    },
+                    emailRedirectTo: window.location.origin,
+                },
+            });
+
+            if (authError) {
+                if (authError.message?.includes('already registered')) {
+                    throw new Error("البريد الإلكتروني هذا مسجل مسبقاً في النظام");
+                }
+                throw authError;
+            }
+
+            if (!authData.user) throw new Error("فشل في إنشاء الحساب");
+            const userId = authData.user.id;
+
+            // 2. Create Profile (using RPC to bypass RLS)
+            const { error: profileError } = await supabase.rpc('create_profile_for_user', {
+                user_id: userId,
+                user_email: newAdminEmail,
+                user_role: 'sub_admin',
+                user_full_name: newAdminName,
+                user_phone: newAdminPhone,
+                user_address: 'الجزائر',
+            });
+
+            if (profileError) {
+                console.error("Profile creation error:", profileError);
+                throw new Error("فشل في إنشاء ملف المشرف");
+            }
+
+            toast.success("تم إنشاء حساب مسؤول الموقع الجديد بنجاح");
+            
+            // Reset form
+            setNewAdminName("");
+            setNewAdminEmail("");
+            setNewAdminPhone("");
+            setNewAdminPassword("");
+            
+            // Refresh list
+            fetchSubAdmins();
+        } catch (error: any) {
+            console.error('Error adding sub-admin:', error);
+            toast.error(error.message || 'خطأ في إضافة المشرف');
+        } finally {
+            setAddingSubAdmin(false);
+        }
+    };
+
+    const handleRemoveSubAdmin = async (id: string, name: string) => {
+        if (!confirm(`هل أنت متأكد من إلغاء صلاحيات المشرف "${name}"؟ سيتم تحويل حسابه لحساب زبون عادي.`)) return;
+
+        try {
+            const { error } = await supabase
+                .from('profiles')
+                .update({ role: 'customer' })
+                .eq('id', id);
+
+            if (error) throw error;
+
+            toast.success("تم إلغاء صلاحيات المشرف بنجاح");
+            fetchSubAdmins();
+        } catch (error: any) {
+            console.error('Error removing sub-admin:', error);
+            toast.error('خطأ في إزالة صلاحيات المشرف');
+        }
+    };
 
     const fetchFlashSaleProducts = async () => {
         const { data, error } = await supabase
@@ -244,6 +375,10 @@ export default function AdminControl() {
                         <Zap className="w-4 h-4 ml-2" />
                         عروض فلاش
                     </TabsTrigger>
+                    <TabsTrigger value="sub_admins" className="px-6 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-base">
+                        <UserPlus className="w-4 h-4 ml-2" />
+                        مسؤولي الموقع
+                    </TabsTrigger>
                 </TabsList>
 
                 {/* VISIBILITY SETTINGS */}
@@ -420,6 +555,130 @@ export default function AdminControl() {
                                     <div className="text-center py-12 text-muted-foreground bg-slate-50 rounded-xl border border-dashed">
                                         <Zap className="h-10 w-10 mx-auto text-gray-300 mb-3" />
                                         <p>لا توجد منتجات في عروض فلاش حالياً</p>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+                </TabsContent>
+
+                {/* SUB ADMINS MANAGEMENT */}
+                <TabsContent value="sub_admins" className="space-y-6">
+                    <div className="grid gap-6 md:grid-cols-12">
+                        {/* Add New Admin Form */}
+                        <Card className="md:col-span-5 h-fit">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <UserPlus className="h-5 w-5 text-primary" />
+                                    إضافة مسؤول موقع جديد
+                                </CardTitle>
+                                <CardDescription>قم بملء البيانات لإنشاء حساب مسؤول موقع جديد بصلاحيات محدودة.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <form onSubmit={handleAddSubAdmin} className="space-y-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="adminName">الاسم الكامل</Label>
+                                        <Input
+                                            id="adminName"
+                                            value={newAdminName}
+                                            onChange={e => setNewAdminName(e.target.value)}
+                                            placeholder="الاسم الكامل للمشرف"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="adminEmail">البريد الإلكتروني</Label>
+                                        <Input
+                                            id="adminEmail"
+                                            type="email"
+                                            value={newAdminEmail}
+                                            onChange={e => setNewAdminEmail(e.target.value)}
+                                            placeholder="example@bazzarna.com"
+                                            dir="ltr"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="adminPhone">رقم الهاتف</Label>
+                                        <Input
+                                            id="adminPhone"
+                                            value={newAdminPhone}
+                                            onChange={e => setNewAdminPhone(e.target.value)}
+                                            placeholder="05 / 06 / 07 ..."
+                                            dir="ltr"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="adminPassword">كلمة المرور</Label>
+                                        <Input
+                                            id="adminPassword"
+                                            type="password"
+                                            value={newAdminPassword}
+                                            onChange={e => setNewAdminPassword(e.target.value)}
+                                            placeholder="كلمة مرور قوية لا تقل عن 6 أحرف"
+                                            required
+                                        />
+                                    </div>
+                                    <Button type="submit" className="w-full bg-primary hover:bg-primary/90 mt-2" disabled={addingSubAdmin}>
+                                        {addingSubAdmin ? (
+                                            <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                                        ) : (
+                                            <UserPlus className="ml-2 h-4 w-4" />
+                                        )}
+                                        إضافة المسؤول
+                                    </Button>
+                                </form>
+                            </CardContent>
+                        </Card>
+
+                        {/* List Active Admns */}
+                        <Card className="md:col-span-7">
+                            <CardHeader>
+                                <CardTitle className="flex justify-between items-center">
+                                    <span>قائمة مسؤولي الموقع المضافين</span>
+                                    <span className="bg-primary/10 text-primary text-xs px-2.5 py-0.5 rounded-full ring-1 ring-primary/20">
+                                        {subAdmins.length} مسؤول
+                                    </span>
+                                </CardTitle>
+                                <CardDescription>الأشخاص المخولون بمراجعة التقييمات، الأقسام، المتاجر، الإعدادات وخلفيات الصفحات.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {loadingSubAdmins ? (
+                                    <div className="text-center py-12">
+                                        <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary mb-2" />
+                                        <span>جاري تحميل قائمة المشرفين...</span>
+                                    </div>
+                                ) : subAdmins.length > 0 ? (
+                                    <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
+                                        {subAdmins.map(admin => (
+                                            <div key={admin.id} className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 p-4 rounded-xl border bg-slate-50 hover:bg-slate-100/70 transition-all group">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                                        <ShieldAlert className="w-5 h-5 text-primary" />
+                                                    </div>
+                                                    <div className="text-sm">
+                                                        <p className="font-bold text-gray-900">{admin.full_name}</p>
+                                                        <p className="text-muted-foreground text-xs">{admin.email}</p>
+                                                        <p className="text-muted-foreground text-xs" dir="ltr">{admin.phone || "-"}</p>
+                                                    </div>
+                                                </div>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => handleRemoveSubAdmin(admin.id, admin.full_name)}
+                                                    className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 gap-1.5 self-end sm:self-center h-9 px-3 rounded-lg"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                    إلغاء الصلاحية
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-12 text-muted-foreground bg-slate-50 rounded-xl border border-dashed">
+                                        <ShieldAlert className="h-10 w-10 mx-auto text-gray-300 mb-3" />
+                                        <p>لا يوجد مسؤولو موقع آخرين مضافين حالياً</p>
                                     </div>
                                 )}
                             </CardContent>

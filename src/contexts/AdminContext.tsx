@@ -6,6 +6,7 @@ interface AdminContextType {
   user: User | null;
   session: Session | null;
   isAdmin: boolean;
+  isSubAdmin: boolean;
   isStoreOwner: boolean;
   storeId: string | null;
   login: (email: string, password: string) => Promise<{ error: any }>;
@@ -18,6 +19,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSubAdmin, setIsSubAdmin] = useState(false);
   const [isStoreOwner, setIsStoreOwner] = useState(false);
   const [storeId, setStoreId] = useState<string | null>(null);
 
@@ -25,6 +27,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const checkUserRole = async (authUserId: string | undefined) => {
     if (!authUserId) {
       setIsAdmin(false);
+      setIsSubAdmin(false);
       setIsStoreOwner(false);
       setStoreId(null);
       return;
@@ -39,9 +42,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     if (adminData && !adminError) {
       setIsAdmin(true);
-      // Admins might not have a store_id, or could manage all.
-      // For now, keep storeId null for admins unless they also own a store?
-      // Usually admins see everything.
+      setIsSubAdmin(false);
       return;
     }
 
@@ -55,6 +56,8 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (profileData && !profileError) {
       if (profileData.role === 'store_owner') {
         setIsStoreOwner(true);
+        setIsAdmin(false);
+        setIsSubAdmin(false);
         // Fetch store ID
         const { data: storeData } = await supabase
           .from("stores")
@@ -67,6 +70,15 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
       } else if (profileData.role === 'admin') {
         setIsAdmin(true);
+        setIsSubAdmin(false);
+      } else if (profileData.role === 'sub_admin') {
+        setIsSubAdmin(true);
+        setIsAdmin(false);
+        setIsStoreOwner(false);
+      } else {
+        setIsAdmin(false);
+        setIsSubAdmin(false);
+        setIsStoreOwner(false);
       }
     }
   };
@@ -99,6 +111,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const logout = async () => {
     await supabase.auth.signOut();
     setIsAdmin(false);
+    setIsSubAdmin(false);
     setIsStoreOwner(false);
     setStoreId(null);
   };
@@ -109,6 +122,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         user,
         session,
         isAdmin,
+        isSubAdmin,
         isStoreOwner,
         storeId,
         login,

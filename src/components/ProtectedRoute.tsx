@@ -5,10 +5,11 @@ import { Loader2 } from "lucide-react";
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
-    requiredRole?: "admin" | "store_owner" | "customer";
+    requiredRole?: "admin" | "sub_admin" | "store_owner" | "customer";
+    allowedRoles?: ("admin" | "sub_admin" | "store_owner" | "customer")[];
 }
 
-export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
+export const ProtectedRoute = ({ children, requiredRole, allowedRoles }: ProtectedRouteProps) => {
     const [loading, setLoading] = useState(true);
     const [authorized, setAuthorized] = useState(false);
     const location = useLocation();
@@ -25,7 +26,7 @@ export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) 
             }
 
             // If no specific role required, just being logged in is enough
-            if (!requiredRole) {
+            if (!requiredRole && !allowedRoles) {
                 setAuthorized(true);
                 setLoading(false);
                 return;
@@ -45,15 +46,21 @@ export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) 
                 return;
             }
 
-            // Check if user has the required role
-            setAuthorized(profile.role === requiredRole);
+            // Check if user has the required role or is in allowedRoles
+            if (allowedRoles) {
+                setAuthorized(allowedRoles.includes(profile.role as any));
+            } else if (requiredRole) {
+                setAuthorized(profile.role === requiredRole);
+            } else {
+                setAuthorized(true);
+            }
         } catch (error) {
             console.error("Auth check error:", error);
             setAuthorized(false);
         } finally {
             setLoading(false);
         }
-    }, [requiredRole]);
+    }, [requiredRole, allowedRoles]);
 
     useEffect(() => {
         checkAuth();

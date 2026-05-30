@@ -22,7 +22,8 @@ import { useAdmin } from "@/contexts/AdminContext";
 
 export const AdminSidebar = () => {
   const location = useLocation();
-  const { isAdmin, isStoreOwner } = useAdmin();
+  const { isAdmin, isSubAdmin, isStoreOwner } = useAdmin();
+  const isAnyAdmin = isAdmin || isSubAdmin;
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -33,16 +34,16 @@ export const AdminSidebar = () => {
     { name: "لوحة التحكم", href: "/admin", icon: LayoutDashboard, show: true },
     { name: "المنتجات", href: "/admin/products", icon: Package, show: true },
     { name: "التقييمات", href: "/admin/reviews", icon: Star, show: true },
-    { name: "تصنيفات المنتجات", href: "/admin/categories", icon: FolderTree, show: isAdmin },
+    { name: "تصنيفات المنتجات", href: "/admin/categories", icon: FolderTree, show: isAnyAdmin },
 
     { name: "الطلبات", href: "/admin/orders", icon: ShoppingCart, show: true },
     { name: "المحلات", href: "/admin/stores", icon: Store, show: true },
-    { name: "طلبات تسجيل المحلات", href: "/admin/store-registrations", icon: UserPlus, show: isAdmin },
+    { name: "طلبات تسجيل المحلات", href: "/admin/store-registrations", icon: UserPlus, show: isAnyAdmin },
     { name: "الإدارة المالية", href: "/admin/finance", icon: DollarSign, show: isAdmin },
     { name: "رسوم التوصيل", href: "/admin/delivery", icon: Truck, show: isAdmin },
-    { name: "خلفيات الصفحات", href: "/admin/backgrounds", icon: ImageIcon, show: isAdmin },
+    { name: "خلفيات الصفحات", href: "/admin/backgrounds", icon: ImageIcon, show: isAnyAdmin },
     { name: "أكواد برومو", href: "/admin/promo-codes", icon: Tags, show: isAdmin },
-    { name: "إعدادات الموقع", href: "/admin/settings", icon: Globe, show: isAdmin },
+    { name: "إعدادات الموقع", href: "/admin/settings", icon: Globe, show: isAnyAdmin },
     { name: "التحكم", href: "/admin/control", icon: Settings, show: isAdmin },
   ];
 
