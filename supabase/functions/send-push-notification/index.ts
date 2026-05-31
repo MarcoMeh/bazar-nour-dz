@@ -25,19 +25,57 @@ serve(async (req) => {
         )
 
         const payload = await req.json()
-        const { notification_id, store_id, type, title, message } = payload
+        const { notification_id, store_id, type, title, message, send_to_admins } = payload
 
-        console.log(`Received push notification request for store: ${store_id}, type: ${type}`)
+        console.log(`Received push notification request: store_id=${store_id}, type=${type}, send_to_admins=${send_to_admins}`)
 
-        if (!store_id) {
-            throw new Error("store_id is required")
+        if (!store_id && !send_to_admins) {
+            throw new Error("store_id or send_to_admins is required")
         }
 
-        // 1. Fetch active push subscriptions for this store
-        const { data: subscriptions, error: fetchError } = await supabaseAdmin
-            .from('store_push_subscriptions')
-            .select('*')
-            .eq('store_id', store_id)
+        let subscriptions = []
+
+        // 1. Fetch active push subscriptions
+        if (send_to_admins) {
+            console.log("Fetching push subscriptions for admins and sub_admins...")
+            const { data: adminProfiles, error: profileError } = await supabaseAdmin
+                .from('profiles')
+                .select('id')
+                .in('role', ['admin', 'sub_admin'])
+
+            if (profileError) {
+                console.error("Error fetching admin profiles:", profileError)
+                throw profileError
+            }
+
+            const adminUserIds = adminProfiles?.map((p) => p.id) || []
+            console.log(`Found ${adminUserIds.length} admin user IDs:`, adminUserIds)
+
+            if (adminUserIds.length > 0) {
+                const { data: adminSubs, error: fetchError } = await supabaseAdmin
+                    .from('store_push_subscriptions')
+                    .select('*')
+                    .in('user_id', adminUserIds)
+
+                if (fetchError) {
+                    console.error("Error fetching admin subscriptions:", fetchError)
+                    throw fetchError
+                }
+                subscriptions = adminSubs || []
+            }
+        } else {
+            console.log(`Fetching push subscriptions for store: ${store_id}`)
+            const { data: storeSubs, error: fetchError } = await supabaseAdmin
+                .from('store_push_subscriptions')
+                .select('*')
+                .eq('store_id', store_id)
+
+            if (fetchError) {
+                console.error("Error fetching store subscriptions:", fetchError)
+                throw fetchError
+            }
+            subscriptions = storeSubs || []
+        }
 
         if (fetchError) {
             console.error("Error fetching subscriptions:", fetchError)
@@ -71,7 +109,9 @@ serve(async (req) => {
             badge: "/pwa-192x192.png",
             vibrate: [100, 50, 100],
             data: {
-                url: type === 'new_order' ? "/store-dashboard/orders" : "/store-dashboard",
+                url: send_to_admins 
+                    ? "/admin/store-registrations" 
+                    : (type === 'new_order' ? "/store-dashboard/orders" : "/store-dashboard"),
                 notification_id: notification_id
             }
         })

@@ -7,6 +7,7 @@ import { RevenueChart } from "@/components/admin/dashboard/RevenueChart";
 import { OrderStatusChart } from "@/components/admin/dashboard/OrderStatusChart";
 import { RecentOrders } from "@/components/admin/dashboard/RecentOrders";
 import { subDays, format } from "date-fns";
+import { PushNotificationManager } from "@/components/store-owner/PushNotificationManager";
 
 export default function AdminDashboard() {
   const { isAdmin, isStoreOwner, storeId } = useAdmin();
@@ -186,6 +187,8 @@ export default function AdminDashboard() {
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight text-primary">لوحة التحكم</h2>
       </div>
+
+      <PushNotificationManager theme="light" />
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

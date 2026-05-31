@@ -29,7 +29,7 @@ interface PushNotificationManagerProps {
 }
 
 export const PushNotificationManager = ({ theme = 'light' }: PushNotificationManagerProps) => {
-    const { storeId, user } = useAdmin();
+    const { storeId, user, isAdmin, isSubAdmin } = useAdmin();
     const [isSupported, setIsSupported] = useState(false);
     const [isSubscribed, setIsSubscribed] = useState(false);
     const [permissionState, setPermissionState] = useState<NotificationPermission>('default');
@@ -75,7 +75,8 @@ export const PushNotificationManager = ({ theme = 'light' }: PushNotificationMan
     };
 
     const handleSubscribe = async () => {
-        if (!isSupported || !storeId || !user) return;
+        const canSubscribe = isSupported && user && (storeId || isAdmin || isSubAdmin);
+        if (!canSubscribe) return;
         setLoading(true);
 
         try {
@@ -108,7 +109,7 @@ export const PushNotificationManager = ({ theme = 'light' }: PushNotificationMan
             const { error } = await supabase
                 .from('store_push_subscriptions')
                 .upsert({
-                    store_id: storeId,
+                    store_id: storeId || null,
                     user_id: user.id,
                     endpoint: endpoint,
                     p256dh: p256dh,
@@ -161,18 +162,26 @@ export const PushNotificationManager = ({ theme = 'light' }: PushNotificationMan
     };
 
     const handleTestNotification = async () => {
-        if (!isSubscribed || !storeId) return;
+        const canTest = isSubscribed && (storeId || isAdmin || isSubAdmin);
+        if (!canTest) return;
         setTesting(true);
 
         try {
             // Trigger push via Edge Function
             const { data, error } = await supabase.functions.invoke('send-push-notification', {
-                body: {
-                    store_id: storeId,
-                    type: 'new_order', // Simulates a new order notification structure
-                    title: 'تجربة تنبيهات بازارنا! 🔔',
-                    message: 'نجاح! نظام الإشعارات الفورية المسموعة يعمل بشكل ممتاز في الخلفية.'
-                }
+                body: storeId 
+                    ? {
+                        store_id: storeId,
+                        type: 'new_order',
+                        title: 'تجربة تنبيهات بازارنا! 🔔',
+                        message: 'نجاح! نظام الإشعارات الفورية المسموعة يعمل بشكل ممتاز في الخلفية.'
+                    }
+                    : {
+                        send_to_admins: true,
+                        type: 'new_store_registration',
+                        title: 'تجربة تنبيهات الإدارة! 🔔',
+                        message: 'نجاح! إشعارات المشرفين والمسؤولين تعمل بشكل ممتاز في الخلفية.'
+                    }
             });
 
             if (error) throw error;
